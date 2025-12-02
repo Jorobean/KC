@@ -31,7 +31,6 @@
       --radius: 10px;
     }
 
-    /* Fluid typography */
     html { font-size: 16px; }
     @media (max-width: 420px){ html { font-size: 15px; } }
     @media (min-width: 1200px){ html { font-size: 18px; } }
@@ -61,6 +60,16 @@
       line-height: 1.5;
     }
 
+    /* Fix: keep background visible on mobile */
+    @media (max-width: 480px){
+      .container {
+        width: 88%;
+        margin-left: auto;
+        margin-right: auto;
+      }
+      body { padding-bottom: env(safe-area-inset-bottom); }
+    }
+
     h1 {
       font-size: clamp(1.4rem, 2.2vw, 2rem);
       font-weight: 700;
@@ -85,17 +94,18 @@
       font-size: .95rem;
     }
 
-    .footer .kem { font-weight: 900; font-size: 1.5rem; }
-    .footer .corp { font-weight: 300; font-size: .95rem; margin-top: -4px; }
+    .footer .kem {
+      font-weight: 900;
+      font-size: 1.5rem;
+    }
 
-    /* Ensure the container doesn't get obscured by mobile UI */
-    @media (max-width: 480px){
-      .container { padding-bottom: 28px; }
-      body { padding-bottom: env(safe-area-inset-bottom); }
+    .footer .corp {
+      font-weight: 300;
+      font-size: .95rem;
+      margin-top: -4px;
     }
   </style>
-  
-  <!-- JSON-LD structured data: Organization + FAQ to help search engines show rich results -->
+
   <script type="application/ld+json">
   {
     "@context": "https://schema.org",
@@ -105,7 +115,7 @@
         "name": "KEMS",
         "url": "https://getkems.com/",
         "logo": "https://getkems.com/logo.png",
-  "sameAs": ["https://www.instagram.com/GetKEMS","https://twitter.com/GetKEMS"]
+        "sameAs": ["https://www.instagram.com/GetKEMS","https://twitter.com/GetKEMS"]
       },
       {
         "@type": "FAQPage",
@@ -117,15 +127,17 @@
               "@type": "Answer",
               "text": "KEMS (Kinetic Energy Management System) is a device-based self-observation system that records users as they speak and interact in front of the device to support personal growth, emotional awareness, and therapeutic reflection."
             }
-          },
-          {
+          }
+        ]
+      }
+    ]
   }
   </script>
 </head>
 <body>
   <div class="container">
-  <h1>KEMS — Kinetic Energy Management System</h1>
-  <p><strong>KEMS</strong> (Kinetic Energy Management System) is a device-based self-observation system designed to support personal growth, emotional awareness, and therapeutic reflection.</p>
+    <h1>KEMS — Kinetic Energy Management System</h1>
+    <p><strong>KEMS</strong> (Kinetic Energy Management System) is a device-based self-observation system designed to support personal growth, emotional awareness, and therapeutic reflection.</p>
   </div>
 
   <div class="footer">
