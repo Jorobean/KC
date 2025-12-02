@@ -104,6 +104,58 @@
       font-size: .95rem;
       margin-top: -4px;
     }
+
+    .logo {
+      text-align: center;
+      margin-bottom: 8px;
+    }
+
+    .logo img {
+      max-width: 150px;
+      height: auto;
+      display: block;
+      margin: 0 auto;
+    }
+
+    /* Theme variants */
+    body.light {
+      --bg: #f4f4f4;
+      --card: #fff;
+      --text: #222;
+      --accent: #111;
+    }
+
+    body.dark {
+      --bg: #0b0d10;
+      --card: #0f1113;
+      --text: #e6eef6;
+      --accent: #8fbefb;
+    }
+
+    /* Top bar with logo and theme toggle */
+    .topbar {
+      display: flex;
+      align-items: center;
+      justify-content: center; /* center content horizontally */
+      gap: 12px;
+      margin-bottom: 12px;
+    }
+
+    .theme-toggle {
+      background: transparent;
+      border: 1px solid rgba(0,0,0,0.08);
+      padding: 8px 10px;
+      border-radius: 999px;
+      cursor: pointer;
+      font-size: 1rem;
+      line-height: 1;
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      gap: 8px;
+    }
+
+    .theme-toggle:focus { outline: 2px solid rgba(11,102,255,0.2); }
   </style>
 
   <script type="application/ld+json">
@@ -136,13 +188,68 @@
 </head>
 <body>
   <div class="container">
+    <div class="topbar">
+      <div class="logo"></div>
+    </div>
     <h1>KEMS — Kinetic Energy Management System</h1>
     <p><strong>KEMS</strong> (Kinetic Energy Management System) is a device-based self-observation system designed to support personal growth, emotional awareness, and therapeutic reflection.</p>
   </div>
 
   <div class="footer">
-    <div class="kem">KEMS</div>
+    <div class="kem"><img src="kems-logo.png" alt="KEMS logo" id="footer-logo-toggle" tabindex="0" role="button" aria-label="Toggle theme" style="height:36px; vertical-align:middle; display:inline-block;"></div>
     <div class="corp">CORP</div>
   </div>
+  
+  <script>
+    (function(){
+      const body = document.body;
+      const btn = document.getElementById('theme-toggle');
+      function setTheme(t){
+        body.classList.remove('light','dark');
+        body.classList.add(t);
+        try{ localStorage.setItem('site-theme', t); }catch(e){}
+        if(btn) btn.textContent = t === 'dark' ? '☀️' : '🌙';
+      }
+      const saved = (function(){ try{return localStorage.getItem('site-theme')}catch(e){return null} })();
+      if(saved === 'dark' || saved === 'light') setTheme(saved);
+      else {
+        const prefersDark = window.matchMedia && window.matchMedia('(prefers-color-scheme: dark)').matches;
+        setTheme(prefersDark ? 'dark' : 'light');
+      }
+      if(btn){
+        btn.addEventListener('click', function(){
+          const current = body.classList.contains('dark') ? 'dark' : 'light';
+          setTheme(current === 'dark' ? 'light' : 'dark');
+        });
+      }
+      const logo = document.getElementById('logo-toggle');
+      if(logo){
+        logo.style.cursor = 'pointer';
+        logo.addEventListener('click', function(){
+          const current = body.classList.contains('dark') ? 'dark' : 'light';
+          setTheme(current === 'dark' ? 'light' : 'dark');
+        });
+        logo.addEventListener('keydown', function(e){ if(e.key === 'Enter' || e.key === ' ') { e.preventDefault(); const current = body.classList.contains('dark') ? 'dark' : 'light'; setTheme(current === 'dark' ? 'light' : 'dark'); } });
+      }
+
+      // Footer logo as accessible theme toggle (click + keyboard)
+      const footerLogo = document.getElementById('footer-logo-toggle');
+      if (footerLogo) {
+        footerLogo.style.cursor = 'pointer';
+        // Ensure it's focusable and announced as a button (attributes are set on the element already)
+        footerLogo.addEventListener('click', function () {
+          const current = body.classList.contains('dark') ? 'dark' : 'light';
+          setTheme(current === 'dark' ? 'light' : 'dark');
+        });
+        footerLogo.addEventListener('keydown', function (e) {
+          if (e.key === 'Enter' || e.key === ' ') {
+            e.preventDefault();
+            const current = body.classList.contains('dark') ? 'dark' : 'light';
+            setTheme(current === 'dark' ? 'light' : 'dark');
+          }
+        });
+      }
+    })();
+  </script>
 </body>
 </html>
