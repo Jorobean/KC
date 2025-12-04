@@ -52,11 +52,11 @@
       width: 92%;
       max-width: var(--max-width);
       margin: clamp(20px, 6vw, 48px) auto;
-      padding: clamp(16px, 3.5vw, 32px);
+      padding: clamp(10px, 2.5vw, 20px);
       background: var(--card);
       border-radius: var(--radius);
       box-shadow: 0 6px 24px rgba(11,12,14,0.06);
-      flex-grow: 1;
+      /* Remove flex-grow so the card sizes to content rather than stretching vertically */
       line-height: 1.5;
     }
 
@@ -89,7 +89,9 @@
 
     .footer {
       text-align: center;
-      margin: 22px 0 34px 0;
+      /* Push footer to the bottom of the viewport when using body flex layout */
+      margin-top: auto;
+      margin-bottom: 34px;
       font-family: Inter, "Courier New", Courier, monospace;
       font-size: .95rem;
     }
@@ -97,6 +99,15 @@
     .footer .kem {
       font-weight: 900;
       font-size: 1.5rem;
+    }
+
+    /* Footer logo sizing: slightly larger and constrained */
+    .footer .kem img {
+      height: 48px;
+      width: auto;
+      transition: opacity 160ms ease;
+      display: inline-block;
+      vertical-align: middle;
     }
 
     .footer .corp {
@@ -129,7 +140,8 @@
       --bg: #0b0d10;
       --card: #0f1113;
       --text: #e6eef6;
-      --accent: #8fbefb;
+      /* Use a subtle neutral accent in dark mode so the H1 divider isn't bright blue */
+      --accent: rgba(255,255,255,0.09);
     }
 
     /* Top bar with logo and theme toggle */
@@ -195,9 +207,8 @@
     <p><strong>KEMS</strong> (Kinetic Energy Management System) is a device-based self-observation system designed to support personal growth, emotional awareness, and therapeutic reflection.</p>
   </div>
 
-  <div class="footer">
-    <div class="kem"><img src="kems-logo.png" alt="KEMS logo" id="footer-logo-toggle" tabindex="0" role="button" aria-label="Toggle theme" style="height:36px; vertical-align:middle; display:inline-block;"></div>
-    <div class="corp">C O R P</div>
+    <div class="footer">
+    <div class="kem"><img src="kems-logo2.png" alt="KEMS logo" id="footer-logo-toggle" tabindex="0" role="button" aria-label="Toggle theme"></div>
   </div>
   
   <script>
@@ -208,7 +219,18 @@
         body.classList.remove('light','dark');
         body.classList.add(t);
         try{ localStorage.setItem('site-theme', t); }catch(e){}
-        if(btn) btn.textContent = t === 'dark' ? '☀️' : '🌙';
+        // Use text labels instead of emoji for accessibility and to avoid emoji references
+        if(btn) btn.textContent = t === 'dark' ? 'Light' : 'Dark';
+
+        // Update footer logo to variant per theme: light -> kems-logo2.png, dark -> kems-logo1.png
+        try {
+          const footerLogoEl = document.getElementById('footer-logo-toggle');
+          if (footerLogoEl) {
+            footerLogoEl.src = (t === 'dark') ? 'kems-logo1.png' : 'kems-logo2.png';
+          }
+        } catch (e) {
+          // ignore missing element
+        }
       }
       const saved = (function(){ try{return localStorage.getItem('site-theme')}catch(e){return null} })();
       if(saved === 'dark' || saved === 'light') setTheme(saved);
