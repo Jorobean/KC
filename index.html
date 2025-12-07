@@ -205,6 +205,153 @@
     </div>
     <h1>KEMS — Kinetic Energy Management System</h1>
     <p><strong>KEMS</strong> (Kinetic Energy Management System) is a device-based self-observation system designed to support personal growth, emotional awareness, and therapeutic reflection.</p>
+
+    <div id="cloud-section" style="margin-top: 24px; border-top: 1px solid #ddd; padding-top: 24px;">
+      <p><strong>Access Your Mirror Device:</strong></p>
+
+      <!-- Auth Tabs -->
+      <div style="display: flex; gap: 8px; margin-bottom: 16px;">
+        <button id="tab-login" style="
+          flex: 1;
+          padding: 10px;
+          background: #0b66ff;
+          color: white;
+          border: none;
+          border-radius: 6px 0 0 6px;
+          cursor: pointer;
+          font-weight: 600;
+        ">Login</button>
+        <button id="tab-signup" style="
+          flex: 1;
+          padding: 10px;
+          background: #ccc;
+          color: #333;
+          border: none;
+          border-radius: 0 6px 6px 0;
+          cursor: pointer;
+          font-weight: 600;
+        ">Sign Up</button>
+      </div>
+
+      <!-- Login Form -->
+      <div id="login-form" style="margin: 20px 0;">
+        <p style="font-size: 0.9rem; color: #666;">Log in to your KEMS cloud account to access your Mirror devices securely from anywhere.</p>
+        <input id="cloud-email" type="email" placeholder="Email" 
+          style="
+            width: 100%;
+            max-width: 300px;
+            padding: 10px;
+            border: 1px solid #ccc;
+            border-radius: 6px;
+            font-size: 0.95rem;
+            margin-top: 8px;
+            box-sizing: border-box;
+            display: block;
+            margin-left: auto;
+            margin-right: auto;
+          " />
+        <input id="cloud-password" type="password" placeholder="Password" 
+          style="
+            width: 100%;
+            max-width: 300px;
+            padding: 10px;
+            border: 1px solid #ccc;
+            border-radius: 6px;
+            font-size: 0.95rem;
+            margin-top: 8px;
+            box-sizing: border-box;
+            display: block;
+            margin-left: auto;
+            margin-right: auto;
+          " />
+        <button id="cloud-login-btn" style="
+          padding: 10px 20px;
+          font-size: 0.95rem;
+          background-color: #0b66ff;
+          color: white;
+          border: none;
+          border-radius: 6px;
+          cursor: pointer;
+          font-weight: 600;
+          margin-top: 12px;
+          transition: background-color 200ms ease;
+        " onmouseover="this.style.backgroundColor='#0052cc'" onmouseout="this.style.backgroundColor='#0b66ff'">
+          Login
+        </button>
+        <div id="cloud-status" style="margin-top: 12px; font-size: 0.9rem; color: #666;"></div>
+      </div>
+
+      <!-- Signup Form -->
+      <div id="signup-form" style="margin: 20px 0; display: none;">
+        <p style="font-size: 0.9rem; color: #666;">Create a new KEMS cloud account to manage your Mirror devices.</p>
+        <input id="signup-email" type="email" placeholder="Email" 
+          style="
+            width: 100%;
+            max-width: 300px;
+            padding: 10px;
+            border: 1px solid #ccc;
+            border-radius: 6px;
+            font-size: 0.95rem;
+            margin-top: 8px;
+            box-sizing: border-box;
+            display: block;
+            margin-left: auto;
+            margin-right: auto;
+          " />
+        <input id="signup-password" type="password" placeholder="Password (min 6 chars)" 
+          style="
+            width: 100%;
+            max-width: 300px;
+            padding: 10px;
+            border: 1px solid #ccc;
+            border-radius: 6px;
+            font-size: 0.95rem;
+            margin-top: 8px;
+            box-sizing: border-box;
+            display: block;
+            margin-left: auto;
+            margin-right: auto;
+          " />
+        <button id="cloud-signup-btn" style="
+          padding: 10px 20px;
+          font-size: 0.95rem;
+          background-color: #0b66ff;
+          color: white;
+          border: none;
+          border-radius: 6px;
+          cursor: pointer;
+          font-weight: 600;
+          margin-top: 12px;
+          transition: background-color 200ms ease;
+        " onmouseover="this.style.backgroundColor='#0052cc'" onmouseout="this.style.backgroundColor='#0b66ff'">
+          Create Account
+        </button>
+        <div id="signup-status" style="margin-top: 12px; font-size: 0.9rem; color: #666;"></div>
+      </div>
+
+      <!-- Devices List (shown after login) -->
+      <div id="devices-list" style="display: none; margin-top: 20px;">
+        <p><strong>Your Devices:</strong></p>
+        <div id="devices-container" style="margin-top: 12px;"></div>
+        <button id="cloud-logout-btn" style="
+          padding: 8px 16px;
+          font-size: 0.85rem;
+          background-color: #999;
+          color: white;
+          border: none;
+          border-radius: 6px;
+          cursor: pointer;
+          margin-top: 16px;
+          transition: background-color 200ms ease;
+        " onmouseover="this.style.backgroundColor='#666'" onmouseout="this.style.backgroundColor='#999'">
+          Logout
+        </button>
+      </div>
+
+      <p style="font-size: 0.85rem; color: #999; margin-top: 16px;">
+        Your Mirror devices are securely connected to the cloud. Only you can access your recordings.
+      </p>
+    </div>
   </div>
 
     <div class="footer">
@@ -271,6 +418,233 @@
           }
         });
       }
+    })();
+
+    // Cloud Dashboard handler
+    (function(){
+      const CLOUD_URL = localStorage.getItem('kems-cloud-url') || 'https://cloud.getkems.com';  // update if different
+      
+      // Login form elements
+      const emailInput = document.getElementById('cloud-email');
+      const passwordInput = document.getElementById('cloud-password');
+      const loginBtn = document.getElementById('cloud-login-btn');
+      const statusDiv = document.getElementById('cloud-status');
+      const loginForm = document.getElementById('login-form');
+      
+      // Signup form elements
+      const signupEmailInput = document.getElementById('signup-email');
+      const signupPasswordInput = document.getElementById('signup-password');
+      const signupBtn = document.getElementById('cloud-signup-btn');
+      const signupStatusDiv = document.getElementById('signup-status');
+      const signupForm = document.getElementById('signup-form');
+      
+      // Tabs
+      const tabLogin = document.getElementById('tab-login');
+      const tabSignup = document.getElementById('tab-signup');
+      
+      // Device list elements
+      const devicesList = document.getElementById('devices-list');
+      const devicesContainer = document.getElementById('devices-container');
+      const logoutBtn = document.getElementById('cloud-logout-btn');
+
+      let currentToken = null;
+
+      // Load token from localStorage if exists
+      try {
+        currentToken = localStorage.getItem('kems-cloud-token');
+        const email = localStorage.getItem('kems-cloud-email');
+        if (currentToken && email) {
+          emailInput.value = email;
+          showDevicesList();
+        }
+      } catch (e) {}
+
+      function showStatus(msg, type) {
+        statusDiv.innerHTML = `<span style="color: ${type === 'error' ? '#d32f2f' : type === 'success' ? '#388e3c' : '#666'};">${msg}</span>`;
+      }
+
+      function showSignupStatus(msg, type) {
+        signupStatusDiv.innerHTML = `<span style="color: ${type === 'error' ? '#d32f2f' : type === 'success' ? '#388e3c' : '#666'};">${msg}</span>`;
+      }
+
+      function showDevicesList() {
+        loginForm.style.display = 'none';
+        signupForm.style.display = 'none';
+        devicesList.style.display = 'block';
+        loadDevices();
+      }
+
+      function showLoginForm() {
+        currentToken = null;
+        loginForm.style.display = 'block';
+        signupForm.style.display = 'none';
+        devicesList.style.display = 'none';
+        try {
+          localStorage.removeItem('kems-cloud-token');
+          localStorage.removeItem('kems-cloud-email');
+        } catch (e) {}
+      }
+
+      function loadDevices() {
+        if (!currentToken) {
+          showStatus('Not logged in', 'error');
+          return;
+        }
+        devicesContainer.innerHTML = '<p style="color: #666;">Loading devices...</p>';
+        
+        const email = localStorage.getItem('kems-cloud-email') || 'User';
+        devicesContainer.innerHTML = `
+          <p style="font-size: 0.9rem; color: #666;">
+            <strong>${email}</strong><br/>
+            Your Mirror devices will appear here once linked.
+          </p>
+          <p style="font-size: 0.85rem; color: #999; margin-top: 12px;">
+            <strong>To link your Mirror device:</strong><br/>
+            1. Open your Mirror's setup page (local IP address on port 8000)<br/>
+            2. Enter this cloud URL: <code style="background: #f0f0f0; padding: 2px 6px; border-radius: 3px;">${CLOUD_URL}</code><br/>
+            3. Go to Mirror settings and link your device using your account<br/>
+            4. Your device will appear here when connected.
+          </p>
+        `;
+      }
+
+      // Tab switching
+      tabLogin.addEventListener('click', function(){
+        loginForm.style.display = 'block';
+        signupForm.style.display = 'none';
+        tabLogin.style.background = '#0b66ff';
+        tabLogin.style.color = 'white';
+        tabSignup.style.background = '#ccc';
+        tabSignup.style.color = '#333';
+      });
+
+      tabSignup.addEventListener('click', function(){
+        loginForm.style.display = 'none';
+        signupForm.style.display = 'block';
+        tabLogin.style.background = '#ccc';
+        tabLogin.style.color = '#333';
+        tabSignup.style.background = '#0b66ff';
+        tabSignup.style.color = 'white';
+      });
+
+      // Login handler
+      loginBtn.addEventListener('click', function(){
+        const email = emailInput.value.trim();
+        const password = passwordInput.value;
+        if (!email || !password) {
+          showStatus('Please enter email and password', 'error');
+          return;
+        }
+
+        loginBtn.disabled = true;
+        showStatus('Logging in...', 'info');
+
+        fetch(CLOUD_URL + '/cloud/login', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ email, password })
+        })
+        .then(r => r.json())
+        .then(data => {
+          if ((data.token || data.status === 'ok') && data.token) {
+            currentToken = data.token;
+            try {
+              localStorage.setItem('kems-cloud-token', data.token);
+              localStorage.setItem('kems-cloud-email', email);
+            } catch (e) {}
+            showStatus('Logged in successfully', 'success');
+            setTimeout(() => showDevicesList(), 800);
+          } else {
+            showStatus('Login failed: ' + (data.message || 'invalid credentials'), 'error');
+            currentToken = null;
+          }
+        })
+        .catch(err => {
+          console.error(err);
+          showStatus('Login error: ' + err.message, 'error');
+          currentToken = null;
+        })
+        .finally(() => {
+          loginBtn.disabled = false;
+        });
+      });
+
+      // Signup handler
+      signupBtn.addEventListener('click', function(){
+        const email = signupEmailInput.value.trim();
+        const password = signupPasswordInput.value;
+        
+        if (!email || !password) {
+          showSignupStatus('Please enter email and password', 'error');
+          return;
+        }
+
+        if (password.length < 6) {
+          showSignupStatus('Password must be at least 6 characters', 'error');
+          return;
+        }
+
+        signupBtn.disabled = true;
+        showSignupStatus('Creating account...', 'info');
+
+        fetch(CLOUD_URL + '/cloud/signup', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ email, password })
+        })
+        .then(r => r.json())
+        .then(data => {
+          if (data.token) {
+            currentToken = data.token;
+            try {
+              localStorage.setItem('kems-cloud-token', data.token);
+              localStorage.setItem('kems-cloud-email', email);
+            } catch (e) {}
+            showSignupStatus('Account created successfully! Logging in...', 'success');
+            setTimeout(() => showDevicesList(), 1500);
+          } else {
+            showSignupStatus('Signup failed: ' + (data.message || 'unknown error'), 'error');
+            currentToken = null;
+          }
+        })
+        .catch(err => {
+          console.error(err);
+          showSignupStatus('Signup error: ' + err.message, 'error');
+          currentToken = null;
+        })
+        .finally(() => {
+          signupBtn.disabled = false;
+        });
+      });
+
+      // Logout handler
+      logoutBtn.addEventListener('click', function(){
+        showLoginForm();
+        emailInput.value = '';
+        passwordInput.value = '';
+        signupEmailInput.value = '';
+        signupPasswordInput.value = '';
+        statusDiv.innerHTML = '';
+        signupStatusDiv.innerHTML = '';
+      });
+
+      // Allow Enter key in password fields
+      passwordInput.addEventListener('keypress', function(e){
+        if (e.key === 'Enter') loginBtn.click();
+      });
+
+      signupPasswordInput.addEventListener('keypress', function(e){
+        if (e.key === 'Enter') signupBtn.click();
+      });
+
+      // Allow customizing cloud URL (for dev/testing)
+      try {
+        const urlParam = new URLSearchParams(window.location.search).get('cloud_url');
+        if (urlParam) {
+          localStorage.setItem('kems-cloud-url', urlParam);
+          window.location.hash = '';  // clean up URL
+        }
+      } catch (e) {}
     })();
   </script>
 </body>
