@@ -445,30 +445,23 @@
           }
         } catch(e) {}
         
-        // 3. If running on localhost or local IP, assume cloud server is on same host
+        // 3. Auto-detect: assume cloud server is on same IP at port 8000
         try {
           const hostname = window.location.hostname;
-          console.log('[CLOUD] Current hostname:', hostname);
-          if (hostname === 'localhost' || hostname === '127.0.0.1' || hostname.startsWith('192.168.') || hostname.startsWith('10.')) {
-            const localUrl = `http://${hostname}:8000`;
-            console.log('[CLOUD] Using local URL:', localUrl);
-            return localUrl;
+          const protocol = window.location.protocol; // http: or https:
+          console.log('[CLOUD] Current hostname:', hostname, 'protocol:', protocol);
+          
+          // For localhost or any IP, try port 8000 on same host
+          if (hostname) {
+            const autoUrl = protocol === 'https:' ? `https://${hostname}:8000` : `http://${hostname}:8000`;
+            console.log('[CLOUD] Auto-detected URL (same host):', autoUrl);
+            return autoUrl;
           }
-        } catch(e) {}
+        } catch(e) {
+          console.error('[CLOUD] Auto-detect error:', e);
+        }
         
-        // 4. If on getkems.com domain, prompt user for cloud URL or use localhost as fallback
-        try {
-          if (window.location.hostname.includes('getkems.com')) {
-            console.log('[CLOUD] On getkems.com - prompting for cloud URL or using localhost');
-            // For development: default to localhost
-            // In production, this should prompt the user
-            const devUrl = 'http://localhost:8000';
-            console.log('[CLOUD] Development fallback:', devUrl);
-            return devUrl;
-          }
-        } catch(e) {}
-        
-        // 5. Final fallback (production)
+        // 4. Final fallback (production)
         console.log('[CLOUD] Using production cloud URL');
         return 'https://cloud.getkems.com';
       })();
