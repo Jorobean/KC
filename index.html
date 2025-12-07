@@ -614,7 +614,19 @@
             headers: { 'Content-Type': 'application/json' },
             body: JSON.stringify({ email, password })
           })
-          .then(r => r.json())
+          .then(r => {
+            console.log('[SIGNUP] Response status:', r.status, r.statusText);
+            if (!r.ok) {
+              return r.text().then(text => {
+                console.log('[SIGNUP] Error response body:', text);
+                throw new Error(`HTTP ${r.status}: ${text}`);
+              });
+            }
+            return r.json().then(data => {
+              console.log('[SIGNUP] Success response:', data);
+              return data;
+            });
+          })
           .then(data => {
             if (data.token) {
               currentToken = data.token;
@@ -630,7 +642,7 @@
             }
           })
           .catch(err => {
-            console.error(err);
+            console.error('[SIGNUP] Catch error:', err);
             showSignupStatus('Signup error: ' + err.message, 'error');
             currentToken = null;
           })
