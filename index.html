@@ -455,6 +455,8 @@
       const signupStatusDiv = document.getElementById('signup-status');
       const signupForm = document.getElementById('signup-form');
       
+      console.log('[CLOUD] signupBtn:', signupBtn, 'signupEmailInput:', signupEmailInput, 'signupForm:', signupForm);
+      
       // Tabs
       const tabLogin = document.getElementById('tab-login');
       const tabSignup = document.getElementById('tab-signup');
@@ -587,52 +589,58 @@
       });
 
       // Signup handler
-      signupBtn.addEventListener('click', function(){
-        const email = signupEmailInput.value.trim();
-        const password = signupPasswordInput.value;
-        
-        if (!email || !password) {
-          showSignupStatus('Please enter email and password', 'error');
-          return;
-        }
-
-        if (password.length < 6) {
-          showSignupStatus('Password must be at least 6 characters', 'error');
-          return;
-        }
-
-        signupBtn.disabled = true;
-        showSignupStatus('Creating account...', 'info');
-
-        fetch(CLOUD_URL + '/cloud/signup', {
-          method: 'POST',
-          headers: { 'Content-Type': 'application/json' },
-          body: JSON.stringify({ email, password })
-        })
-        .then(r => r.json())
-        .then(data => {
-          if (data.token) {
-            currentToken = data.token;
-            try {
-              localStorage.setItem('kems-cloud-token', data.token);
-              localStorage.setItem('kems-cloud-email', email);
-            } catch (e) {}
-            showSignupStatus('Account created successfully! Logging in...', 'success');
-            setTimeout(() => showDevicesList(), 1500);
-          } else {
-            showSignupStatus('Signup failed: ' + (data.message || 'unknown error'), 'error');
-            currentToken = null;
+      if (signupBtn) {
+        signupBtn.addEventListener('click', function(){
+          console.log('[SIGNUP] Button clicked');
+          const email = signupEmailInput.value.trim();
+          const password = signupPasswordInput.value;
+          console.log('[SIGNUP] email=' + email + ', password_len=' + (password ? password.length : 0));
+          
+          if (!email || !password) {
+            showSignupStatus('Please enter email and password', 'error');
+            return;
           }
-        })
-        .catch(err => {
-          console.error(err);
-          showSignupStatus('Signup error: ' + err.message, 'error');
-          currentToken = null;
-        })
-        .finally(() => {
-          signupBtn.disabled = false;
+
+          if (password.length < 6) {
+            showSignupStatus('Password must be at least 6 characters', 'error');
+            return;
+          }
+
+          signupBtn.disabled = true;
+          showSignupStatus('Creating account...', 'info');
+
+          fetch(CLOUD_URL + '/cloud/signup', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({ email, password })
+          })
+          .then(r => r.json())
+          .then(data => {
+            if (data.token) {
+              currentToken = data.token;
+              try {
+                localStorage.setItem('kems-cloud-token', data.token);
+                localStorage.setItem('kems-cloud-email', email);
+              } catch (e) {}
+              showSignupStatus('Account created successfully! Logging in...', 'success');
+              setTimeout(() => showDevicesList(), 1500);
+            } else {
+              showSignupStatus('Signup failed: ' + (data.message || 'unknown error'), 'error');
+              currentToken = null;
+            }
+          })
+          .catch(err => {
+            console.error(err);
+            showSignupStatus('Signup error: ' + err.message, 'error');
+            currentToken = null;
+          })
+          .finally(() => {
+            signupBtn.disabled = false;
+          });
         });
-      });
+      } else {
+        console.error('[SIGNUP] Button element not found!');
+      }
 
       // Logout handler
       logoutBtn.addEventListener('click', function(){
