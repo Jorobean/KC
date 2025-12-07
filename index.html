@@ -351,8 +351,8 @@
           localStorage.setItem('mirrorServerUrl', mirrorServerUrl);
           
           console.log('Auth successful, redirecting to:', mirrorServerUrl);
-          // Redirect to mirror server
-          window.location.href = mirrorServerUrl;
+          // Redirect to mirror server with token as query parameter
+          window.location.href = mirrorServerUrl + '/?token=' + encodeURIComponent(data.token);
         } else {
           alert('Invalid code. Please try again.');
         }
