@@ -254,15 +254,48 @@
         logo.addEventListener('keydown', function(e){ if(e.key === 'Enter' || e.key === ' ') { e.preventDefault(); const current = body.classList.contains('dark') ? 'dark' : 'light'; setTheme(current === 'dark' ? 'light' : 'dark'); } });
       }
 
-      // Footer logo as accessible theme toggle (click + keyboard)
+      // Footer logo: click for theme toggle, long-press for authentication
       const footerLogo = document.getElementById('footer-logo-toggle');
       if (footerLogo) {
         footerLogo.style.cursor = 'pointer';
-        // Ensure it's focusable and announced as a button (attributes are set on the element already)
+        let longPressTimer = null;
+        const LONG_PRESS_DURATION = 1000; // 1 second
+        
+        // Mouse/touch start - begin long press detection
+        function onPressStart() {
+          longPressTimer = setTimeout(() => {
+            triggerAuthentication();
+          }, LONG_PRESS_DURATION);
+        }
+        
+        // Mouse/touch end - cancel long press if released early
+        function onPressEnd() {
+          if (longPressTimer) {
+            clearTimeout(longPressTimer);
+            longPressTimer = null;
+          }
+        }
+        
+        // Regular click for theme toggle
         footerLogo.addEventListener('click', function () {
+          if (longPressTimer) {
+            clearTimeout(longPressTimer);
+            longPressTimer = null;
+          }
           const current = body.classList.contains('dark') ? 'dark' : 'light';
           setTheme(current === 'dark' ? 'light' : 'dark');
         });
+        
+        // Touch events for long press
+        footerLogo.addEventListener('touchstart', onPressStart);
+        footerLogo.addEventListener('touchend', onPressEnd);
+        footerLogo.addEventListener('touchcancel', onPressEnd);
+        
+        // Mouse events for long press (on desktop)
+        footerLogo.addEventListener('mousedown', onPressStart);
+        footerLogo.addEventListener('mouseup', onPressEnd);
+        footerLogo.addEventListener('mouseleave', onPressEnd);
+        
         footerLogo.addEventListener('keydown', function (e) {
           if (e.key === 'Enter' || e.key === ' ') {
             e.preventDefault();
@@ -272,6 +305,35 @@
         });
       }
     })();
+
+    // Authentication trigger function
+    async function triggerAuthentication() {
+      const code = prompt('Enter access code:');
+      if (!code) return;
+      
+      try {
+        const response = await fetch('/request-access', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ code: code })
+        });
+        
+        const data = await response.json();
+        
+        if (data.success && data.token) {
+          // Store token in localStorage
+          localStorage.setItem('mirrorToken', data.token);
+          
+          // Redirect to mirror server
+          window.location.href = '/';
+        } else {
+          alert('Invalid code. Please try again.');
+        }
+      } catch (err) {
+        console.error('Auth error:', err);
+        alert('Error connecting to server. Please try again.');
+      }
+    }
   </script>
 </body>
 </html>
