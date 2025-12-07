@@ -422,7 +422,24 @@
 
     // Cloud Dashboard handler
     (function(){
-      const CLOUD_URL = localStorage.getItem('kems-cloud-url') || 'https://cloud.getkems.com';  // update if different
+      const CLOUD_URL = (() => {
+        // Try to detect local cloud server first
+        try {
+          const stored = localStorage.getItem('kems-cloud-url');
+          if (stored) return stored;
+        } catch(e) {}
+        
+        // If running locally, try localhost first
+        try {
+          const hostname = window.location.hostname;
+          if (hostname === 'localhost' || hostname === '127.0.0.1' || hostname.startsWith('192.168.') || hostname.startsWith('10.')) {
+            return `http://${hostname}:8000`;
+          }
+        } catch(e) {}
+        
+        // Fallback to production cloud
+        return 'https://cloud.getkems.com';
+      })();
       
       // Login form elements
       const emailInput = document.getElementById('cloud-email');
