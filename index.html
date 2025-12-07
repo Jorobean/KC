@@ -318,6 +318,14 @@
         if (!mirrorServerUrl) {
           mirrorServerUrl = prompt('Enter mirror server address (e.g., http://10.0.0.107:8000):');
           if (!mirrorServerUrl) return;
+        } else {
+          // Ask if they want to use the saved URL or enter a new one
+          const useSaved = confirm(`Use saved server: ${mirrorServerUrl}?\n\nClick OK to use this server, or Cancel to enter a new one.`);
+          if (!useSaved) {
+            localStorage.removeItem('mirrorServerUrl');
+            mirrorServerUrl = prompt('Enter mirror server address (e.g., http://10.0.0.107:8000):');
+            if (!mirrorServerUrl) return;
+          }
         }
         
         // Ensure URL format is correct
