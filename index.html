@@ -312,35 +312,20 @@
       if (!code) return;
       
       try {
-        // Determine the mirror server URL - try to detect from localStorage or prompt user
+        // Get or prompt for mirror server URL
         let mirrorServerUrl = localStorage.getItem('mirrorServerUrl');
         
         if (!mirrorServerUrl) {
-          // Auto-detect: try localhost:8000 first, then ask user
-          try {
-            const testResponse = await fetch('http://localhost:8000/verify-token', {
-              method: 'POST',
-              headers: { 'Authorization': 'Bearer test' }
-            });
-            mirrorServerUrl = 'http://localhost:8000';
-          } catch (e) {
-            // Try the current hostname on port 8000
-            const host = window.location.hostname;
-            const testResponse = await fetch(`http://${host}:8000/verify-token`, {
-              method: 'POST',
-              headers: { 'Authorization': 'Bearer test' }
-            }).catch(() => null);
-            
-            if (testResponse) {
-              mirrorServerUrl = `http://${host}:8000`;
-            } else {
-              mirrorServerUrl = prompt('Enter mirror server address (e.g., http://10.0.0.107:8000):');
-              if (!mirrorServerUrl) return;
-            }
-          }
-          
-          localStorage.setItem('mirrorServerUrl', mirrorServerUrl);
+          mirrorServerUrl = prompt('Enter mirror server address (e.g., http://10.0.0.107:8000):');
+          if (!mirrorServerUrl) return;
         }
+        
+        // Ensure URL format is correct
+        if (!mirrorServerUrl.startsWith('http')) {
+          mirrorServerUrl = 'http://' + mirrorServerUrl;
+        }
+        
+        console.log('Attempting auth with server:', mirrorServerUrl);
         
         const response = await fetch(mirrorServerUrl + '/request-access', {
           method: 'POST',
@@ -348,13 +333,16 @@
           body: JSON.stringify({ code: code })
         });
         
+        console.log('Response status:', response.status);
         const data = await response.json();
+        console.log('Response data:', data);
         
         if (data.success && data.token) {
           // Store token in localStorage
           localStorage.setItem('mirrorToken', data.token);
           localStorage.setItem('mirrorServerUrl', mirrorServerUrl);
           
+          console.log('Auth successful, redirecting to:', mirrorServerUrl);
           // Redirect to mirror server
           window.location.href = mirrorServerUrl;
         } else {
@@ -362,7 +350,7 @@
         }
       } catch (err) {
         console.error('Auth error:', err);
-        alert('Error connecting to server. Please try again.');
+        alert('Error: ' + err.message + '\n\nMake sure the server address is correct and accessible.');
       }
     }
   </script>
