@@ -423,21 +423,53 @@
     // Cloud Dashboard handler
     (function(){
       const CLOUD_URL = (() => {
-        // Try to detect local cloud server first
+        console.log('[CLOUD] Detecting cloud URL...');
+        
+        // 1. Check localStorage first (user may have set it)
         try {
           const stored = localStorage.getItem('kems-cloud-url');
-          if (stored) return stored;
-        } catch(e) {}
-        
-        // If running locally, try localhost first
-        try {
-          const hostname = window.location.hostname;
-          if (hostname === 'localhost' || hostname === '127.0.0.1' || hostname.startsWith('192.168.') || hostname.startsWith('10.')) {
-            return `http://${hostname}:8000`;
+          if (stored) {
+            console.log('[CLOUD] Using stored URL:', stored);
+            return stored;
           }
         } catch(e) {}
         
-        // Fallback to production cloud
+        // 2. Check query parameter ?cloud_url=
+        try {
+          const urlParams = new URLSearchParams(window.location.search);
+          const param = urlParams.get('cloud_url');
+          if (param) {
+            console.log('[CLOUD] Using query param URL:', param);
+            localStorage.setItem('kems-cloud-url', param);
+            return param;
+          }
+        } catch(e) {}
+        
+        // 3. If running on localhost or local IP, assume cloud server is on same host
+        try {
+          const hostname = window.location.hostname;
+          console.log('[CLOUD] Current hostname:', hostname);
+          if (hostname === 'localhost' || hostname === '127.0.0.1' || hostname.startsWith('192.168.') || hostname.startsWith('10.')) {
+            const localUrl = `http://${hostname}:8000`;
+            console.log('[CLOUD] Using local URL:', localUrl);
+            return localUrl;
+          }
+        } catch(e) {}
+        
+        // 4. If on getkems.com domain, prompt user for cloud URL or use localhost as fallback
+        try {
+          if (window.location.hostname.includes('getkems.com')) {
+            console.log('[CLOUD] On getkems.com - prompting for cloud URL or using localhost');
+            // For development: default to localhost
+            // In production, this should prompt the user
+            const devUrl = 'http://localhost:8000';
+            console.log('[CLOUD] Development fallback:', devUrl);
+            return devUrl;
+          }
+        } catch(e) {}
+        
+        // 5. Final fallback (production)
+        console.log('[CLOUD] Using production cloud URL');
         return 'https://cloud.getkems.com';
       })();
       
