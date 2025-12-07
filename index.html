@@ -207,6 +207,55 @@
     <p><strong>KEMS</strong> (Kinetic Energy Management System) is a device-based self-observation system designed to support personal growth, emotional awareness, and therapeutic reflection.</p>
 
     <div id="cloud-section" style="margin-top: 24px; border-top: 1px solid #ddd; padding-top: 24px;">
+      
+      <!-- Cloud Server Settings -->
+      <div style="background: #f5f5f5; padding: 16px; border-radius: 8px; margin-bottom: 20px;">
+        <p style="margin: 0 0 12px 0; font-weight: 600;">Cloud Server Settings</p>
+        <p style="font-size: 0.85rem; color: #666; margin: 0 0 8px 0;">
+          Currently using: <code id="current-cloud-url" style="background: #fff; padding: 2px 6px; border-radius: 3px; border: 1px solid #ddd;">detecting...</code>
+        </p>
+        <div style="display: flex; gap: 8px; flex-wrap: wrap; align-items: center;">
+          <input id="manual-cloud-url" type="text" placeholder="e.g., http://10.0.0.107:8000" 
+            style="
+              flex: 1;
+              min-width: 200px;
+              padding: 8px;
+              border: 1px solid #ccc;
+              border-radius: 6px;
+              font-size: 0.9rem;
+              box-sizing: border-box;
+            " />
+          <button id="apply-cloud-url" style="
+            padding: 8px 16px;
+            font-size: 0.9rem;
+            background-color: #0b66ff;
+            color: white;
+            border: none;
+            border-radius: 6px;
+            cursor: pointer;
+            font-weight: 600;
+            transition: background-color 200ms ease;
+            white-space: nowrap;
+          " onmouseover="this.style.backgroundColor='#0052cc'" onmouseout="this.style.backgroundColor='#0b66ff'">
+            Apply URL
+          </button>
+          <button id="reset-cloud-url" style="
+            padding: 8px 16px;
+            font-size: 0.9rem;
+            background-color: #999;
+            color: white;
+            border: none;
+            border-radius: 6px;
+            cursor: pointer;
+            transition: background-color 200ms ease;
+            white-space: nowrap;
+          " onmouseover="this.style.backgroundColor='#666'" onmouseout="this.style.backgroundColor='#999'">
+            Reset to Auto
+          </button>
+        </div>
+        <p id="cloud-url-status" style="font-size: 0.85rem; color: #666; margin-top: 8px;"></p>
+      </div>
+
       <p><strong>Access Your Mirror Device:</strong></p>
 
       <!-- Auth Tabs -->
@@ -422,15 +471,17 @@
 
     // Cloud Dashboard handler
     (function(){
-      const CLOUD_URL = (() => {
+      let CLOUD_URL = null;  // Will be set after UI initialization
+      
+      function detectCloudURL() {
         console.log('[CLOUD] Detecting cloud URL...');
         
-        // 1. Check localStorage first (user may have set it)
+        // 1. Check if user manually set a custom URL
         try {
-          const stored = localStorage.getItem('kems-cloud-url');
-          if (stored) {
-            console.log('[CLOUD] Using stored URL:', stored);
-            return stored;
+          const manual = localStorage.getItem('kems-cloud-url-manual');
+          if (manual) {
+            console.log('[CLOUD] Using manually set URL:', manual);
+            return manual;
           }
         } catch(e) {}
         
@@ -440,7 +491,6 @@
           const param = urlParams.get('cloud_url');
           if (param) {
             console.log('[CLOUD] Using query param URL:', param);
-            localStorage.setItem('kems-cloud-url', param);
             return param;
           }
         } catch(e) {}
@@ -451,20 +501,31 @@
           const protocol = window.location.protocol; // http: or https:
           console.log('[CLOUD] Current hostname:', hostname, 'protocol:', protocol);
           
-          // For localhost or any IP, try port 8000 on same host
-          if (hostname) {
-            const autoUrl = protocol === 'https:' ? `https://${hostname}:8000` : `http://${hostname}:8000`;
-            console.log('[CLOUD] Auto-detected URL (same host):', autoUrl);
+          // For localhost, always use localhost:8000
+          // For getkems.com or other domains, don't auto-set to same host
+          if (hostname === 'localhost' || hostname === '127.0.0.1') {
+            const autoUrl = `http://${hostname}:8000`;
+            console.log('[CLOUD] Auto-detected URL (localhost):', autoUrl);
             return autoUrl;
           }
+          
+          // For getkems.com domain, don't assume port 8000 exists
+          console.log('[CLOUD] Domain detected (not localhost), skipping auto-detect');
         } catch(e) {
           console.error('[CLOUD] Auto-detect error:', e);
         }
         
-        // 4. Final fallback (production)
-        console.log('[CLOUD] Using production cloud URL');
-        return 'https://cloud.getkems.com';
-      })();
+        // 4. Final fallback - requires user to set manually or use production
+        console.log('[CLOUD] No cloud URL detected, user must set manually');
+        return null;
+      }
+      
+      // Cloud URL settings elements
+      const currentCloudUrlDisplay = document.getElementById('current-cloud-url');
+      const manualCloudUrlInput = document.getElementById('manual-cloud-url');
+      const applyCloudUrlBtn = document.getElementById('apply-cloud-url');
+      const resetCloudUrlBtn = document.getElementById('reset-cloud-url');
+      const cloudUrlStatusDiv = document.getElementById('cloud-url-status');
       
       // Login form elements
       const emailInput = document.getElementById('cloud-email');
@@ -493,6 +554,10 @@
 
       let currentToken = null;
 
+      // Initialize CLOUD_URL
+      CLOUD_URL = detectCloudURL();
+      updateCloudURLDisplay();
+
       // Load token from localStorage if exists
       try {
         currentToken = localStorage.getItem('kems-cloud-token');
@@ -502,6 +567,47 @@
           showDevicesList();
         }
       } catch (e) {}
+      
+      function updateCloudURLDisplay() {
+        const url = CLOUD_URL || '(not set - please enter below)';
+        currentCloudUrlDisplay.textContent = url;
+        manualCloudUrlInput.value = CLOUD_URL || '';
+      }
+      
+      // Cloud URL settings handlers
+      applyCloudUrlBtn.addEventListener('click', function(){
+        const url = manualCloudUrlInput.value.trim();
+        if (!url) {
+          cloudUrlStatusDiv.innerHTML = '<span style="color: #d32f2f;">Please enter a URL</span>';
+          return;
+        }
+        try {
+          localStorage.setItem('kems-cloud-url-manual', url);
+          CLOUD_URL = url;
+          updateCloudURLDisplay();
+          cloudUrlStatusDiv.innerHTML = '<span style="color: #388e3c;">Cloud URL updated!</span>';
+          console.log('[CLOUD] Manual URL saved:', url);
+        } catch (e) {
+          cloudUrlStatusDiv.innerHTML = '<span style="color: #d32f2f;">Error saving URL</span>';
+        }
+      });
+      
+      resetCloudUrlBtn.addEventListener('click', function(){
+        try {
+          localStorage.removeItem('kems-cloud-url-manual');
+          CLOUD_URL = detectCloudURL();
+          updateCloudURLDisplay();
+          cloudUrlStatusDiv.innerHTML = '<span style="color: #388e3c;">Reset to auto-detect</span>';
+          console.log('[CLOUD] Reset to auto-detect');
+        } catch (e) {
+          cloudUrlStatusDiv.innerHTML = '<span style="color: #d32f2f;">Error resetting</span>';
+        }
+      });
+      
+      // Allow Enter key in URL input
+      manualCloudUrlInput.addEventListener('keypress', function(e){
+        if (e.key === 'Enter') applyCloudUrlBtn.click();
+      });
 
       function showStatus(msg, type) {
         statusDiv.innerHTML = `<span style="color: ${type === 'error' ? '#d32f2f' : type === 'success' ? '#388e3c' : '#666'};">${msg}</span>`;
@@ -573,6 +679,11 @@
 
       // Login handler
       loginBtn.addEventListener('click', function(){
+        if (!CLOUD_URL) {
+          showStatus('Please set cloud server URL above', 'error');
+          return;
+        }
+        
         const email = emailInput.value.trim();
         const password = passwordInput.value;
         if (!email || !password) {
@@ -616,6 +727,11 @@
       // Signup handler
       if (signupBtn) {
         signupBtn.addEventListener('click', function(){
+          if (!CLOUD_URL) {
+            showSignupStatus('Please set cloud server URL above', 'error');
+            return;
+          }
+          
           console.log('[SIGNUP] Button clicked');
           const email = signupEmailInput.value.trim();
           const password = signupPasswordInput.value;
