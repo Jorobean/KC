@@ -1,0 +1,400 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+  <meta name="description" content="Set up your KEMS Mirror device by connecting to WiFi">
+  <meta name="robots" content="noindex, follow">
+  <title>KEMS Mirror — WiFi Setup | getkems.com</title>
+  <style>
+    :root {
+      --bg: #f4f4f4;
+      --card: #fff;
+      --text: #222;
+      --accent: #111;
+      --success: #28a745;
+      --warning: #ffc107;
+      --danger: #dc3545;
+      --blue: #0d6efd;
+      --radius: 10px;
+      --max-width: 600px;
+    }
+
+    * {
+      margin: 0;
+      padding: 0;
+      box-sizing: border-box;
+    }
+
+    html { font-size: 16px; }
+    @media (max-width: 420px) { html { font-size: 15px; } }
+    @media (min-width: 1200px) { html { font-size: 18px; } }
+
+    body {
+      font-family: "Courier New", Courier, monospace;
+      background-color: var(--bg);
+      color: var(--text);
+      display: flex;
+      flex-direction: column;
+      min-height: 100vh;
+      -webkit-font-smoothing: antialiased;
+      -moz-osx-font-smoothing: grayscale;
+      padding: 20px;
+    }
+
+    .container {
+      max-width: var(--max-width);
+      margin: 0 auto;
+      width: 100%;
+    }
+
+    header {
+      text-align: center;
+      margin-bottom: 40px;
+      margin-top: 20px;
+    }
+
+    header h1 {
+      font-size: 2em;
+      font-weight: 600;
+      margin-bottom: 8px;
+      letter-spacing: -0.5px;
+    }
+
+    header p {
+      font-size: 0.95em;
+      opacity: 0.7;
+      line-height: 1.5;
+    }
+
+    .logo {
+      font-size: 3em;
+      margin-bottom: 16px;
+    }
+
+    .card {
+      background: var(--card);
+      border-radius: var(--radius);
+      padding: 32px 24px;
+      margin-bottom: 24px;
+      box-shadow: 0 1px 3px rgba(0, 0, 0, 0.1);
+    }
+
+    .card h2 {
+      font-size: 1.3em;
+      margin-bottom: 16px;
+      font-weight: 600;
+    }
+
+    .card h3 {
+      font-size: 1.1em;
+      margin-top: 20px;
+      margin-bottom: 12px;
+      font-weight: 600;
+    }
+
+    .card p {
+      line-height: 1.6;
+      margin-bottom: 12px;
+      font-size: 0.95em;
+    }
+
+    .card ol, .card ul {
+      margin-left: 24px;
+      margin-bottom: 12px;
+      font-size: 0.95em;
+      line-height: 1.6;
+    }
+
+    .card li {
+      margin-bottom: 8px;
+    }
+
+    code {
+      background-color: #f0f0f0;
+      padding: 2px 6px;
+      border-radius: 4px;
+      font-family: "Courier New", monospace;
+      font-size: 0.9em;
+    }
+
+    .highlight-box {
+      background-color: #f9f9f9;
+      border-left: 4px solid var(--blue);
+      padding: 16px;
+      margin: 16px 0;
+      border-radius: 4px;
+    }
+
+    .highlight-box strong {
+      color: var(--accent);
+    }
+
+    .btn {
+      display: inline-block;
+      padding: 14px 32px;
+      background-color: var(--blue);
+      color: white;
+      text-decoration: none;
+      border-radius: 6px;
+      font-weight: 600;
+      font-size: 1em;
+      text-align: center;
+      transition: background-color 0.3s, transform 0.2s;
+      border: none;
+      cursor: pointer;
+      margin: 12px 0;
+      font-family: "Courier New", Courier, monospace;
+    }
+
+    .btn:hover {
+      background-color: #0b5ed7;
+      transform: translateY(-2px);
+    }
+
+    .btn-block {
+      display: block;
+      width: 100%;
+    }
+
+    .btn-secondary {
+      background-color: var(--accent);
+    }
+
+    .btn-secondary:hover {
+      background-color: #333;
+    }
+
+    .step-indicator {
+      display: inline-block;
+      background-color: var(--accent);
+      color: white;
+      padding: 4px 12px;
+      border-radius: 20px;
+      font-size: 0.85em;
+      font-weight: 600;
+      margin-bottom: 12px;
+    }
+
+    .qr-code {
+      text-align: center;
+      margin: 24px 0;
+      padding: 24px;
+      background-color: #f9f9f9;
+      border-radius: 8px;
+    }
+
+    .qr-code img {
+      max-width: 200px;
+      height: auto;
+    }
+
+    .status {
+      padding: 16px;
+      border-radius: 6px;
+      margin: 16px 0;
+      font-weight: 600;
+    }
+
+    .status.warning {
+      background-color: rgba(255, 193, 7, 0.1);
+      color: #856404;
+      border: 1px solid rgba(255, 193, 7, 0.3);
+    }
+
+    .status.success {
+      background-color: rgba(40, 167, 69, 0.1);
+      color: #155724;
+      border: 1px solid rgba(40, 167, 69, 0.3);
+    }
+
+    .status.error {
+      background-color: rgba(220, 53, 69, 0.1);
+      color: #721c24;
+      border: 1px solid rgba(220, 53, 69, 0.3);
+    }
+
+    .footer {
+      text-align: center;
+      margin-top: 48px;
+      margin-bottom: 24px;
+      opacity: 0.6;
+      font-size: 0.9em;
+    }
+
+    .footer a {
+      color: var(--blue);
+      text-decoration: none;
+    }
+
+    .footer a:hover {
+      text-decoration: underline;
+    }
+
+    .troubleshooting {
+      background-color: #f9f9f9;
+      border-radius: 8px;
+      padding: 20px;
+      margin-top: 24px;
+    }
+
+    .troubleshooting h4 {
+      margin-bottom: 8px;
+      font-weight: 600;
+    }
+
+    .troubleshooting p {
+      font-size: 0.9em;
+      margin-bottom: 12px;
+    }
+
+    @media (max-width: 600px) {
+      .card {
+        padding: 24px 16px;
+      }
+
+      header h1 {
+        font-size: 1.6em;
+      }
+
+      .btn {
+        padding: 12px 24px;
+      }
+    }
+
+    .hidden {
+      display: none !important;
+    }
+  </style>
+</head>
+<body>
+  <div class="container">
+    <!-- Header -->
+    <header>
+      <div class="logo">🪞</div>
+      <h1>KEMS Mirror Setup</h1>
+      <p>Get your Mirror connected to WiFi in 3 simple steps</p>
+    </header>
+
+    <!-- Main Setup Card -->
+    <div class="card">
+      <h2>Welcome to KEMS Mirror!</h2>
+      <p>This guide will help you connect your Mirror device to your home WiFi network.</p>
+
+      <!-- Step 1 -->
+      <h3>
+        <span class="step-indicator">Step 1</span>
+        Connect to the Hotspot
+      </h3>
+      <p>On your phone or tablet:</p>
+      <ol>
+        <li>Look for a WiFi network called <strong>"Mirror-Setup"</strong></li>
+        <li>Connect to it (password: <strong>MirrorSetup123</strong>)</li>
+        <li>Wait for connection confirmation</li>
+      </ol>
+      <div class="highlight-box">
+        <strong>💡 Tip:</strong> If you don't see the network, your Mirror is still starting up. Wait 30-60 seconds and try again.
+      </div>
+
+      <!-- Step 2 -->
+      <h3>
+        <span class="step-indicator">Step 2</span>
+        Open the Setup Interface
+      </h3>
+      <p>Once connected to Mirror-Setup, click the button below to access the setup interface:</p>
+      <a href="http://192.168.4.1:5000" class="btn btn-block" target="_blank">
+        📡 Open Setup Interface
+      </a>
+      <p style="font-size: 0.9em; opacity: 0.7;">
+        If the button doesn't work, manually visit: <code>http://192.168.4.1:5000</code>
+      </p>
+
+      <!-- Step 3 -->
+      <h3>
+        <span class="step-indicator">Step 3</span>
+        Configure Your WiFi
+      </h3>
+      <p>In the setup interface, you'll:</p>
+      <ol>
+        <li>Scan for available WiFi networks</li>
+        <li>Select your home network from the list</li>
+        <li>Enter your WiFi password</li>
+        <li>Click Connect</li>
+      </ol>
+      <p>Your Mirror will connect to your WiFi and display a success message. <strong>You can then close the browser window.</strong></p>
+
+      <div class="status success">
+        ✓ Setup Complete! Your Mirror will now start in normal mode and be accessible on your home network.
+      </div>
+    </div>
+
+    <!-- QR Code Card (Optional) -->
+    <div class="card" id="qr-card">
+      <h2>Quick Access QR Code</h2>
+      <p>After connecting to "Mirror-Setup" hotspot, scan this QR code to go directly to the setup interface:</p>
+      <div class="qr-code">
+        <img src="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='200' height='200'%3E%3Crect fill='white' width='200' height='200'/%3E%3Ctext x='50' y='100' font-size='16' fill='black' text-anchor='middle'%3EQR: http://192.168.4.1:5000%3C/text%3E%3C/svg%3E" alt="QR Code to setup interface">
+        <p style="margin-top: 12px; font-size: 0.9em; opacity: 0.7;">
+          Or manually type: <code>http://192.168.4.1:5000</code>
+        </p>
+      </div>
+    </div>
+
+    <!-- Troubleshooting Card -->
+    <div class="card">
+      <h2>Troubleshooting</h2>
+
+      <div class="troubleshooting">
+        <h4>❌ Can't see "Mirror-Setup" WiFi network?</h4>
+        <p>• Make sure your Mirror is powered on and fully booted (wait 60-90 seconds)</p>
+        <p>• Try refreshing your WiFi networks list on your phone</p>
+        <p>• Restart your phone's WiFi and look again</p>
+      </div>
+
+      <div class="troubleshooting">
+        <h4>❌ Can't connect to setup interface?</h4>
+        <p>• Make sure you're connected to the "Mirror-Setup" network (not your regular WiFi)</p>
+        <p>• Try visiting <code>http://192.168.4.1:5000</code> directly in your browser</p>
+        <p>• If still not working, disconnect and reconnect to Mirror-Setup</p>
+      </div>
+
+      <div class="troubleshooting">
+        <h4>❌ Mirror won't connect to my WiFi?</h4>
+        <p>• Double-check your WiFi password is correct</p>
+        <p>• Make sure your WiFi network name (SSID) is correct</p>
+        <p>• Try again from the setup interface (go back and rescan)</p>
+      </div>
+
+      <div class="troubleshooting">
+        <h4>❌ Something else is wrong?</h4>
+        <p>Email support@getkems.com with details about your issue, and we'll help you troubleshoot!</p>
+      </div>
+    </div>
+
+    <!-- Additional Info Card -->
+    <div class="card">
+      <h2>After Setup</h2>
+      <p>Once your Mirror is connected to WiFi:</p>
+      <ol>
+        <li>The setup interface will close automatically</li>
+        <li>Your Mirror will finish booting in normal mode</li>
+        <li>You can access your Mirror on your home WiFi network</li>
+        <li>Your WiFi settings are saved for future boots</li>
+      </ol>
+      <p style="margin-top: 20px;">
+        If you need to reconfigure WiFi in the future, there's an option in your Mirror settings to re-run setup mode.
+      </p>
+    </div>
+
+    <!-- Footer -->
+    <div class="footer">
+      <p>
+        Need help? Visit <a href="https://getkems.com">getkems.com</a> or email <a href="mailto:support@getkems.com">support@getkems.com</a>
+      </p>
+      <p style="margin-top: 16px; font-size: 0.85em;">
+        KEMS — Kinetic Energy Management System
+      </p>
+    </div>
+  </div>
+</body>
+</html>
