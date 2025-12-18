@@ -351,9 +351,8 @@
         return;
       }
       
-      // For getkems.com access, use popup authentication
-      const loginUrl = mirrorServerUrl + '/login?popup=true';
-      const loginWindow = window.open(loginUrl, '_blank', 'width=400,height=600');
+      // For getkems.com access, redirect to login in the same page
+      window.location.href = mirrorServerUrl + '/login';
       
       if (!loginWindow) {
         alert('Please allow popups for this site and try again.');
