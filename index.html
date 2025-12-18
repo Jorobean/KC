@@ -308,58 +308,59 @@
 
     // Authentication trigger function
     async function triggerAuthentication() {
-      const code = prompt('Enter access code:');
-      if (!code) return;
+      // Get or prompt for mirror server URL
+      let mirrorServerUrl = localStorage.getItem('mirrorServerUrl');
       
-      try {
-        // Get or prompt for mirror server URL
-        let mirrorServerUrl = localStorage.getItem('mirrorServerUrl');
-        
-        if (!mirrorServerUrl) {
+      if (!mirrorServerUrl) {
+        mirrorServerUrl = prompt('Enter server address:');
+        if (!mirrorServerUrl) return;
+      } else {
+        // Ask if they want to use the saved URL or enter a new one
+        const useSaved = confirm(`Use saved server: ${mirrorServerUrl}?\n\nClick OK to use this server, or Cancel to enter a new one.`);
+        if (!useSaved) {
+          localStorage.removeItem('mirrorServerUrl');
           mirrorServerUrl = prompt('Enter server address:');
           if (!mirrorServerUrl) return;
-        } else {
-          // Ask if they want to use the saved URL or enter a new one
-          const useSaved = confirm(`Use saved server: ${mirrorServerUrl}?\n\nClick OK to use this server, or Cancel to enter a new one.`);
-          if (!useSaved) {
-            localStorage.removeItem('mirrorServerUrl');
-            mirrorServerUrl = prompt('Enter server address:');
-            if (!mirrorServerUrl) return;
-          }
+        }
+      }
+      
+      // Ensure URL format is correct
+      if (!mirrorServerUrl.startsWith('http')) {
+        mirrorServerUrl = 'http://' + mirrorServerUrl;
+      }
+      
+      // Open the login page in a new window/tab
+      const loginUrl = mirrorServerUrl + '/login?popup=true';
+      const loginWindow = window.open(loginUrl, '_blank', 'width=400,height=600');
+      
+      if (!loginWindow) {
+        alert('Please allow popups for this site and try again.');
+        return;
+      }
+      
+      // Listen for messages from the login window
+      window.addEventListener('message', function handleAuthMessage(event) {
+        // Only accept messages from our mirror server
+        if (event.origin !== new URL(mirrorServerUrl).origin) {
+          return;
         }
         
-        // Ensure URL format is correct
-        if (!mirrorServerUrl.startsWith('http')) {
-          mirrorServerUrl = 'http://' + mirrorServerUrl;
-        }
-        
-        console.log('Attempting auth with server:', mirrorServerUrl);
-        
-        const response = await fetch(mirrorServerUrl + '/request-access', {
-          method: 'POST',
-          headers: { 'Content-Type': 'application/json' },
-          body: JSON.stringify({ code: code })
-        });
-        
-        console.log('Response status:', response.status);
-        const data = await response.json();
-        console.log('Response data:', data);
-        
-        if (data.success && data.token) {
-          // Store token in localStorage
-          localStorage.setItem('mirrorToken', data.token);
+        if (event.data.type === 'auth_success') {
+          // Store server URL for future use
           localStorage.setItem('mirrorServerUrl', mirrorServerUrl);
           
-          console.log('Auth successful, redirecting to:', mirrorServerUrl);
-          // Redirect to mirror server with token as query parameter
-          window.location.href = mirrorServerUrl + '/?token=' + encodeURIComponent(data.token);
-        } else {
-          alert('Invalid code. Please try again.');
+          // Close login window
+          if (loginWindow && !loginWindow.closed) {
+            loginWindow.close();
+          }
+          
+          // Redirect to main app
+          window.location.href = mirrorServerUrl;
+          
+          // Remove the event listener
+          window.removeEventListener('message', handleAuthMessage);
         }
-      } catch (err) {
-        console.error('Auth error:', err);
-        alert('Error: ' + err.message + '\n\nMake sure the server address is correct and accessible.');
-      }
+      });
     }
   </script>
 </body>
