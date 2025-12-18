@@ -319,7 +319,7 @@
               <button class="auth-modal-close">&times;</button>
             </div>
             <div class="auth-modal-body">
-              <iframe id="auth-iframe" src="${mirrorServerUrl}/login?modal=true" frameborder="0"></iframe>
+              <iframe id="auth-iframe" src="/proxy?url=${encodeURIComponent(mirrorServerUrl + '/login?modal=true')}" frameborder="0"></iframe>
             </div>
           </div>
         </div>
