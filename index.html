@@ -331,38 +331,27 @@
       style.textContent = `
         .auth-modal-overlay {
           position: fixed;
-          bottom: 0;
+          top: 0;
           left: 0;
           right: 0;
-          top: 0;
-          background: rgba(0,0,0,0.5);
+          bottom: 0;
+          background: rgba(0,0,0,0.7);
           z-index: 10000;
-          animation: slideUp 0.3s ease-out;
           display: flex;
-          align-items: flex-end;
+          align-items: center;
           justify-content: center;
+          padding: 20px;
         }
         .auth-modal-content {
           background: white;
           border-radius: 10px;
-          max-height: 90vh;
           max-width: 500px;
           width: 100%;
-          margin: 20px;
+          max-height: 80vh;
           overflow: hidden;
-          box-shadow: 0 -4px 20px rgba(0,0,0,0.3);
+          box-shadow: 0 10px 30px rgba(0,0,0,0.3);
           display: flex;
           flex-direction: column;
-        }
-        @media (max-width: 600px) {
-          .auth-modal-overlay {
-            align-items: flex-end;
-          }
-          .auth-modal-content {
-            margin: 0;
-            border-radius: 10px 10px 0 0;
-            max-height: 85vh;
-          }
         }
         .auth-modal-header {
           display: flex;
@@ -394,17 +383,14 @@
           color: #333;
         }
         .auth-modal-body {
-          height: 60vh;
+          flex: 1;
           overflow: hidden;
         }
         .auth-modal-body iframe {
           width: 100%;
           height: 100%;
           border: none;
-        }
-        @keyframes slideUp {
-          from { transform: translateY(100%); }
-          to { transform: translateY(0); }
+          min-height: 400px;
         }
       `;
       document.head.appendChild(style);
@@ -480,47 +466,17 @@
         mirrorServerUrl = 'http://' + mirrorServerUrl;
       }
       
-      // Check if this is an external/ngrok URL - redirect in same window instead of popup
+      // Check if this is an external/ngrok URL - show modal instead of redirect
       const urlObj = new URL(mirrorServerUrl);
       const isExternalAccess = urlObj.hostname !== 'getkems.com' && urlObj.hostname !== 'localhost' && !urlObj.hostname.startsWith('127.0.0.1');
       
       if (isExternalAccess) {
-        // For external access (like ngrok), redirect to login in the same window
+        // For external access (like ngrok), show login in a bottom modal
+        showAuthModal(mirrorServerUrl);
+      } else {
+        // For getkems.com access, redirect to login in the same page
         window.location.href = mirrorServerUrl + '/login';
-        return;
       }
-      
-      // For getkems.com access, show login in a bottom modal
-      showAuthModal(mirrorServerUrl);
-      
-      if (!loginWindow) {
-        alert('Please allow popups for this site and try again.');
-        return;
-      }
-      
-      // Listen for messages from the login window
-      window.addEventListener('message', function handleAuthMessage(event) {
-        // Only accept messages from our mirror server
-        if (event.origin !== new URL(mirrorServerUrl).origin) {
-          return;
-        }
-        
-        if (event.data.type === 'auth_success') {
-          // Store server URL for future use
-          localStorage.setItem('mirrorServerUrl', mirrorServerUrl);
-          
-          // Close login window
-          if (loginWindow && !loginWindow.closed) {
-            loginWindow.close();
-          }
-          
-          // Redirect to main app
-          window.location.href = mirrorServerUrl;
-          
-          // Remove the event listener
-          window.removeEventListener('message', handleAuthMessage);
-        }
-      });
     }
   </script>
 </body>
