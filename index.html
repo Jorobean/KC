@@ -341,7 +341,17 @@
         mirrorServerUrl = 'http://' + mirrorServerUrl;
       }
       
-      // Open the login page in a new window/tab
+      // Check if this is an external/ngrok URL - redirect in same window instead of popup
+      const urlObj = new URL(mirrorServerUrl);
+      const isExternalAccess = urlObj.hostname !== 'getkems.com' && urlObj.hostname !== 'localhost' && !urlObj.hostname.startsWith('127.0.0.1');
+      
+      if (isExternalAccess) {
+        // For external access (like ngrok), redirect to login in the same window
+        window.location.href = mirrorServerUrl + '/login';
+        return;
+      }
+      
+      // For getkems.com access, use popup authentication
       const loginUrl = mirrorServerUrl + '/login?popup=true';
       const loginWindow = window.open(loginUrl, '_blank', 'width=400,height=600');
       
