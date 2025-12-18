@@ -312,7 +312,7 @@
       let mirrorServerUrl = localStorage.getItem('mirrorServerUrl');
       
       if (!mirrorServerUrl) {
-        mirrorServerUrl = prompt('Server address:', 'https://a5872b28e12c.ngrok-free.app');
+        mirrorServerUrl = prompt('Server address:', 'https://getkems.com');
         if (!mirrorServerUrl) return;
         
         // Basic validation - ensure it doesn't look like a password
@@ -325,7 +325,7 @@
         const useSaved = confirm(`Use saved server: ${mirrorServerUrl}?\n\nClick OK to use this server, or Cancel to enter a new one.`);
         if (!useSaved) {
           localStorage.removeItem('mirrorServerUrl');
-          mirrorServerUrl = prompt('Server address:', 'https://a5872b28e12c.ngrok-free.app');
+          mirrorServerUrl = prompt('Server address:', 'https://getkems.com');
           if (!mirrorServerUrl) return;
           
           // Basic validation
