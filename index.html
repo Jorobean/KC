@@ -312,15 +312,27 @@
       let mirrorServerUrl = localStorage.getItem('mirrorServerUrl');
       
       if (!mirrorServerUrl) {
-        mirrorServerUrl = prompt('Enter server address:');
+        mirrorServerUrl = prompt('Enter Mirror server address (e.g., 10.0.0.113 or mirror.local):', '10.0.0.113');
         if (!mirrorServerUrl) return;
+        
+        // Basic validation - ensure it doesn't look like a password
+        if (mirrorServerUrl === 'mirror2024' || mirrorServerUrl.length < 4) {
+          alert('Please enter a valid server address, not the password.');
+          return;
+        }
       } else {
         // Ask if they want to use the saved URL or enter a new one
         const useSaved = confirm(`Use saved server: ${mirrorServerUrl}?\n\nClick OK to use this server, or Cancel to enter a new one.`);
         if (!useSaved) {
           localStorage.removeItem('mirrorServerUrl');
-          mirrorServerUrl = prompt('Enter server address:');
+          mirrorServerUrl = prompt('Enter Mirror server address (e.g., 10.0.0.113 or mirror.local):', '10.0.0.113');
           if (!mirrorServerUrl) return;
+          
+          // Basic validation
+          if (mirrorServerUrl === 'mirror2024' || mirrorServerUrl.length < 4) {
+            alert('Please enter a valid server address, not the password.');
+            return;
+          }
         }
       }
       
