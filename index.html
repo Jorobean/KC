@@ -14,13 +14,6 @@
   <meta property="og:type" content="website">
   <meta property="og:url" content="https://getkems.com/">
   <meta property="og:image" content="https://getkems.com/og-image.png">
-  <!-- Twitter -->
-  <meta name="twitter:card" content="summary_large_image">
-  <meta name="twitter:site" content="@getkems">
-  <meta name="twitter:creator" content="@GetKEMS">
-  <meta name="twitter:title" content="KEMS — Kinetic Energy Management System">
-  <meta name="twitter:description" content="Record and review device-based sessions to improve self-awareness, emotional regulation, and therapeutic outcomes.">
-  <meta name="twitter:image" content="https://getkems.com/og-image.png">
   <style>
     :root{
       --bg: #f4f4f4;
@@ -254,47 +247,14 @@
         logo.addEventListener('keydown', function(e){ if(e.key === 'Enter' || e.key === ' ') { e.preventDefault(); const current = body.classList.contains('dark') ? 'dark' : 'light'; setTheme(current === 'dark' ? 'light' : 'dark'); } });
       }
 
-      // Footer logo: click for theme toggle, long-press for authentication
+      // Footer logo: simple click for theme toggle
       const footerLogo = document.getElementById('footer-logo-toggle');
       if (footerLogo) {
         footerLogo.style.cursor = 'pointer';
-        let longPressTimer = null;
-        const LONG_PRESS_DURATION = 1000; // 1 second
-        
-        // Mouse/touch start - begin long press detection
-        function onPressStart() {
-          longPressTimer = setTimeout(() => {
-            triggerAuthentication();
-          }, LONG_PRESS_DURATION);
-        }
-        
-        // Mouse/touch end - cancel long press if released early
-        function onPressEnd() {
-          if (longPressTimer) {
-            clearTimeout(longPressTimer);
-            longPressTimer = null;
-          }
-        }
-        
-        // Regular click for theme toggle
         footerLogo.addEventListener('click', function () {
-          if (longPressTimer) {
-            clearTimeout(longPressTimer);
-            longPressTimer = null;
-          }
           const current = body.classList.contains('dark') ? 'dark' : 'light';
           setTheme(current === 'dark' ? 'light' : 'dark');
         });
-        
-        // Touch events for long press
-        footerLogo.addEventListener('touchstart', onPressStart);
-        footerLogo.addEventListener('touchend', onPressEnd);
-        footerLogo.addEventListener('touchcancel', onPressEnd);
-        
-        // Mouse events for long press (on desktop)
-        footerLogo.addEventListener('mousedown', onPressStart);
-        footerLogo.addEventListener('mouseup', onPressEnd);
-        footerLogo.addEventListener('mouseleave', onPressEnd);
         
         footerLogo.addEventListener('keydown', function (e) {
           if (e.key === 'Enter' || e.key === ' ') {
@@ -305,36 +265,6 @@
         });
       }
     })();
-
-    // Authentication trigger function
-    async function triggerAuthentication() {
-      // Get or prompt for mirror server URL
-      let mirrorServerUrl = localStorage.getItem('mirrorServerUrl');
-      
-      if (!mirrorServerUrl) {
-        mirrorServerUrl = prompt('Server address:', 'https://getkems.com');
-        if (!mirrorServerUrl) return;
-      } else {
-        // Ask if they want to use the saved URL or enter a new one
-        const useSaved = confirm(`Use saved server: ${mirrorServerUrl}?\n\nClick OK to use this server, or Cancel to enter a new one.`);
-        if (!useSaved) {
-          localStorage.removeItem('mirrorServerUrl');
-          mirrorServerUrl = prompt('Server address:', 'https://getkems.com');
-          if (!mirrorServerUrl) return;
-        }
-      }
-      
-      // Ensure URL format is correct
-      if (!mirrorServerUrl.startsWith('http')) {
-        mirrorServerUrl = 'http://' + mirrorServerUrl;
-      }
-      
-      // Save the URL for next time
-      localStorage.setItem('mirrorServerUrl', mirrorServerUrl);
-      
-      // Redirect to the mirror server
-      window.location.href = mirrorServerUrl + '/';
-    }
   </script>
 </body>
 </html>
