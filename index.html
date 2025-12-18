@@ -306,6 +306,145 @@
       }
     })();
 
+    // Modal authentication function
+    function showAuthModal(mirrorServerUrl) {
+      // Create modal overlay
+      const modal = document.createElement('div');
+      modal.id = 'auth-modal';
+      modal.innerHTML = `
+        <div class="auth-modal-overlay">
+          <div class="auth-modal-content">
+            <div class="auth-modal-header">
+              <h3>Mirror Access</h3>
+              <button class="auth-modal-close">&times;</button>
+            </div>
+            <div class="auth-modal-body">
+              <iframe id="auth-iframe" src="${mirrorServerUrl}/login?modal=true" frameborder="0"></iframe>
+            </div>
+          </div>
+        </div>
+      `;
+      document.body.appendChild(modal);
+
+      // Add modal styles
+      const style = document.createElement('style');
+      style.textContent = `
+        .auth-modal-overlay {
+          position: fixed;
+          bottom: 0;
+          left: 0;
+          right: 0;
+          top: 0;
+          background: rgba(0,0,0,0.5);
+          z-index: 10000;
+          animation: slideUp 0.3s ease-out;
+          display: flex;
+          align-items: flex-end;
+          justify-content: center;
+        }
+        .auth-modal-content {
+          background: white;
+          border-radius: 10px;
+          max-height: 90vh;
+          max-width: 500px;
+          width: 100%;
+          margin: 20px;
+          overflow: hidden;
+          box-shadow: 0 -4px 20px rgba(0,0,0,0.3);
+          display: flex;
+          flex-direction: column;
+        }
+        @media (max-width: 600px) {
+          .auth-modal-overlay {
+            align-items: flex-end;
+          }
+          .auth-modal-content {
+            margin: 0;
+            border-radius: 10px 10px 0 0;
+            max-height: 85vh;
+          }
+        }
+        .auth-modal-header {
+          display: flex;
+          justify-content: space-between;
+          align-items: center;
+          padding: 15px 20px;
+          border-bottom: 1px solid #eee;
+          background: #f8f9fa;
+        }
+        .auth-modal-header h3 {
+          margin: 0;
+          color: #333;
+          font-size: 18px;
+        }
+        .auth-modal-close {
+          background: none;
+          border: none;
+          font-size: 24px;
+          cursor: pointer;
+          color: #666;
+          padding: 0;
+          width: 30px;
+          height: 30px;
+          display: flex;
+          align-items: center;
+          justify-content: center;
+        }
+        .auth-modal-close:hover {
+          color: #333;
+        }
+        .auth-modal-body {
+          height: 60vh;
+          overflow: hidden;
+        }
+        .auth-modal-body iframe {
+          width: 100%;
+          height: 100%;
+          border: none;
+        }
+        @keyframes slideUp {
+          from { transform: translateY(100%); }
+          to { transform: translateY(0); }
+        }
+      `;
+      document.head.appendChild(style);
+
+      // Handle modal close
+      modal.querySelector('.auth-modal-close').onclick = function() {
+        modal.remove();
+        style.remove();
+      };
+
+      // Listen for messages from iframe
+      window.addEventListener('message', function handleModalMessage(event) {
+        if (event.data.type === 'auth_success') {
+          // Replace iframe with Mirror app
+          const iframe = modal.querySelector('#auth-iframe');
+          iframe.src = mirrorServerUrl + '/';
+          
+          // Update header with close button
+          const header = modal.querySelector('.auth-modal-header');
+          header.innerHTML = `
+            <h3>Mirror App</h3>
+            <button class="auth-modal-close" title="Close">&times;</button>
+          `;
+          
+          // Re-attach close handler
+          header.querySelector('.auth-modal-close').onclick = function() {
+            modal.remove();
+            style.remove();
+          };
+          
+          // Remove this event listener
+          window.removeEventListener('message', handleModalMessage);
+        } else if (event.data.type === 'close_modal') {
+          modal.remove();
+          style.remove();
+          window.removeEventListener('message', handleModalMessage);
+        }
+      });
+    }
+
     // Authentication trigger function
     async function triggerAuthentication() {
       // Get or prompt for mirror server URL
@@ -351,8 +490,8 @@
         return;
       }
       
-      // For getkems.com access, redirect to login in the same page
-      window.location.href = mirrorServerUrl + '/login';
+      // For getkems.com access, show login in a bottom modal
+      showAuthModal(mirrorServerUrl);
       
       if (!loginWindow) {
         alert('Please allow popups for this site and try again.');
