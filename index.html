@@ -3,14 +3,14 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <meta name="description" content="KEMS (Kinetic Energy Management System) devices combine a reflective surface and camera so users can record and review device-based self-observation sessions for emotional awareness, grounding, and personal growth.">
-  <meta name="keywords" content="KEMS, Kinetic Energy Management System, self-observation, device-based therapy, getkems.com, emotional awareness, grounding">
+  <meta name="description" content="KEMS (Kinetic Energy Management System) helps users record and review self-observation sessions for emotional awareness, grounding, and personal growth.">
+  <meta name="keywords" content="KEMS, Kinetic Energy Management System, self-observation, therapy, getkems.com, emotional awareness, grounding">
   <meta name="robots" content="index, follow">
   <link rel="canonical" href="https://getkems.com/">
-  <title>KEMS — Kinetic Energy Management System</title>
+  <title>KEMS</title>
   <!-- Open Graph / Facebook -->
-  <meta property="og:title" content="KEMS — Kinetic Energy Management System">
-  <meta property="og:description" content="Device-based self-observation system that records sessions for reflection, coaching, and therapeutic growth.">
+  <meta property="og:title" content="KEMS">
+  <meta property="og:description" content="Self-observation system that records sessions for reflection, coaching, and personal growth.">
   <meta property="og:type" content="website">
   <meta property="og:url" content="https://getkems.com/">
   <meta property="og:image" content="https://getkems.com/og-image.png">
@@ -49,11 +49,9 @@
       background: var(--card);
       border-radius: var(--radius);
       box-shadow: 0 6px 24px rgba(11,12,14,0.06);
-      /* Remove flex-grow so the card sizes to content rather than stretching vertically */
       line-height: 1.5;
     }
 
-    /* Fix: keep background visible on mobile */
     @media (max-width: 480px){
       .container {
         width: 88%;
@@ -61,14 +59,6 @@
         margin-right: auto;
       }
       body { padding-bottom: env(safe-area-inset-bottom); }
-    }
-
-    h1 {
-      font-size: clamp(1.4rem, 2.2vw, 2rem);
-      font-weight: 700;
-      border-bottom: 2px solid var(--accent);
-      padding-bottom: .4rem;
-      margin: 0 0 0.75rem 0;
     }
 
     h2 { font-size: clamp(1.05rem, 1.6vw, 1.25rem); margin-top:1rem; }
@@ -82,7 +72,6 @@
 
     .footer {
       text-align: center;
-      /* Push footer to the bottom of the viewport when using body flex layout */
       margin-top: auto;
       margin-bottom: 34px;
       font-family: Inter, "Courier New", Courier, monospace;
@@ -94,7 +83,6 @@
       font-size: 1.5rem;
     }
 
-    /* Footer logo sizing: slightly larger and constrained */
     .footer .kem img {
       height: 48px;
       width: auto;
@@ -121,7 +109,6 @@
       margin: 0 auto;
     }
 
-    /* Theme variants */
     body.light {
       --bg: #f4f4f4;
       --card: #fff;
@@ -133,15 +120,13 @@
       --bg: #0b0d10;
       --card: #0f1113;
       --text: #e6eef6;
-      /* Use a subtle neutral accent in dark mode so the H1 divider isn't bright blue */
       --accent: rgba(255,255,255,0.09);
     }
 
-    /* Top bar with logo and theme toggle */
     .topbar {
       display: flex;
       align-items: center;
-      justify-content: center; /* center content horizontally */
+      justify-content: center;
       gap: 12px;
       margin-bottom: 12px;
     }
@@ -172,20 +157,7 @@
         "name": "KEMS",
         "url": "https://getkems.com/",
         "logo": "https://getkems.com/logo.png",
-        "sameAs": ["https://www.instagram.com/GetKEMS","https://twitter.com/GetKEMS"]
-      },
-      {
-        "@type": "FAQPage",
-        "mainEntity": [
-          {
-            "@type": "Question",
-            "name": "What is KEMS?",
-            "acceptedAnswer": {
-              "@type": "Answer",
-              "text": "KEMS (Kinetic Energy Management System) is a device-based self-observation system that records users as they speak and interact in front of the device to support personal growth, emotional awareness, and therapeutic reflection."
-            }
-          }
-        ]
+        "sameAs": ["https://www.instagram.com/GetKEMS"]
       }
     ]
   }
@@ -196,11 +168,10 @@
     <div class="topbar">
       <div class="logo"></div>
     </div>
-    <h1>KEMS — Kinetic Energy Management System</h1>
-    <p><strong>KEMS</strong> (Kinetic Energy Management System) is a device-based self-observation system designed to support personal growth, emotional awareness, and therapeutic reflection.</p>
+    <p><strong>KEMS</strong> (Kinetic Energy Management System) provides a framework for exploring moments, offering a space to revisit experiences and gain insight into personal and emotional currents, leading to avenues for growth. By creating a space for the iterative examination of experiential episodes, it enables the analysis of underlying emotional dynamics, cognitive patterns, and behavioral tendencies. Over extended periods, KEMS supports the cultivation of heightened self-awareness and reflective acuity, offering a platform for nuanced observation akin to controlled longitudinal studies in clinical or experimental settings.</p>
   </div>
 
-    <div class="footer">
+  <div class="footer">
     <div class="kem"><img src="kems-logo2.png" alt="KEMS logo" id="footer-logo-toggle" tabindex="0" role="button" aria-label="Toggle theme"></div>
   </div>
   
@@ -212,18 +183,13 @@
         body.classList.remove('light','dark');
         body.classList.add(t);
         try{ localStorage.setItem('site-theme', t); }catch(e){}
-        // Use text labels instead of emoji for accessibility and to avoid emoji references
         if(btn) btn.textContent = t === 'dark' ? 'Light' : 'Dark';
-
-        // Update footer logo to variant per theme: light -> kems-logo2.png, dark -> kems-logo1.png
         try {
           const footerLogoEl = document.getElementById('footer-logo-toggle');
           if (footerLogoEl) {
             footerLogoEl.src = (t === 'dark') ? 'kems-logo1.png' : 'kems-logo2.png';
           }
-        } catch (e) {
-          // ignore missing element
-        }
+        } catch (e) {}
       }
       const saved = (function(){ try{return localStorage.getItem('site-theme')}catch(e){return null} })();
       if(saved === 'dark' || saved === 'light') setTheme(saved);
@@ -237,17 +203,6 @@
           setTheme(current === 'dark' ? 'light' : 'dark');
         });
       }
-      const logo = document.getElementById('logo-toggle');
-      if(logo){
-        logo.style.cursor = 'pointer';
-        logo.addEventListener('click', function(){
-          const current = body.classList.contains('dark') ? 'dark' : 'light';
-          setTheme(current === 'dark' ? 'light' : 'dark');
-        });
-        logo.addEventListener('keydown', function(e){ if(e.key === 'Enter' || e.key === ' ') { e.preventDefault(); const current = body.classList.contains('dark') ? 'dark' : 'light'; setTheme(current === 'dark' ? 'light' : 'dark'); } });
-      }
-
-      // Footer logo: simple click for theme toggle
       const footerLogo = document.getElementById('footer-logo-toggle');
       if (footerLogo) {
         footerLogo.style.cursor = 'pointer';
@@ -255,7 +210,6 @@
           const current = body.classList.contains('dark') ? 'dark' : 'light';
           setTheme(current === 'dark' ? 'light' : 'dark');
         });
-        
         footerLogo.addEventListener('keydown', function (e) {
           if (e.key === 'Enter' || e.key === ' ') {
             e.preventDefault();
