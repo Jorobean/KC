@@ -20,9 +20,10 @@
   }
 
   #log { 
-    width: 720px;
+    width: 90%;
     max-width: 720px;
-    height: 405px;
+    height: 0;
+    padding-bottom: 50.625%; /* 16:9 aspect ratio */
     flex-grow: 0;
     background: linear-gradient(180deg, #d0d0d0 0%, #a8a8a8 50%, #8a8a8a 100%);
     border: none;
@@ -32,11 +33,18 @@
     box-shadow: inset 0 2px 4px rgba(0,0,0,0.3), 0 0 20px rgba(255, 200, 0, 0.8);
     color: transparent;
     text-shadow: none;
-    padding: 0;
     overflow: hidden;
     margin-top: 50px;
     margin-bottom: 40px;
     position: relative;
+  }
+
+  @media (min-width: 768px) {
+    #log {
+      width: 720px;
+      height: 405px;
+      padding-bottom: 0;
+    }
   }
 
   #log::before {
@@ -59,8 +67,8 @@
     width: 160px; 
     height: 42px; 
     border-radius: 21px; 
-    background: #1a1a1a; 
-    color: #0d0d0d; 
+    background: #2a2a2a;
+    color: #1a1a1a;
     font-size: 28px; 
     font-weight: bold;
     letter-spacing: 10px;
@@ -73,25 +81,13 @@
     margin-bottom: 30px;
     transition: background 0.1s;
     cursor: pointer;
-    outline: 5px solid #1a1a1a;
+    outline: 5px solid #2a2a2a;
     outline-offset: 8px;
     text-shadow: 0 -1px 0 #000, 0 1px 1px rgba(255,255,255,0.08);
   }
 
   #button:active {
-    background: #0d0d0d;
-  }
-
-  @media (min-width: 768px) {
-    #button {
-      background: #2a2a2a;
-      color: #1a1a1a;
-      outline-color: #2a2a2a;
-    }
-
-    #button:active {
-      background: #1a1a1a;
-    }
+    background: #1a1a1a;
   }
 
   #pill { 
