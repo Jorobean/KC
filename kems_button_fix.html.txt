@@ -1,0 +1,343 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Multi-function Button Simulator</title>
+<style>
+  body { 
+    font-family: sans-serif; 
+    background: #000; 
+    color: #fff; 
+    display: flex; 
+    flex-direction: column; 
+    justify-content: flex-start; 
+    align-items: center; 
+    min-height: 100vh; 
+    margin: 0; 
+    padding-top: 40px;
+    padding-bottom: 30px;
+  }
+
+  #log { 
+    width: 720px;
+    max-width: 720px;
+    height: 405px;
+    flex-grow: 0;
+    background: linear-gradient(180deg, #d0d0d0 0%, #a8a8a8 50%, #8a8a8a 100%);
+    border: none;
+    border-radius: 20px;
+    outline: 5px solid #1a1a1a;
+    outline-offset: 8px;
+    box-shadow: inset 0 2px 4px rgba(0,0,0,0.3), 0 0 20px rgba(255, 200, 0, 0.8);
+    color: transparent;
+    text-shadow: none;
+    padding: 0;
+    overflow: hidden;
+    margin-top: 50px;
+    margin-bottom: 40px;
+    position: relative;
+  }
+
+  #log::before {
+    content: '';
+    position: absolute;
+    top: 50%;
+    left: 50%;
+    transform: translate(-50%, -50%);
+    width: 10px;
+    height: 10px;
+    background: #000;
+    border-radius: 50%;
+  }
+
+  #log div {
+    display: none;
+  }
+
+  #button { 
+    width: 160px; 
+    height: 42px; 
+    border-radius: 21px; 
+    background: #1a1a1a; 
+    color: #0d0d0d; 
+    font-size: 28px; 
+    font-weight: bold;
+    letter-spacing: 10px;
+    padding-left: 10px;
+    display: flex; 
+    justify-content: center; 
+    align-items: center; 
+    user-select: none; 
+    touch-action: manipulation; 
+    margin-bottom: 30px;
+    transition: background 0.1s;
+    cursor: pointer;
+    outline: 5px solid #1a1a1a;
+    outline-offset: 8px;
+    text-shadow: 0 -1px 0 #000, 0 1px 1px rgba(255,255,255,0.08);
+  }
+
+  #button:active {
+    background: #0d0d0d;
+  }
+
+  @media (min-width: 768px) {
+    #button {
+      background: #2a2a2a;
+      color: #1a1a1a;
+      outline-color: #2a2a2a;
+    }
+
+    #button:active {
+      background: #1a1a1a;
+    }
+  }
+
+  #pill { 
+    width: 160px; 
+    height: 26px; 
+    border-radius: 13px; 
+    background: transparent; 
+    opacity: 0.3;
+    margin-bottom: 20px;
+    transition: none;
+    border: 2px solid #444;
+  }
+
+  #pill.booting {
+    animation: fadeIn 1s forwards;
+    background: #bdbdbd !important;
+    border: none !important;
+  }
+
+  #pill.recording {
+    background: #e74c3c !important;
+    opacity: 1 !important;
+    animation: pulse 1s infinite !important;
+    border: none !important;
+  }
+
+  #pill.on {
+    background: #bdbdbd !important;
+    opacity: 1 !important;
+    animation: none !important;
+    border: none !important;
+  }
+
+  @keyframes pulse {
+    0% { box-shadow: 0 0 5px #e74c3c; }
+    50% { box-shadow: 0 0 20px #e74c3c; }
+    100% { box-shadow: 0 0 5px #e74c3c; }
+  }
+
+  @keyframes fadeIn {
+    0% { opacity: 0; box-shadow: 0 0 5px #bdbdbd; }
+    100% { opacity: 1; box-shadow: 0 0 10px #bdbdbd; }
+  }
+
+</style>
+</head>
+<body>
+
+<div id="log"></div>
+<div id="button">KEMS</div>
+<div id="pill"></div>
+
+<script>
+const button = document.getElementById("button");
+const log = document.getElementById("log");
+const pill = document.getElementById("pill");
+
+// Simulated sounds (since audio files don't exist)
+const sounds = {
+  boot: { play: () => {} },
+  recordStart: { play: () => {} },
+  recordStop: { play: () => {} },
+  shutdown: { play: () => {} }
+};
+
+let pressTimer;
+let pressCount = 0;
+let lastPressTime = 0;
+let recording = false;
+let deviceOn = false;
+let holdTimeout;
+let multiPressTimeout;
+let isTyping = false;
+let firstInteraction = true;
+
+function typeText(text, callback) {
+  isTyping = true;
+  let i = 0;
+  const div = document.createElement('div');
+  log.appendChild(div);
+  
+  function type() {
+    if (i < text.length) {
+      div.textContent += text.charAt(i);
+      i++;
+      log.scrollTop = log.scrollHeight;
+      setTimeout(type, 30); // 30ms per character for typing effect
+    } else {
+      log.scrollTop = log.scrollHeight;
+      isTyping = false;
+      if (callback) callback();
+    }
+  }
+  type();
+}
+
+function logAction(msg) {
+  if (firstInteraction) {
+    log.innerHTML = ''; // Clear initial text on first interaction
+    firstInteraction = false;
+  }
+  typeText(msg);
+}
+
+function updatePill(state) {
+  pill.className = "";
+  pill.style.cssText = ""; // Clear all inline styles
+  
+  if (!deviceOn) {
+    pill.style.background = "transparent";
+    pill.style.opacity = "0.3";
+    pill.style.border = "2px solid #444";
+  } else if (state === "boot") {
+    pill.classList.add("booting");
+  } else if (state === "recording") {
+    pill.classList.add("recording");
+  } else if (state === "on") {
+    pill.classList.add("on");
+  }
+}
+
+function handlePress() {
+  // Device is OFF - single press boots it
+  if (!deviceOn && pressCount === 1) {
+    sounds.boot.play();
+    logAction("Booting device...");
+    deviceOn = true;
+    updatePill("boot");
+    setTimeout(() => { 
+      updatePill("on"); 
+      pressCount = 0;
+    }, 1000);
+    return;
+  }
+  
+  // Device is ON, not recording - single press starts recording
+  if (deviceOn && !recording && pressCount === 1) {
+    sounds.recordStart.play();
+    logAction("Recording...");
+    recording = true;
+    updatePill("recording");
+    pressCount = 0;
+    return;
+  }
+  
+  // Device is ON, recording - single press stops recording
+  if (deviceOn && recording && pressCount === 1) {
+    sounds.recordStop.play();
+    logAction("Sending recording...");
+    recording = false;
+    updatePill("on");
+    pressCount = 0;
+    return;
+  }
+}
+
+// Mouse events for desktop testing
+button.addEventListener("mousedown", (e) => {
+  pressTimer = Date.now();
+  
+  holdTimeout = setTimeout(() => {
+    if (deviceOn) {
+      sounds.shutdown.play();
+      logAction("Shutting down...");
+      recording = false;
+      deviceOn = false;
+      updatePill("off");
+      pressCount = 0;
+      clearTimeout(multiPressTimeout);
+    }
+  }, 3000);
+});
+
+button.addEventListener("mouseup", (e) => {
+  clearTimeout(holdTimeout);
+  
+  const holdTime = (Date.now() - pressTimer) / 1000;
+  
+  if (holdTime >= 3) {
+    return; // Shutdown already handled
+  }
+  
+  const now = Date.now();
+  if (now - lastPressTime > 1000) {
+    pressCount = 0;
+  }
+  
+  pressCount++;
+  lastPressTime = now;
+  
+  // Clear existing timeout
+  clearTimeout(multiPressTimeout);
+  
+  // Wait briefly to see if more presses are coming
+  multiPressTimeout = setTimeout(() => {
+    handlePress();
+  }, 300);
+});
+
+// Touch events for mobile
+button.addEventListener("touchstart", (e) => {
+  e.preventDefault();
+  pressTimer = Date.now();
+  
+  holdTimeout = setTimeout(() => {
+    if (deviceOn) {
+      sounds.shutdown.play();
+      logAction("Shutting down...");
+      recording = false;
+      deviceOn = false;
+      updatePill("off");
+      pressCount = 0;
+      clearTimeout(multiPressTimeout);
+    }
+  }, 3000);
+});
+
+button.addEventListener("touchend", (e) => {
+  e.preventDefault();
+  clearTimeout(holdTimeout);
+  
+  const holdTime = (Date.now() - pressTimer) / 1000;
+  
+  if (holdTime >= 3) {
+    return;
+  }
+  
+  const now = Date.now();
+  if (now - lastPressTime > 1000) {
+    pressCount = 0;
+  }
+  
+  pressCount++;
+  lastPressTime = now;
+  
+  clearTimeout(multiPressTimeout);
+  
+  multiPressTimeout = setTimeout(() => {
+    handlePress();
+  }, 300);
+});
+
+typeText("KEMS Button Simulator");
+typeText("Press once to boot, once to record, once to stop");
+typeText("Hold 3s to shutdown");
+</script>
+
+</body>
+</html>
