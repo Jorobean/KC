@@ -3,17 +3,12 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <meta name="description" content="KEMS (Kinetic Energy Management System) helps users record and review self-observation sessions for emotional awareness, grounding, and personal growth.">
-  <meta name="keywords" content="KEMS, Kinetic Energy Management System, self-observation, therapy, getkems.com, emotional awareness, grounding">
+  <meta name="description" content="KEMS (Kinetic Energy Management System) is a reflective platform designed to capture real moments and transform them into insight.">
+  <meta name="keywords" content="KEMS, Kinetic Energy Management System, self-observation, emotional awareness, personal growth">
   <meta name="robots" content="index, follow">
   <link rel="canonical" href="https://getkems.com/">
   <title>KEMS</title>
-  <!-- Open Graph / Facebook -->
-  <meta property="og:title" content="KEMS">
-  <meta property="og:description" content="Self-observation system that records sessions for reflection, coaching, and personal growth.">
-  <meta property="og:type" content="website">
-  <meta property="og:url" content="https://getkems.com/">
-  <meta property="og:image" content="https://getkems.com/og-image.png">
+
   <style>
     :root{
       --bg: #f4f4f4;
@@ -22,11 +17,8 @@
       --accent: #111;
       --max-width: 900px;
       --radius: 10px;
+      --footer-height: 90px;
     }
-
-    html { font-size: 16px; }
-    @media (max-width: 420px){ html { font-size: 15px; } }
-    @media (min-width: 1200px){ html { font-size: 18px; } }
 
     body {
       font-family: "Courier New", Courier, monospace;
@@ -34,183 +26,108 @@
       color: var(--text);
       margin: 0;
       padding: 0;
-      display: flex;
-      flex-direction: column;
       min-height: 100vh;
-      -webkit-font-smoothing:antialiased;
-      -moz-osx-font-smoothing:grayscale;
+      padding-bottom: var(--footer-height);
+      -webkit-font-smoothing: antialiased;
     }
 
     .container {
       width: 92%;
       max-width: var(--max-width);
       margin: clamp(20px, 6vw, 48px) auto;
-      padding: clamp(10px, 2.5vw, 20px);
+      padding: clamp(14px, 2.5vw, 24px);
       background: var(--card);
       border-radius: var(--radius);
       box-shadow: 0 6px 24px rgba(11,12,14,0.06);
       line-height: 1.5;
     }
 
-    @media (max-width: 480px){
-      .container {
-        width: 88%;
-        margin-left: auto;
-        margin-right: auto;
-      }
-      body { padding-bottom: env(safe-area-inset-bottom); }
+    p {
+      margin: 0;
     }
-
-    h2 { font-size: clamp(1.05rem, 1.6vw, 1.25rem); margin-top:1rem; }
-
-    p { margin: .9rem 0; }
-
-    ul { margin: .5rem 0 1rem 1.25rem; }
-
-    a { color: #0b66ff; text-decoration: none; }
-    a:active, a:focus, a:hover { text-decoration: underline; }
 
     .footer {
-      text-align: center;
-      margin-top: auto;
-      margin-bottom: 34px;
-      font-family: Inter, "Courier New", Courier, monospace;
-      font-size: .95rem;
+      position: fixed;
+      left: 0;
+      right: 0;
+      bottom: 0;
+      height: var(--footer-height);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      background: transparent;
+      pointer-events: none;
     }
 
-    .footer .kem {
-      font-weight: 900;
-      font-size: 1.5rem;
-    }
-
-    .footer .kem img {
+    .footer img {
       height: 48px;
       width: auto;
-      transition: opacity 160ms ease;
-      display: inline-block;
-      vertical-align: middle;
-    }
-
-    .footer .corp {
-      font-weight: 300;
-      font-size: .95rem;
-      margin-top: -4px;
-    }
-
-    .logo {
-      text-align: center;
-      margin-bottom: 8px;
-    }
-
-    .logo img {
-      max-width: 150px;
-      height: auto;
-      display: block;
-      margin: 0 auto;
+      cursor: pointer;
+      pointer-events: auto;
     }
 
     body.light {
       --bg: #f4f4f4;
       --card: #fff;
       --text: #222;
-      --accent: #111;
     }
 
     body.dark {
       --bg: #010101;
       --card: #0B0B0B;
       --text: #e6eef6;
-      --accent: rgba(255,255,255,0.09);
     }
-
-    .topbar {
-      display: flex;
-      align-items: center;
-      justify-content: center;
-      gap: 12px;
-      margin-bottom: 12px;
-    }
-
-    .theme-toggle {
-      background: transparent;
-      border: 1px solid rgba(0,0,0,0.08);
-      padding: 8px 10px;
-      border-radius: 999px;
-      cursor: pointer;
-      font-size: 1rem;
-      line-height: 1;
-      display: inline-flex;
-      align-items: center;
-      justify-content: center;
-      gap: 8px;
-    }
-
-    .theme-toggle:focus { outline: 2px solid rgba(11,102,255,0.2); }
   </style>
-
-  <script type="application/ld+json">
-  {
-    "@context": "https://schema.org",
-    "@graph": [
-      {
-        "@type": "Organization",
-        "name": "KEMS",
-        "url": "https://getkems.com/",
-        "logo": "https://getkems.com/logo.png",
-        "sameAs": ["https://www.instagram.com/GetKEMS"]
-      }
-    ]
-  }
-  </script>
 </head>
+
 <body>
   <div class="container">
-    <div class="topbar">
-      <div class="logo"></div>
-    </div>
-    <p><strong>KEMS</strong> (Kinetic Energy Management System) provides a framework for exploring moments, offering a space to revisit experiences and gain insight into personal and emotional currents, leading to avenues for growth. </p> By creating a space for the iterative examination of experiential episodes, it enables the analysis of underlying emotional dynamics, cognitive patterns, and behavioral tendencies. Over extended periods, KEMS supports the cultivation of heightened self-awareness and reflective acuity, offering a platform for nuanced observation akin to controlled longitudinal studies in clinical or experimental settings.</p>
+    <p>
+      <strong>KEMS</strong> (Kinetic Energy Management System) is a reflective platform designed to capture real moments and transform them into insight. By revisiting experiences after they occur, users can observe patterns, emotional shifts, and behaviors with clarity, supporting deeper self-awareness and intentional personal growth over time.
+    </p>
   </div>
 
   <div class="footer">
-    <div class="kem"><img src="kems-logo2.png" alt="KEMS logo" id="footer-logo-toggle" tabindex="0" role="button" aria-label="Toggle theme"></div>
+    <img src="kems-logo2.png"
+         alt="KEMS logo"
+         id="footer-logo-toggle"
+         tabindex="0"
+         role="button"
+         aria-label="Toggle theme">
   </div>
-  
+
   <script>
     (function(){
       const body = document.body;
-      const btn = document.getElementById('theme-toggle');
+      const logo = document.getElementById('footer-logo-toggle');
+
       function setTheme(t){
         body.classList.remove('light','dark');
         body.classList.add(t);
-        try{ localStorage.setItem('site-theme', t); }catch(e){}
-        if(btn) btn.textContent = t === 'dark' ? 'Light' : 'Dark';
-        try {
-          const footerLogoEl = document.getElementById('footer-logo-toggle');
-          if (footerLogoEl) {
-            footerLogoEl.src = (t === 'dark') ? 'kems-logo1.png' : 'kems-logo2.png';
-          }
-        } catch (e) {}
+        try { localStorage.setItem('site-theme', t); } catch(e){}
+        if (logo) {
+          logo.src = (t === 'dark') ? 'kems-logo1.png' : 'kems-logo2.png';
+        }
       }
-      const saved = (function(){ try{return localStorage.getItem('site-theme')}catch(e){return null} })();
-      if(saved === 'dark' || saved === 'light') setTheme(saved);
-      else {
-        const prefersDark = window.matchMedia && window.matchMedia('(prefers-color-scheme: dark)').matches;
+
+      const saved = (() => {
+        try { return localStorage.getItem('site-theme'); } catch(e){ return null; }
+      })();
+
+      if (saved === 'dark' || saved === 'light') {
+        setTheme(saved);
+      } else {
+        const prefersDark = window.matchMedia('(prefers-color-scheme: dark)').matches;
         setTheme(prefersDark ? 'dark' : 'light');
       }
-      if(btn){
-        btn.addEventListener('click', function(){
+
+      if (logo) {
+        logo.addEventListener('click', () => {
           const current = body.classList.contains('dark') ? 'dark' : 'light';
           setTheme(current === 'dark' ? 'light' : 'dark');
         });
-      }
-      const footerLogo = document.getElementById('footer-logo-toggle');
-      if (footerLogo) {
-        footerLogo.style.cursor = 'pointer';
-        footerLogo.addEventListener('click', function () {
-          const current = body.classList.contains('dark') ? 'dark' : 'light';
-          setTheme(current === 'dark' ? 'light' : 'dark');
-        });
-        footerLogo.addEventListener('keydown', function (e) {
+
+        logo.addEventListener('keydown', e => {
           if (e.key === 'Enter' || e.key === ' ') {
             e.preventDefault();
             const current = body.classList.contains('dark') ? 'dark' : 'light';
