@@ -1,0 +1,173 @@
+<!DOCTYPE html>
+<html>
+<head>
+<meta charset="UTF-8">
+<title>Adaptive Touch Keyboard v6</title>
+<style>
+:root {
+  --bg:#fff; --fg:#000; --key-bg:#f5f5f7; --key-active:#e5e5ea; --glass:rgba(255,255,255,0.6); --radius:18px;
+}
+body.dark {--bg:#000; --fg:#fff; --key-bg:#1c1c1e; --key-active:#2c2c2e; --glass:rgba(30,30,30,0.6);}
+body {margin:0; background:var(--bg); color:var(--fg); font-family:-apple-system,BlinkMacSystemFont,sans-serif; display:flex; flex-direction:column; height:100vh; overflow:hidden;}
+.key {background:var(--key-bg); border-radius:var(--radius); transition:0.12s; position:relative; overflow:hidden; text-align:center; user-select:none; cursor:pointer; font-weight:600; font-size:16px;}
+.key.active {background:#007aff; color:#fff;}
+.key:active{transform:scale(1.06); background:var(--key-active);}
+.key::after{content:""; position:absolute; border-radius:50%; background:rgba(0,0,0,0.1); transform:scale(0); opacity:0; pointer-events:none;}
+.key.ripple::after{animation:ripple 0.4s ease-out;}
+@keyframes ripple{from{transform:scale(0);opacity:0.4;}to{transform:scale(4);opacity:0;}}
+.keyboard{padding:16px; display:flex; flex-direction:column; gap:6px; transition:0.2s;}
+.row{display:flex; gap:6px; transition:0.2s;}
+.key{flex:1; padding:12px 0;}
+.key.wide{flex:2;}
+.key.space{flex:6;}
+.suggestions{backdrop-filter:blur(12px); background:var(--glass); border-radius:16px; padding:8px; display:flex; gap:8px; opacity:0; transition:opacity 0.2s;}
+.suggestions.visible{opacity:1;}
+.suggestion{padding:6px 12px; border-radius:12px; background:var(--key-bg); cursor:pointer;}
+.modal{position:fixed; inset:0; display:none; align-items:center; justify-content:center; background:rgba(0,0,0,0.4);}
+.modal.active{display:flex;}
+.modal-content{background:var(--bg); color:var(--fg); padding:24px; border-radius:20px; width:600px; max-height:80vh; overflow:auto; box-shadow:0 10px 30px rgba(0,0,0,0.15);}
+.settings-section{background:var(--glass); backdrop-filter:blur(12px); border-radius:16px; padding:16px 20px; margin-bottom:16px; box-shadow:0 4px 10px rgba(0,0,0,0.05);}
+.settings-section h3{margin-top:0;font-size:16px;font-weight:600;border-bottom:1px solid rgba(0,0,0,0.1);padding-bottom:6px;margin-bottom:12px;}
+.settings-grid{display:grid; grid-template-columns:repeat(auto-fill,minmax(150px,1fr)); gap:10px;}
+.setting-item{display:flex; justify-content:space-between; align-items:center; margin:4px 0;}
+.setting-item input[type="checkbox"]{width:40px;height:20px;-webkit-appearance:none;background:#ddd;outline:none;border-radius:12px;position:relative;cursor:pointer;transition:0.3s;}
+.setting-item input[type="checkbox"]:checked{background:#007aff;}
+.setting-item input[type="checkbox"]::before{content:"";position:absolute;width:18px;height:18px;border-radius:50%;top:1px;left:1px;background:#fff;transition:0.3s;}
+.setting-item input[type="checkbox"]:checked::before{transform:translateX(20px);}
+.setting-item select{padding:6px 12px;border-radius:12px;border:1px solid #ccc;background:var(--key-bg);cursor:pointer;transition:0.2s;}
+.setting-item select:hover, .setting-item select:focus{border-color:#007aff; outline:none;}
+.modal-content button{margin-top:20px; padding:10px 20px; border:none; border-radius:12px; background:#007aff; color:white; font-weight:bold; cursor:pointer; transition:0.2s;}
+.modal-content button:hover{opacity:0.85;}
+#debug{position:fixed;bottom:10px;left:10px;font-size:12px;opacity:0.7;white-space:pre-wrap;}
+.keyboard.split .row{justify-content:space-between;}
+</style>
+</head>
+<body>
+
+<div style="display:flex; justify-content:space-between; padding:10px 20px;">
+  <div>Adaptive Touch Keyboard v6</div>
+  <div><button onclick="toggleMenu()">Menu</button></div>
+</div>
+
+<div id="display" style="flex:1; padding:20px; font-size:24px;"></div>
+<div id="suggestions" class="suggestions"></div>
+<div id="keyboard" class="keyboard"></div>
+<div id="debug"></div>
+
+<div id="menu" class="modal">
+  <div class="modal-content">
+    <h2 style="text-align:center; margin-bottom:20px;">Settings</h2>
+    <div id="settingsPanel"></div>
+    <button onclick="toggleMenu()">Close</button>
+  </div>
+</div>
+
+<script>
+const SETTINGS={theme:"light",osMode:"windows",layoutProfile:"desktop",soundProfile:"soft",features:{
+stickyShift:true,doubleTapCaps:true,modifierHighlight:true,swipeTyping:true,swipeTrail:true,swipePreview:true,gestureShortcuts:true,adaptiveResizing:true,dynamicHitbox:true,rippleEffect:true,glassSuggestions:true,debugOverlay:false}};
+const STATE={shift:"off",history:[],lastSpaceTime:0,ctrlLast:0,altLast:0,swipePath:[],emojiMode:false,backspaceInterval:null,splitMode:false};
+
+// Feature name formatter
+function formatFeatureName(name){
+  const result = name.replace(/([A-Z])/g, ' $1'); 
+  return result.charAt(0).toUpperCase() + result.slice(1);
+}
+
+// Settings menu
+function renderSettingsMenu(){
+  const panel=document.getElementById("settingsPanel"); panel.innerHTML="";
+  panel.appendChild(renderSection("Appearance",[
+    selectControl("Theme","theme",["light","dark"]),
+    selectControl("Layout Profile","layoutProfile",["desktop","tablet","split"]),
+    selectControl("OS Mode","osMode",["windows","mac"]),
+    selectControl("Sound Profile","soundProfile",["mechanical","soft","silent"])
+  ]));
+  const featureItems=Object.keys(SETTINGS.features).map(k=>toggleControl(k));
+  const featureSection=document.createElement("div"); featureSection.className="settings-section";
+  const h3=document.createElement("h3"); h3.innerText="Features"; featureSection.appendChild(h3);
+  const grid=document.createElement("div"); grid.className="settings-grid";
+  featureItems.forEach(f=>grid.appendChild(f));
+  featureSection.appendChild(grid);
+  panel.appendChild(featureSection);
+}
+function renderSection(title,items){const s=document.createElement("div"); s.className="settings-section"; const h3=document.createElement("h3"); h3.innerText=title; s.appendChild(h3); items.forEach(i=>s.appendChild(i)); return s;}
+function toggleControl(k){const w=document.createElement("div"); w.className="setting-item"; const l=document.createElement("div"); l.innerText=formatFeatureName(k); const t=document.createElement("input"); t.type="checkbox"; t.checked=SETTINGS.features[k]; t.onchange=()=>{SETTINGS.features[k]=t.checked; applySettings();}; w.appendChild(l); w.appendChild(t); return w;}
+function selectControl(label,key,options){const w=document.createElement("div"); w.className="setting-item"; const l=document.createElement("div"); l.innerText=label; const s=document.createElement("select"); options.forEach(o=>{const e=document.createElement("option");e.value=o;e.innerText=o;if(SETTINGS[key]===o)e.selected=true;s.appendChild(e);}); s.onchange=()=>{SETTINGS[key]=s.value; applySettings();}; w.appendChild(l); w.appendChild(s); return w;}
+
+// Apply settings
+function applySettings(){document.body.classList.toggle("dark",SETTINGS.theme==="dark"); generateLayout(); updateModifiers(); document.getElementById("debug").style.display=SETTINGS.features.debugOverlay?"block":"none";}
+
+// Layouts
+const KEYBOARD_LAYOUT=[["Esc","F1","F2","F3","F4","F5","F6","F7","F8","F9","F10","F11","F12","Del"],["`","1","2","3","4","5","6","7","8","9","0","-","=","Backspace"],["Tab","Q","W","E","R","T","Y","U","I","O","P","[","]","\\"],["Caps","A","S","D","F","G","H","J","K","L",";","'","Enter"],["Shift","Z","X","C","V","B","N","M",",",".","/","Shift"],["Ctrl","Win","Alt","Space","Alt","Win","Menu","Ctrl"]];
+const EMOJI_LAYOUT=[["😀","😂","🥰","😎","🤔","🙁","😡","🥳","😴","😭"],["👍","👎","✊","🤚","👌","🙏","🤝","💪","💀","👀"]];
+
+function generateLayout(){
+  const kb=document.getElementById("keyboard"); kb.innerHTML="";
+  const layout=STATE.emojiMode?EMOJI_LAYOUT:KEYBOARD_LAYOUT;
+  kb.classList.toggle("split",STATE.splitMode);
+  layout.forEach(r=>{const row=document.createElement("div"); row.className="row"; r.forEach(k=>{
+    const key=document.createElement("div"); key.className="key"; 
+    if(k.length===1 && !STATE.emojiMode){
+      key.dataset.type="char";
+      key.dataset.base=k.toLowerCase();
+      key.innerText=(STATE.shift==="sticky"||STATE.shift==="caps")?k.toUpperCase():k.toLowerCase();
+    } else key.innerText=k;
+    if(["Shift","Caps","Enter","Backspace","Tab","Esc","Space"].includes(k)) key.classList.add("wide");
+    if(k==="Space") key.classList.add("space");
+    key.onmousedown=key.ontouchstart=()=>pressKey(k,key,true);
+    key.onmouseup=key.ontouchend=()=>releaseKey(k,key);
+    row.appendChild(key);
+  }); kb.appendChild(row);});
+}
+
+// Key press/release
+function pressKey(label,keyEl,hold){
+  if(SETTINGS.features.rippleEffect){ keyEl.classList.add("ripple"); setTimeout(()=>keyEl.classList.remove("ripple"),400);}
+  keyEl.classList.add("active");
+  STATE.swipePath.push(label);
+  if(["Shift","Caps"].includes(label)) STATE.shift=(STATE.shift==="off")?"sticky":"off";
+
+  if(label==="Alt"){ 
+    const now=Date.now();
+    if(now-STATE.altLast<400){STATE.splitMode=!STATE.splitMode; generateLayout(); STATE.altLast=0;} else STATE.altLast=now;
+  }
+  if(label==="Ctrl"){ 
+    const now=Date.now();
+    if(now-STATE.ctrlLast<400){STATE.emojiMode=!STATE.emojiMode; generateLayout(); STATE.ctrlLast=0;} else STATE.ctrlLast=now;
+  }
+  if(label==="Backspace" && hold){ STATE.backspaceInterval=setInterval(()=>{deleteChar();},100);}
+  else if(label==="Space"){const now=Date.now(); addText((now-STATE.lastSpaceTime<400)?". ":" "); STATE.lastSpaceTime=now;}
+  else if(label.length===1){let out=label; if((STATE.shift==="sticky"||STATE.shift==="caps")&&!STATE.emojiMode) out=label.toUpperCase(); if(STATE.shift==="sticky") STATE.shift="off"; addText(out);}
+  updateModifiers(); updateSuggestions();
+}
+function releaseKey(label,keyEl){keyEl.classList.remove("active"); if(label==="Backspace" && STATE.backspaceInterval){clearInterval(STATE.backspaceInterval); STATE.backspaceInterval=null;} if(SETTINGS.features.swipeTyping) updateSwipePrediction();}
+function updateModifiers(){
+  const keys=document.querySelectorAll(".key");
+  keys.forEach(k=>{
+    if(k.dataset.type==="char"){
+      const base=k.dataset.base;
+      k.innerText=(STATE.shift==="sticky"||STATE.shift==="caps")?base.toUpperCase():base.toLowerCase();
+    }
+    if(["Shift","Caps"].includes(k.innerText)){
+      k.classList.toggle("active",STATE.shift!=="off");
+    }
+  });
+}
+
+// Text & suggestions
+function addText(t){document.getElementById("display").innerText+=t; updateSuggestions();}
+function deleteChar(){const d=document.getElementById("display"); d.innerText=d.innerText.slice(0,-1); updateSuggestions();}
+function updateSuggestions(){const bar=document.getElementById("suggestions"); const txt=document.getElementById("display").innerText.trim(); if(!txt){bar.classList.remove("visible"); bar.innerHTML=""; return;} const lastWord=txt.split(" ").pop(); const mock=[lastWord,lastWord+"ing","😊"]; bar.innerHTML=""; mock.forEach(w=>{const e=document.createElement("div"); e.className="suggestion"; e.innerText=w; e.onclick=()=>applySuggestion(w); bar.appendChild(e);}); bar.classList.add("visible");}
+function applySuggestion(w){const d=document.getElementById("display"); let words=d.innerText.split(" "); words[words.length-1]=w; d.innerText=words.join(" ")+" ";}
+
+// Swipe typing
+function updateSwipePrediction(){if(STATE.swipePath.length===0) return; const word=STATE.swipePath.join("").toLowerCase(); document.getElementById("display").innerText=document.getElementById("display").innerText.replace(/\S*$/,"")+word; STATE.swipePath=[];}
+
+// Menu
+function toggleMenu(){document.getElementById("menu").classList.toggle("active");}
+
+// Init
+renderSettingsMenu(); applySettings();
+</script>
+</body>
+</html>
