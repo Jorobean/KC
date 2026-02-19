@@ -149,7 +149,7 @@ padding: 2px 5px; display: none;
 .menu-btn {
 background: rgba(255,255,255,.12); border: 1.5px solid rgba(255,255,255,.3);
 color: #ffffff; width: 36px; height: 36px; border-radius: 9px;
-cursor: pointer; display: flex; align-items: center; justify-content: center;
+cursor: pointer; display: none; align-items: center; justify-content: center;
 transition: background .15s;
 }
 .menu-btn:hover, .menu-btn:active { background: rgba(255,255,255,.18); }
@@ -1356,9 +1356,21 @@ function applyOsMode(mode){
 }
 
 /* ── MENU WIRING ── */
-document.getElementById('menuBtn').addEventListener('click',()=>{updateStatsDisplay();renderBattery();overlay.classList.add('open');});
+function openMenu(){updateStatsDisplay();renderBattery();overlay.classList.add('open');}
+document.getElementById('menuBtn').addEventListener('click',openMenu);
 document.getElementById('closeBtn').addEventListener('click',()=>overlay.classList.remove('open'));
 overlay.addEventListener('click',e=>{if(e.target===overlay)overlay.classList.remove('open');});
+
+let f12TapCount=0,f12TapTimer=null;
+document.addEventListener('keydown',e=>{
+  if((e.ctrlKey)&&(e.key==='F12'||e.code==='F12')){e.preventDefault();openMenu();return;}
+  if((e.key==='F12'||e.code==='F12')&&!e.ctrlKey){
+    f12TapCount++;
+    if(f12TapCount===3){e.preventDefault();openMenu();f12TapCount=0;}
+    clearTimeout(f12TapTimer);
+    f12TapTimer=setTimeout(()=>{f12TapCount=0;},500);
+  }
+});
 platter.addEventListener('click',e=>e.stopPropagation());
 
 function segActivate(id,btn){
@@ -1399,7 +1411,7 @@ function bindTog(id,key,onCb,offCb){
     saveSettings();
   });
 }
-bindTog('togBattery','showBattery',()=>document.getElementById('batteryIndicator').style.display='',()=>document.getElementById('batteryIndicator').style.display='none');
+bindTog('togBattery','showBattery',()=>{document.getElementById('batteryIndicator').style.display='';document.querySelector('.topbar').style.display='';},()=>{document.getElementById('batteryIndicator').style.display='none';document.querySelector('.topbar').style.display='none';});
 bindTog('togSuggBar','showSuggBar',()=>{suggBar.classList.remove('hidden');applySuggBarVisibility();},()=>{suggBar.classList.add('hidden');applySuggBarVisibility();});
 bindTog('togPopup','popup');
 bindTog('togDepress','depress');
@@ -1442,6 +1454,7 @@ applyOsMode(S.osMode);
 applySuggBarVisibility();
 updateSuggestions();
 document.getElementById('batteryIndicator').style.display=S.showBattery?'':'none';
+document.querySelector('.topbar').style.display=S.showBattery?'':'none';
 
 /* ── RESTORE UI STATES ── */
 document.getElementById('togBattery').classList.toggle('on',S.showBattery);
