@@ -1194,6 +1194,7 @@ function handlePress(keyEl){
   if(k==='CapsLock'){S.caps=!S.caps;S.shift=false;updateModifierVisuals();return;}
   if(['Control','Alt','Meta'].includes(k))return;
   if(k.startsWith('F')&&k.length<=3)return;
+  if(k==='/'){overlay.classList.add('open');return;}
   if(k==='Escape'){S.typedText='';renderText();updateSuggestions();return;}
   if(k==='Tab'){typeChar('\t');return;}
   if(k==='Backspace'){S.typedText=S.typedText.slice(0,-1);}
@@ -1356,21 +1357,9 @@ function applyOsMode(mode){
 }
 
 /* ── MENU WIRING ── */
-function openMenu(){updateStatsDisplay();renderBattery();overlay.classList.add('open');}
-document.getElementById('menuBtn').addEventListener('click',openMenu);
+document.getElementById('menuBtn').addEventListener('click',()=>{updateStatsDisplay();renderBattery();overlay.classList.add('open');});
 document.getElementById('closeBtn').addEventListener('click',()=>overlay.classList.remove('open'));
 overlay.addEventListener('click',e=>{if(e.target===overlay)overlay.classList.remove('open');});
-
-let f12TapCount=0,f12TapTimer=null;
-document.addEventListener('keydown',e=>{
-  if((e.ctrlKey)&&(e.key==='F12'||e.code==='F12')){e.preventDefault();openMenu();return;}
-  if((e.key==='F12'||e.code==='F12')&&!e.ctrlKey){
-    f12TapCount++;
-    if(f12TapCount===3){e.preventDefault();openMenu();f12TapCount=0;}
-    clearTimeout(f12TapTimer);
-    f12TapTimer=setTimeout(()=>{f12TapCount=0;},500);
-  }
-});
 platter.addEventListener('click',e=>e.stopPropagation());
 
 function segActivate(id,btn){
@@ -1433,6 +1422,7 @@ document.getElementById('keySizeSlider').addEventListener('input',function(){S.k
 document.getElementById('osModeSeg').addEventListener('click',e=>{const b=e.target.closest('.seg-btn');if(!b)return;segActivate('osModeSeg',b);S.osMode=b.dataset.osmode;applyOsMode(S.osMode);saveSettings();});
 
 document.addEventListener('keydown',e=>{
+  if(e.key==='/'){e.preventDefault();overlay.classList.add('open');return;}
   const match=[...allKeys].find(k=>{const dk=k.dataset.key;return dk===e.key||dk===e.key.toLowerCase();});
   if(match)handlePress(match);
 });
