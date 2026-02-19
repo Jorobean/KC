@@ -287,6 +287,34 @@ body.simple-mode .row:nth-child(n+3) .key { max-width: calc(100% / 8); }
 .key.depress { transform: scale(0.93) translateY(1px); background: var(--surface2) !important; border-bottom-width: 1px; }
 .key.flash   { background: #fff !important; color: #000 !important; opacity: 1 !important; box-shadow: 0 0 18px rgba(255,255,255,.5) !important; border-color: #fff !important; transition: background .04s, color .04s, opacity .04s !important; }
 
+/* ─ TRACKPAD ─ */
+.trackpad-container {
+  display: flex; align-items: center; justify-content: center;
+  padding: 12px 5px 16px; flex-shrink: 0;
+  background: var(--platter-bg);
+  border-bottom: 1px solid var(--border);
+}
+.trackpad-container.hidden { display: none; }
+
+.trackpad {
+  width: 85%; max-width: 300px; aspect-ratio: 16 / 10;
+  background: #3a3a3f; border: 2px solid #555;
+  border-radius: 12px; cursor: pointer;
+  position: relative; overflow: hidden;
+  box-shadow: inset 0 2px 8px rgba(0,0,0,.4);
+  touch-action: none;
+}
+
+.trackpad-indicator {
+  position: absolute; width: 8px; height: 8px;
+  background: #4f8ef7; border-radius: 50%;
+  opacity: 0; transition: opacity .1s;
+  pointer-events: none; top: 50%; left: 50%;
+  transform: translate(-50%, -50%);
+}
+
+.trackpad.active .trackpad-indicator { opacity: 1; }
+
 .key .heatmap-pip {
 position: absolute; inset: 0; border-radius: inherit; pointer-events: none;
 opacity: 0; background: radial-gradient(circle, rgba(255,60,60,.7) 0%, transparent 70%);
@@ -670,6 +698,13 @@ cursor: pointer; transition: background .15s; display: none;
 
 </div>
   </div>
+
+  <!-- TRACKPAD -->
+  <div class="trackpad-container" id="trackpadContainer">
+    <div class="trackpad" id="trackpad">
+      <div class="trackpad-indicator" id="trackpadIndicator"></div>
+    </div>
+  </div>
 </div>
 <div class="key-popup" id="keyPopup"></div>
 
@@ -895,6 +930,16 @@ cursor: pointer; transition: background .15s; display: none;
     </div>
   </div>
 
+  <!-- INPUT DEVICES -->
+
+  <div class="p-section">
+    <div class="p-label">Input Devices</div>
+    <div class="t-row">
+      <div class="t-info"><div class="t-label">Trackpad</div><div class="t-sub">Virtual touchpad below keyboard</div></div>
+      <button class="tog" id="togTrackpad"></button>
+    </div>
+  </div>
+
   <!-- ACCESSIBILITY -->
 
   <div class="p-section">
@@ -949,7 +994,7 @@ const S = {
   proximity:true, boost:1, idleTimeout:3000,
   sound:false, haptic:true, volume:0.6,
   showBattery:true, batterySaver:false,
-  showSuggBar:true, showHeatmap:false,
+  showSuggBar:true, showHeatmap:false, showTrackpad:false,
   highContrast:false, oneHanded:false, oneHandedSide:'left', keySize:2,
   simpleMode:false, osMode:'mac',
   caps:false, shift:false, typedText:'', isProximity:false,
@@ -1356,6 +1401,34 @@ function applyOsMode(mode){
   }
 }
 
+/* ── TRACKPAD ── */
+const trackpadEl=document.getElementById('trackpad');
+const trackpadIndicator=document.getElementById('trackpadIndicator');
+if(trackpadEl){
+  let isTrackpadActive=false;
+  trackpadEl.addEventListener('mousedown',e=>{isTrackpadActive=true;trackpadEl.classList.add('active');});
+  trackpadEl.addEventListener('mouseup',e=>{isTrackpadActive=false;trackpadEl.classList.remove('active');});
+  trackpadEl.addEventListener('mouseleave',e=>{isTrackpadActive=false;trackpadEl.classList.remove('active');});
+  trackpadEl.addEventListener('touchstart',e=>{isTrackpadActive=true;trackpadEl.classList.add('active');});
+  trackpadEl.addEventListener('touchend',e=>{isTrackpadActive=false;trackpadEl.classList.remove('active');});
+  trackpadEl.addEventListener('mousemove',e=>{
+    if(isTrackpadActive){
+      const rect=trackpadEl.getBoundingClientRect();
+      const x=e.clientX-rect.left;const y=e.clientY-rect.top;
+      trackpadIndicator.style.left=(x/rect.width*100)+'%';
+      trackpadIndicator.style.top=(y/rect.height*100)+'%';
+    }
+  });
+  trackpadEl.addEventListener('touchmove',e=>{
+    if(isTrackpadActive){
+      const touch=e.touches[0];const rect=trackpadEl.getBoundingClientRect();
+      const x=touch.clientX-rect.left;const y=touch.clientY-rect.top;
+      trackpadIndicator.style.left=(x/rect.width*100)+'%';
+      trackpadIndicator.style.top=(y/rect.height*100)+'%';
+    }
+  });
+}
+
 /* ── MENU WIRING ── */
 document.getElementById('menuBtn').addEventListener('click',()=>{updateStatsDisplay();renderBattery();overlay.classList.add('open');});
 document.getElementById('closeBtn').addEventListener('click',()=>overlay.classList.remove('open'));
@@ -1413,6 +1486,7 @@ bindTog('togHighContrast','highContrast',()=>document.documentElement.setAttribu
 bindTog('togOneHanded','oneHanded',()=>{document.body.classList.add('one-handed-'+S.oneHandedSide);document.getElementById('oneHandedSideWrap').style.display='';},()=>{document.body.classList.remove('one-handed-left','one-handed-right');document.getElementById('oneHandedSideWrap').style.display='none';});
 bindTog('togSimpleMode','simpleMode',()=>document.body.classList.add('simple-mode'),()=>document.body.classList.remove('simple-mode'));
 bindTog('togProximity','proximity',()=>keyboard.className='keyboard-idle',()=>{clearTimeout(idleTimer);S.isProximity=false;keyboard.className='';});
+bindTog('togTrackpad','showTrackpad',()=>document.getElementById('trackpadContainer').classList.remove('hidden'),()=>document.getElementById('trackpadContainer').classList.add('hidden'));
 
 document.getElementById('boostSlider').addEventListener('input',function(){S.boost=+this.value;document.getElementById('boostVal').textContent=BOOST_LABELS[S.boost];applyBoost(S.boost);saveSettings();});
 document.getElementById('timeoutSlider').addEventListener('input',function(){S.idleTimeout=+this.value*1000;document.getElementById('timeoutVal').textContent=this.value+'s';saveSettings();});
@@ -1442,6 +1516,7 @@ applyBgColor(S.bgColor);
 applyPlatterColor(S.platterBgColor);
 applyOsMode(S.osMode);
 applySuggBarVisibility();
+document.getElementById('trackpadContainer').classList.toggle('hidden',!S.showTrackpad);
 updateSuggestions();
 document.getElementById('batteryIndicator').style.display=S.showBattery?'':'none';
 document.querySelector('.topbar').style.display=S.showBattery?'':'none';
@@ -1460,6 +1535,7 @@ document.getElementById('togHighContrast').classList.toggle('on',S.highContrast)
 document.getElementById('togOneHanded').classList.toggle('on',S.oneHanded);
 document.getElementById('togSimpleMode').classList.toggle('on',S.simpleMode);
 document.getElementById('togProximity').classList.toggle('on',S.proximity);
+document.getElementById('togTrackpad').classList.toggle('on',S.showTrackpad);
 document.getElementById('oneHandedSideWrap').style.display=S.oneHanded?'':'none';
 
 /* Restore segmented controls */
