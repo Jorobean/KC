@@ -4,7 +4,7 @@
 <head>
 <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
 <title>Touch Keyboard</title>
-<link href="https://fonts.googleapis.com/css2?family=IBM+Plex+Mono:wght@400;600&family=DM+Sans:wght@300;400;500;600&display=swap" rel="stylesheet">
+<link href="https://fonts.googleapis.com/css2?family=IBM+Plex+Mono:wght@400;600&family=DM+Sans:wght@300;400;500;600&family=Space+Mono:wght@400;700&family=Courier+Prime:wght@400;700&family=Orbitron:wght@400;700&family=Rajdhani:wght@500;700&family=Share+Tech+Mono&family=VT323&family=Press+Start+2P&family=Bebas+Neue&display=swap" rel="stylesheet">
 <style>
 /* ═══════════════════════════════════════
    VARIABLES
@@ -19,56 +19,61 @@
 
 /* Keyboard / platter surfaces — noticeably lighter than bg */
 --platter-bg: #2a2a2a;
--surface:   #232326;
--surface2:  #2e2e33;
--border:    #3a3a40;
+--surface:   #232326;
+--surface2:  #2e2e33;
+--border:    #3a3a40;
 
 /* Text */
--text:      #e0e0e8;
--text-dim:  #7a7a86;
+--text:      #e0e0e8;
+--text-dim:  #7a7a86;
 
 /* Accent */
--accent:    #4f8ef7;
+--accent:    #4f8ef7;
 
 /* Keys */
--key-bg:    #2a2a30;
--key-mod:   #222228;
+--key-bg:    #2a2a30;
+--key-mod:   #222228;
 
--dim-op:     0.18;
--radius-key: 7px;
--key-scale:  1;
--key-gap:    2px;
--key-height: 46px;
+--dim-op:     0.18;
+--radius-key: 7px;
+--key-scale:  1;
+--key-gap:    2px;
+--key-height: 46px;
 }
 
 [data-theme=“light”] {
--bg:       #ffffff;
--surface:  #e8e8ec;
--surface2: #d4d4da;
--border:   #b8b8c2;
--text:     #1a1a20;
--text-dim: #6a6a78;
--key-bg:   #d8d8de;
--key-mod:  #c8c8ce;
+--bg:         #f0f0f5;
+--surface:    #e0e0e8;
+--surface2:   #d4d4da;
+--border:     #b8b8c2;
+--text:       #1a1a20;
+--text-dim:   #6a6a78;
+--key-bg:     #d8d8de;
+--key-mod:    #c8c8ce;
+--platter-bg: #dcdce8;
 }
 
 [data-hc=“1”] {
--surface:  #1a1a1a;
--surface2: #242424;
--border:   #666;
--text:     #ffffff;
--text-dim: #cccccc;
--key-bg:   #1e1e1e;
--key-mod:  #141414;
+--surface:    #000000;
+--surface2:   #111111;
+--border:     #888888;
+--text:       #ffffff;
+--text-dim:   #dddddd;
+--key-bg:     #0a0a0a;
+--key-mod:    #000000;
+--bg:         #000000;
+--platter-bg: #111111;
 }
 [data-hc=“1”][data-theme=“light”] {
--surface:  #f0f0f0;
--surface2: #e0e0e0;
--border:   #000;
--text:     #000;
--text-dim: #333;
--key-bg:   #d8d8d8;
--key-mod:  #c8c8c8;
+--surface:    #ffffff;
+--surface2:   #e8e8e8;
+--border:     #000000;
+--text:       #000000;
+--text-dim:   #222222;
+--key-bg:     #c8c8c8;
+--key-mod:    #b0b0b0;
+--bg:         #e8e8e8;
+--platter-bg: #ffffff;
 }
 
 /* ═══════════════════════════════════════
@@ -192,7 +197,7 @@ animation: blink 1s step-end infinite; border-radius: 1px;
 .suggestion-bar {
 display: flex; align-items: center; height: 40px; gap: 2px;
 padding: 4px 8px;
-background: var(--platter-bg); border-top: 1px solid #555;
+background: var(--platter-bg); border-top: 1px solid var(--border, #555);
 border-radius: 12px 12px 0 0;
 border-radius: 12px 12px 0 0;
 flex-shrink: 0; overflow: hidden;
@@ -254,9 +259,17 @@ font-size: calc(11px * var(--key-scale)); letter-spacing: .08em;
 }
 .key.active-mod { background: var(--accent) !important; color: #fff !important; opacity: 1 !important; }
 
-body.shape-circular .key { border-radius: 50%; }
-body.shape-rounded  .key { border-radius: 12px; }
-body.shape-classic  .key { border-radius: 3px; }
+/* Key shape transitions */
+.key { transition: opacity .28s ease, box-shadow .2s, color .2s, background .1s, transform .08s, border-radius .22s ease; }
+/* Default: 7px radius */
+body.shape-rounded  .key { border-radius: 14px; }
+body.shape-classic  .key { border-radius: 2px; }
+body.shape-circular .key { border-radius: 999px; aspect-ratio: 1; padding: 0; overflow: hidden; }
+body.shape-circular .key.w15, body.shape-circular .key.w175,
+body.shape-circular .key.w2, body.shape-circular .key.w225,
+body.shape-circular .key.w25, body.shape-circular .key.space {
+  border-radius: 22px; aspect-ratio: unset;
+}
 
 .key.w15{flex:1.5} .key.w175{flex:1.75} .key.w2{flex:2}
 .key.w225{flex:2.25} .key.w25{flex:2.5} .key.space{flex:6}
@@ -303,7 +316,11 @@ body.simple-mode .row:nth-child(n+3) .key { max-width: calc(100% / 8); }
   position: relative; overflow: hidden;
   box-shadow: inset 0 2px 8px rgba(0,0,0,.4);
   touch-action: none;
+  transition: width .25s ease, max-width .25s ease, aspect-ratio .25s ease;
 }
+.trackpad.size-small  { width: 60%; max-width: 200px; aspect-ratio: 16/8; }
+.trackpad.size-regular{ width: 85%; max-width: 300px; aspect-ratio: 16/10; }
+.trackpad.size-large  { width: 96%; max-width: 420px; aspect-ratio: 16/9; }
 
 .trackpad-indicator {
   position: absolute; width: 8px; height: 8px;
@@ -357,39 +374,39 @@ opacity: 0; pointer-events: none; transition: opacity .22s;
 
 .platter {
 width: min(520px, 96vw); max-height: 88vh; overflow-y: auto;
-/* Platter is noticeably lighter than the backdrop */
-background: #2a2a2a;
-border: 1px solid #444;
-color: #ffffff;
+background: var(--platter-bg, #2a2a2a);
+border: 1px solid var(--border, #444);
+color: var(--text, #ffffff);
 border-radius: 20px;
 box-shadow: 0 32px 96px rgba(0,0,0,.95), 0 0 0 1px rgba(255,255,255,.1) inset;
 transform: scale(.92) translateY(14px);
-transition: transform .28s cubic-bezier(.22,1,.36,1);
+transition: transform .28s cubic-bezier(.22,1,.36,1), background .3s, color .3s, border-color .3s;
 scrollbar-width: none;
 }
 .overlay.open .platter { transform: scale(1) translateY(0); }
 
 .platter-header {
 display: flex; align-items: center; justify-content: space-between;
-padding: 16px 20px 14px; border-bottom: 1px solid #444;
-position: sticky; top: 0; background: #2a2a2a; color: #ffffff;
+padding: 16px 20px 14px; border-bottom: 1px solid var(--border, #444);
+position: sticky; top: 0; background: var(--platter-bg, #2a2a2a); color: var(--text, #ffffff);
 border-radius: 20px 20px 0 0; z-index: 1;
+transition: background .3s, color .3s;
 }
 .platter-header h2 {
 font-family: ‘IBM Plex Mono’, monospace; font-size: 11px; font-weight: 600;
 letter-spacing: .14em; text-transform: uppercase; color: #aaa;
 }
 .close-btn {
-background: #3a3a3f; border: 1px solid #555;
-color: #ffffff; width: 30px; height: 30px; border-radius: 50%;
+background: rgba(0,0,0,.2); border: 1px solid var(--border, #555);
+color: var(--text, #ffffff); width: 30px; height: 30px; border-radius: 50%;
 cursor: pointer; font-size: 13px;
 display: flex; align-items: center; justify-content: center;
 transition: background .15s;
 }
-.close-btn:hover { background: #555; }
+.close-btn:hover { background: rgba(0,0,0,.35); }
 
 /* ─ SECTIONS ─ */
-.p-section { padding: 18px 20px; border-bottom: 1px solid #555; }
+.p-section { padding: 18px 20px; border-bottom: 1px solid var(--border, #555); }
 .p-section:last-child { border-bottom: none; }
 .p-label {
 font-size: 10px; font-weight: 700; letter-spacing: .13em;
@@ -400,7 +417,7 @@ font-family: ‘IBM Plex Mono’, monospace; margin-bottom: 14px;
 /* ─ BATTERY STATUS CARD IN MENU ─ */
 .menu-battery {
 display: flex; align-items: center; gap: 12px;
-background: #3a3a3f; border: 1px solid #555;
+background: rgba(0,0,0,.18); border: 1px solid var(--border, #555);
 border-radius: 12px; padding: 14px 16px;
 }
 .menu-bat-body {
@@ -420,7 +437,7 @@ background: #ffffff; border-radius: 0 2px 2px 0;
 font-family: ‘IBM Plex Mono’, monospace; font-size: 22px; font-weight: 600;
 color: #ffffff; line-height: 1;
 }
-.menu-battery-sub { font-size: 12px; color: #aaa; margin-top: 3px; }
+.menu-battery-sub { font-size: 12px; color: var(--text-dim, #aaa); margin-top: 3px; }
 .menu-battery-badge {
 font-size: 11px; font-weight: 600;
 background: rgba(247,200,79,.15); color: #f7c84f;
@@ -474,8 +491,8 @@ margin-bottom: 16px;
 }
 .t-row:last-child { margin-bottom: 0; }
 .t-info { flex: 1; min-width: 0; margin-right: 16px; }
-.t-label { font-size: 14px; font-weight: 500; color: #ffffff; line-height: 1.3; }
-.t-sub   { font-size: 12px; color: #aaa; margin-top: 2px; line-height: 1.4; }
+.t-label { font-size: 14px; font-weight: 500; color: var(--text, #ffffff); line-height: 1.3; }
+.t-sub   { font-size: 12px; color: var(--text-dim, #aaa); margin-top: 2px; line-height: 1.4; }
 
 .tog {
 width: 44px; height: 26px; background: #4a4a50; border: 1.5px solid #666; border-radius: 13px;
@@ -512,30 +529,40 @@ background: #4f8ef7; border: none;
 }
 
 /* ─ BG COLOR ROW ─ */
-.bg-color-row { display: flex; align-items: center; gap: 10px; }
+.bg-color-row { display: flex; align-items: center; gap: 10px; flex-wrap: wrap; }
 .bg-color-swatch {
-width: 32px; height: 32px; border-radius: 50%;
-border: 2px solid #555; flex-shrink: 0;
-cursor: pointer; transition: transform .14s;
+width: 40px; height: 40px; border-radius: 10px;
+border: 2px solid var(--border, #555); flex-shrink: 0;
+cursor: pointer; transition: transform .14s, box-shadow .14s;
+box-shadow: 0 2px 8px rgba(0,0,0,.3);
 }
-.bg-color-swatch:hover { transform: scale(1.1); }
-.bg-color-label { font-size: 13px; color: #ffffff; flex: 1; }
+.bg-color-swatch:hover { transform: scale(1.1); box-shadow: 0 4px 16px rgba(0,0,0,.4); }
+.bg-color-label { font-size: 13px; color: var(--text, #ffffff); flex: 1; font-family: 'IBM Plex Mono', monospace; font-size: 12px; }
 .bg-reset-btn {
-background: none; border: 1px solid #555; color: #aaa;
+background: none; border: 1px solid var(--border, #555); color: var(--text-dim, #aaa);
 border-radius: 7px; padding: 6px 12px; font-size: 12px;
 cursor: pointer; transition: background .15s;
 }
-.bg-reset-btn:hover { background: #3a3a3f; }
+.bg-reset-btn:hover { background: rgba(0,0,0,.2); }
+/* Color preset chips */
+.color-presets { display: flex; flex-wrap: wrap; gap: 6px; margin-top: 8px; }
+.color-preset {
+  width: 28px; height: 28px; border-radius: 7px; cursor: pointer;
+  border: 2px solid transparent; transition: transform .14s, border-color .14s;
+  box-shadow: 0 1px 4px rgba(0,0,0,.3);
+}
+.color-preset:hover { transform: scale(1.15); }
+.color-preset.on { border-color: #fff; }
 input[type=color] { width: 0; height: 0; opacity: 0; position: absolute; pointer-events: none; }
 
 /* ─ STATS ─ */
 .stats-grid { display: grid; grid-template-columns: 1fr 1fr 1fr; gap: 8px; margin-bottom: 14px; }
 .stat-card {
-background: #3a3a3f; border: 1px solid #555;
+background: rgba(0,0,0,.18); border: 1px solid var(--border, #555);
 border-radius: 10px; padding: 12px; text-align: center;
 }
 .stat-val { font-family: ‘IBM Plex Mono’, monospace; font-size: 20px; font-weight: 600; color: #4f8ef7; }
-.stat-lbl { font-size: 11px; color: #aaa; margin-top: 3px; letter-spacing: .05em; font-weight: 500; }
+.stat-lbl { font-size: 11px; color: var(--text-dim, #aaa); margin-top: 3px; letter-spacing: .05em; font-weight: 500; }
 .heatmap-keys { display: flex; flex-wrap: wrap; gap: 4px; margin-top: 6px; }
 .heatmap-chip {
 font-family: ‘IBM Plex Mono’, monospace; font-size: 11px;
@@ -546,22 +573,19 @@ padding: 4px 8px; border-radius: 5px; border: 1px solid #555; color: #ffffff;
 .heatmap-chip.h1 { background: rgba(255,230,60,.12);border-color: rgba(255,230,60,.3); }
 
 /* ─ FILE UPLOAD ─ */
-.file-upload-btn {
-display: inline-flex; align-items: center; gap: 7px;
-background: #3a3a3f; border: 1px solid #555; color: #ffffff;
-border-radius: 9px; padding: 9px 15px; font-size: 13px; font-weight: 600;
-cursor: pointer; transition: background .15s;
+/* Font picker */
+.font-grid { display: grid; grid-template-columns: repeat(2, 1fr); gap: 8px; }
+.font-btn {
+  padding: 10px 12px; border-radius: 9px; cursor: pointer;
+  border: 1.5px solid var(--border, #555); background: rgba(0,0,0,.15);
+  color: var(--text, #fff); font-size: 14px; font-weight: 600;
+  text-align: center; transition: background .14s, border-color .14s, transform .1s;
+  white-space: nowrap; overflow: hidden; text-overflow: ellipsis;
 }
-.file-upload-btn:hover { background: #555; }
-.file-upload-btn svg { width: 14px; height: 14px; }
-#bgFileInput { display: none; }
-.bg-clear-btn {
-background: none; border: 1px solid #555; color: #aaa;
-border-radius: 7px; padding: 9px 12px; font-size: 12px;
-cursor: pointer; transition: background .15s; display: none;
-}
-.bg-clear-btn.visible { display: inline-flex; }
-.bg-clear-btn:hover { background: #3a3a3f; }
+.font-btn:hover { transform: scale(1.02); background: rgba(0,0,0,.25); }
+.font-btn.on { border-color: #4f8ef7; background: rgba(79,142,247,.15); }
+/* Trackpad size seg */
+.trackpad-size-seg { margin-bottom: 10px; }
 </style>
 
 </head>
@@ -801,56 +825,84 @@ cursor: pointer; transition: background .15s; display: none;
 </div>
 
 <div class="p-label" style="margin-bottom:10px">Background Color</div>
-<div class="bg-color-row" style="margin-bottom:16px">
-  <div class="bg-color-swatch" id="bgColorSwatch" style="background:#000000"></div>
-  <span class="bg-color-label" id="bgColorLabel">Default (Black)</span>
+<div class="bg-color-row" style="margin-bottom:8px">
+  <div class="bg-color-swatch" id="bgColorSwatch" style="background:#1a1a1a"></div>
+  <span class="bg-color-label" id="bgColorLabel">Default Dark</span>
   <button class="bg-reset-btn" id="bgColorReset">Reset</button>
+</div>
+<div class="color-presets" id="bgPresets" style="margin-bottom:16px">
+  <div class="color-preset on" data-color="#1a1a1a" style="background:#1a1a1a" title="Dark"></div>
+  <div class="color-preset" data-color="#000000" style="background:#000000" title="Black"></div>
+  <div class="color-preset" data-color="#0d1117" style="background:#0d1117" title="Midnight"></div>
+  <div class="color-preset" data-color="#0a0f1e" style="background:#0a0f1e" title="Navy"></div>
+  <div class="color-preset" data-color="#1a0a2e" style="background:#1a0a2e" title="Deep Purple"></div>
+  <div class="color-preset" data-color="#0d1a0a" style="background:#0d1a0a" title="Forest"></div>
+  <div class="color-preset" data-color="#1a0a0a" style="background:#1a0a0a" title="Deep Red"></div>
+  <div class="color-preset" data-color="#ffffff" style="background:#ffffff;border-color:#aaa" title="White"></div>
+  <div class="color-preset" data-color="#f0f0f5" style="background:#f0f0f5;border-color:#aaa" title="Light Grey"></div>
+  <div class="color-preset" data-color="#e8e4f8" style="background:#e8e4f8;border-color:#aaa" title="Lavender"></div>
 </div>
 
 <div class="p-label" style="margin-bottom:10px">Platter Background</div>
-<div class="bg-color-row" style="margin-bottom:16px">
+<div class="bg-color-row" style="margin-bottom:8px">
   <div class="bg-color-swatch" id="platterColorSwatch" style="background:#2a2a2a"></div>
   <span class="bg-color-label" id="platterColorLabel">#2a2a2a</span>
+</div>
+<div class="color-presets" id="platterPresets" style="margin-bottom:16px">
+  <div class="color-preset on" data-color="#2a2a2a" style="background:#2a2a2a" title="Default"></div>
+  <div class="color-preset" data-color="#1a1a1a" style="background:#1a1a1a" title="Darker"></div>
+  <div class="color-preset" data-color="#16213e" style="background:#16213e" title="Deep Blue"></div>
+  <div class="color-preset" data-color="#1a1a2e" style="background:#1a1a2e" title="Navy"></div>
+  <div class="color-preset" data-color="#1e1e2e" style="background:#1e1e2e" title="Catppuccin"></div>
+  <div class="color-preset" data-color="#0f2027" style="background:#0f2027" title="Dark Teal"></div>
+  <div class="color-preset" data-color="#2d1b33" style="background:#2d1b33" title="Purple Dark"></div>
+  <div class="color-preset" data-color="#e8e8ec" style="background:#e8e8ec;border-color:#aaa" title="Light"></div>
+  <div class="color-preset" data-color="#dcdce8" style="background:#dcdce8;border-color:#aaa" title="Lavender Light"></div>
+  <div class="color-preset" data-color="#ffffff" style="background:#ffffff;border-color:#aaa" title="White"></div>
 </div>
 
 <div class="p-label" style="margin-bottom:10px">Key Cap Accent</div>
 <div class="swatches" id="swatchesCap" style="margin-bottom:16px">
-  <div class="swatch on" data-color="#4f8ef7" style="background:#4f8ef7"></div>
-  <div class="swatch" data-color="#f75f4f" style="background:#f75f4f"></div>
-  <div class="swatch" data-color="#4ff7a0" style="background:#4ff7a0"></div>
-  <div class="swatch" data-color="#f7c84f" style="background:#f7c84f"></div>
-  <div class="swatch" data-color="#c44ff7" style="background:#c44ff7"></div>
-  <div class="swatch" data-color="#f74fb8" style="background:#f74fb8"></div>
-  <div class="swatch" data-color="#4fe8f7" style="background:#4fe8f7"></div>
-  <div class="swatch" data-color="#ffffff" style="background:#fff"></div>
-  <div class="swatch" data-color="#000000" style="background:#000"></div>
+  <div class="swatch on" data-color="#4f8ef7" style="background:#4f8ef7" title="Blue"></div>
+  <div class="swatch" data-color="#f75f4f" style="background:#f75f4f" title="Red"></div>
+  <div class="swatch" data-color="#4ff7a0" style="background:#4ff7a0" title="Mint"></div>
+  <div class="swatch" data-color="#f7c84f" style="background:#f7c84f" title="Gold"></div>
+  <div class="swatch" data-color="#c44ff7" style="background:#c44ff7" title="Purple"></div>
+  <div class="swatch" data-color="#f74fb8" style="background:#f74fb8" title="Pink"></div>
+  <div class="swatch" data-color="#4fe8f7" style="background:#4fe8f7" title="Cyan"></div>
+  <div class="swatch" data-color="#ff7043" style="background:#ff7043" title="Orange"></div>
+  <div class="swatch" data-color="#a5d6a7" style="background:#a5d6a7" title="Sage"></div>
+  <div class="swatch" data-color="#90caf9" style="background:#90caf9" title="Sky"></div>
+  <div class="swatch" data-color="#f48fb1" style="background:#f48fb1" title="Rose"></div>
+  <div class="swatch" data-color="#ffe082" style="background:#ffe082" title="Amber"></div>
+  <div class="swatch" data-color="#b39ddb" style="background:#b39ddb" title="Lavender"></div>
+  <div class="swatch" data-color="#80deea" style="background:#80deea" title="Teal"></div>
+  <div class="swatch" data-color="#ffffff" style="background:#fff" title="White"></div>
+  <div class="swatch" data-color="#444444" style="background:#444" title="Dark Grey"></div>
+  <div class="swatch" data-color="#000000" style="background:#000" title="Black"></div>
 </div>
 
 <div class="p-label" style="margin-bottom:10px">Key Label Accent</div>
 <div class="swatches" id="swatchesLabel" style="margin-bottom:16px">
-  <div class="swatch" data-color="#4f8ef7" style="background:#4f8ef7"></div>
-  <div class="swatch on" data-color="#4ff7a0" style="background:#4ff7a0"></div>
-  <div class="swatch" data-color="#f75f4f" style="background:#f75f4f"></div>
-  <div class="swatch" data-color="#f7c84f" style="background:#f7c84f"></div>
-  <div class="swatch" data-color="#c44ff7" style="background:#c44ff7"></div>
-  <div class="swatch" data-color="#f74fb8" style="background:#f74fb8"></div>
-  <div class="swatch" data-color="#4fe8f7" style="background:#4fe8f7"></div>
-  <div class="swatch" data-color="#ffffff" style="background:#fff"></div>
-  <div class="swatch" data-color="#000000" style="background:#000"></div>
+  <div class="swatch" data-color="#4f8ef7" style="background:#4f8ef7" title="Blue"></div>
+  <div class="swatch on" data-color="#4ff7a0" style="background:#4ff7a0" title="Mint"></div>
+  <div class="swatch" data-color="#f75f4f" style="background:#f75f4f" title="Red"></div>
+  <div class="swatch" data-color="#f7c84f" style="background:#f7c84f" title="Gold"></div>
+  <div class="swatch" data-color="#c44ff7" style="background:#c44ff7" title="Purple"></div>
+  <div class="swatch" data-color="#f74fb8" style="background:#f74fb8" title="Pink"></div>
+  <div class="swatch" data-color="#4fe8f7" style="background:#4fe8f7" title="Cyan"></div>
+  <div class="swatch" data-color="#ff7043" style="background:#ff7043" title="Orange"></div>
+  <div class="swatch" data-color="#a5d6a7" style="background:#a5d6a7" title="Sage"></div>
+  <div class="swatch" data-color="#90caf9" style="background:#90caf9" title="Sky"></div>
+  <div class="swatch" data-color="#f48fb1" style="background:#f48fb1" title="Rose"></div>
+  <div class="swatch" data-color="#ffe082" style="background:#ffe082" title="Amber"></div>
+  <div class="swatch" data-color="#b39ddb" style="background:#b39ddb" title="Lavender"></div>
+  <div class="swatch" data-color="#80deea" style="background:#80deea" title="Teal"></div>
+  <div class="swatch" data-color="#ffffff" style="background:#fff" title="White"></div>
+  <div class="swatch" data-color="#444444" style="background:#444" title="Dark Grey"></div>
+  <div class="swatch" data-color="#000000" style="background:#000" title="Black"></div>
 </div>
 
-<div class="p-label" style="margin-bottom:10px">Background Image</div>
-<div style="display:flex;align-items:center;gap:8px;flex-wrap:wrap">
-  <label class="file-upload-btn" for="bgFileInput">
-    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round">
-      <path d="M21 15v4a2 2 0 01-2 2H5a2 2 0 01-2-2v-4"/>
-      <polyline points="17 8 12 3 7 8"/><line x1="12" y1="3" x2="12" y2="15"/>
-    </svg>
-    Upload Image
-  </label>
-  <input type="file" id="bgFileInput" accept="image/*">
-  <button class="bg-clear-btn" id="bgClearBtn">✕ Clear</button>
-</div>
   </div>
 
   <!-- KEY PRESS FEEDBACK -->
@@ -865,10 +917,7 @@ cursor: pointer; transition: background .15s; display: none;
       <div class="t-info"><div class="t-label">Depress Animation</div><div class="t-sub">Key physically presses down</div></div>
       <button class="tog on" id="togDepress"></button>
     </div>
-    <div class="t-row">
-      <div class="t-info"><div class="t-label">Flash All Keys</div><div class="t-sub">Full-board brightness burst on press</div></div>
-      <button class="tog" id="togFlash"></button>
-    </div>
+
   </div>
 
   <!-- PROXIMITY -->
@@ -887,29 +936,6 @@ cursor: pointer; transition: background .15s; display: none;
       <div class="sl-head"><span class="sl-name">Idle Timeout</span><span class="sl-val" id="timeoutVal">3s</span></div>
       <input type="range" id="timeoutSlider" min="1" max="8" step="1" value="3">
     </div>
-  </div>
-
-  <!-- SYSTEM -->
-
-  <div class="p-section">
-    <div class="p-label">System / Status</div>
-    <div class="t-row">
-      <div class="t-info"><div class="t-label">Show Typing Heatmap</div><div class="t-sub">Visualize most-used keys on the board</div></div>
-      <button class="tog" id="togHeatmap"></button>
-    </div>
-  </div>
-
-  <!-- STATS -->
-
-  <div class="p-section">
-    <div class="p-label">Keyboard Usage Stats</div>
-    <div class="stats-grid">
-      <div class="stat-card"><div class="stat-val" id="statWpm">—</div><div class="stat-lbl">WPM</div></div>
-      <div class="stat-card"><div class="stat-val" id="statWords">0</div><div class="stat-lbl">Words</div></div>
-      <div class="stat-card"><div class="stat-val" id="statKeys">0</div><div class="stat-lbl">Keystrokes</div></div>
-    </div>
-    <div class="p-label" style="margin-bottom:6px">Top Keys</div>
-    <div class="heatmap-keys" id="topKeysList"></div>
   </div>
 
   <!-- AUDIO & HAPTIC -->
@@ -937,6 +963,30 @@ cursor: pointer; transition: background .15s; display: none;
     <div class="t-row">
       <div class="t-info"><div class="t-label">Trackpad</div><div class="t-sub">Virtual touchpad below keyboard</div></div>
       <button class="tog" id="togTrackpad"></button>
+    </div>
+    <div class="p-label" style="margin-bottom:10px;margin-top:14px">Trackpad Size</div>
+    <div class="seg trackpad-size-seg" id="trackpadSizeSeg">
+      <button class="seg-btn" data-tpsize="small">Small</button>
+      <button class="seg-btn on" data-tpsize="regular">Regular</button>
+      <button class="seg-btn" data-tpsize="large">Large</button>
+    </div>
+  </div>
+
+  <!-- KEY FONT -->
+
+  <div class="p-section">
+    <div class="p-label">Key Label Font</div>
+    <div class="font-grid" id="fontGrid">
+      <button class="font-btn on" data-font="IBM Plex Mono" style="font-family:'IBM Plex Mono',monospace">IBM Plex Mono</button>
+      <button class="font-btn" data-font="DM Sans" style="font-family:'DM Sans',sans-serif">DM Sans</button>
+      <button class="font-btn" data-font="Space Mono" style="font-family:'Space Mono',monospace">Space Mono</button>
+      <button class="font-btn" data-font="Courier Prime" style="font-family:'Courier Prime',monospace">Courier Prime</button>
+      <button class="font-btn" data-font="Orbitron" style="font-family:'Orbitron',sans-serif">ORBITRON</button>
+      <button class="font-btn" data-font="Rajdhani" style="font-family:'Rajdhani',sans-serif">Rajdhani</button>
+      <button class="font-btn" data-font="Share Tech Mono" style="font-family:'Share Tech Mono',monospace">Share Tech</button>
+      <button class="font-btn" data-font="VT323" style="font-family:'VT323',monospace">VT323 Retro</button>
+      <button class="font-btn" data-font="Press Start 2P" style="font-family:'Press Start 2P',monospace;font-size:9px">8-bit</button>
+      <button class="font-btn" data-font="Bebas Neue" style="font-family:'Bebas Neue',sans-serif">Bebas Neue</button>
     </div>
   </div>
 
@@ -978,6 +1028,29 @@ cursor: pointer; transition: background .15s; display: none;
     </div>
   </div>
 
+  <!-- SYSTEM / HEATMAP -->
+
+  <div class="p-section">
+    <div class="p-label">System / Status</div>
+    <div class="t-row">
+      <div class="t-info"><div class="t-label">Show Typing Heatmap</div><div class="t-sub">Visualize most-used keys on the board</div></div>
+      <button class="tog" id="togHeatmap"></button>
+    </div>
+  </div>
+
+  <!-- STATS -->
+
+  <div class="p-section">
+    <div class="p-label">Keyboard Usage Stats</div>
+    <div class="stats-grid">
+      <div class="stat-card"><div class="stat-val" id="statWpm">—</div><div class="stat-lbl">WPM</div></div>
+      <div class="stat-card"><div class="stat-val" id="statWords">0</div><div class="stat-lbl">Words</div></div>
+      <div class="stat-card"><div class="stat-val" id="statKeys">0</div><div class="stat-lbl">Keystrokes</div></div>
+    </div>
+    <div class="p-label" style="margin-bottom:6px">Top Keys</div>
+    <div class="heatmap-keys" id="topKeysList"></div>
+  </div>
+
 </div>
 </div>
 
@@ -990,13 +1063,14 @@ const S = {
   accentCapColor:'#4f8ef7', accentLabelColor:'#4ff7a0',
   keyShape:'default', bgColor:'#1a1a1a', bgColorCustom:false,
   platterBgColor:'#2a2a2a',
-  popup:true, depress:true, flash:false,
+  popup:false, depress:true, flash:false,
   proximity:true, boost:1, idleTimeout:3000,
   sound:false, haptic:true, volume:0.6,
   showBattery:true, batterySaver:false,
   showSuggBar:true, showHeatmap:false, showTrackpad:false,
   highContrast:false, oneHanded:false, oneHandedSide:'left', keySize:2,
   simpleMode:false, osMode:'mac',
+  trackpadSize:'regular', keyFont:'IBM Plex Mono',
   caps:false, shift:false, typedText:'', isProximity:false,
   keystrokes:0, wordCount:0, startTime:null, keyCounts:{},
 };
@@ -1099,10 +1173,10 @@ function applyBgColor(color){
   bgColorPicker.value=color;
 }
 function resetBgColor(){
-  const def=S.theme==='light'?'#ffffff':'#1a1a1a';
+  const def=S.theme==='light'?'#f0f0f5':'#1a1a1a';
   S.bgColor=def; S.bgColorCustom=false;
   applyBgColor(def);
-  document.getElementById('bgColorLabel').textContent=S.theme==='light'?'Default (White)':'Default (Dark Grey)';
+  document.getElementById('bgColorLabel').textContent=S.theme==='light'?'Default Light':'Default Dark';
 }
 
 /* ── PLATTER COLOR ── */
@@ -1371,6 +1445,36 @@ function applyKeySize(val){
   root.style.setProperty('--key-height',cfg.height);
 }
 
+/* ── KEY FONT ── */
+function applyKeyFont(font){
+  S.keyFont=font;
+  const safe=font==='IBM Plex Mono'?`'IBM Plex Mono',monospace`
+    :font==='DM Sans'?`'DM Sans',sans-serif`
+    :font==='Space Mono'?`'Space Mono',monospace`
+    :font==='Courier Prime'?`'Courier Prime',monospace`
+    :font==='Orbitron'?`'Orbitron',sans-serif`
+    :font==='Rajdhani'?`'Rajdhani',sans-serif`
+    :font==='Share Tech Mono'?`'Share Tech Mono',monospace`
+    :font==='VT323'?`'VT323',monospace`
+    :font==='Press Start 2P'?`'Press Start 2P',monospace`
+    :font==='Bebas Neue'?`'Bebas Neue',sans-serif`
+    :`'IBM Plex Mono',monospace`;
+  document.documentElement.style.setProperty('--key-font', safe);
+  // Apply to keys
+  let dynF=document.getElementById('dynFontStyle');
+  if(!dynF){dynF=document.createElement('style');dynF.id='dynFontStyle';document.head.appendChild(dynF);}
+  dynF.textContent=`.key{font-family:${safe}!important}`;
+}
+
+/* ── TRACKPAD SIZE ── */
+function applyTrackpadSize(size){
+  S.trackpadSize=size;
+  const tp=document.getElementById('trackpad');
+  if(!tp)return;
+  tp.classList.remove('size-small','size-regular','size-large');
+  tp.classList.add('size-'+size);
+}
+
 /* ── OS MODE ── */
 function applyOsMode(mode){
   S.osMode=mode;
@@ -1406,11 +1510,79 @@ const trackpadEl=document.getElementById('trackpad');
 const trackpadIndicator=document.getElementById('trackpadIndicator');
 if(trackpadEl){
   let isTrackpadActive=false;
+  let tpTouchStartY=0, tpTouchStartX=0, tpTouchStartFingers=0;
+  let tpGestureHandled=false;
+
   trackpadEl.addEventListener('mousedown',e=>{isTrackpadActive=true;trackpadEl.classList.add('active');});
   trackpadEl.addEventListener('mouseup',e=>{isTrackpadActive=false;trackpadEl.classList.remove('active');});
   trackpadEl.addEventListener('mouseleave',e=>{isTrackpadActive=false;trackpadEl.classList.remove('active');});
-  trackpadEl.addEventListener('touchstart',e=>{isTrackpadActive=true;trackpadEl.classList.add('active');});
-  trackpadEl.addEventListener('touchend',e=>{isTrackpadActive=false;trackpadEl.classList.remove('active');});
+  
+  trackpadEl.addEventListener('touchstart',e=>{
+    tpTouchStartFingers=e.touches.length;
+    tpTouchStartY=e.touches[0].clientY;
+    tpTouchStartX=e.touches[0].clientX;
+    tpGestureHandled=false;
+    if(e.touches.length===1){isTrackpadActive=true;trackpadEl.classList.add('active');}
+  },{passive:true});
+  
+  trackpadEl.addEventListener('touchend',e=>{
+    isTrackpadActive=false;trackpadEl.classList.remove('active');
+    tpGestureHandled=false;
+  });
+  
+  trackpadEl.addEventListener('touchmove',e=>{
+    const fingers=e.touches.length;
+    
+    // 3-finger up/down = volume
+    if(fingers===3&&!tpGestureHandled){
+      const dy=tpTouchStartY-e.touches[0].clientY;
+      if(Math.abs(dy)>20){
+        tpGestureHandled=true;
+        const delta=dy>0?0.1:-0.1;
+        S.volume=Math.min(1,Math.max(0,S.volume+delta));
+        document.getElementById('volSlider').value=Math.round(S.volume*100);
+        document.getElementById('volVal').textContent=Math.round(S.volume*100)+'%';
+        // Flash volume indicator
+        showGestureToast(dy>0?'🔊 Vol +':'🔉 Vol −');
+        saveSettings();
+      }
+    }
+    
+    // 4-finger left/right = one-handed mode
+    if(fingers===4&&!tpGestureHandled){
+      const dx=e.touches[0].clientX-tpTouchStartX;
+      if(Math.abs(dx)>30){
+        tpGestureHandled=true;
+        const side=dx>0?'right':'left';
+        if(!S.oneHanded||S.oneHandedSide!==side){
+          S.oneHanded=true; S.oneHandedSide=side;
+          document.body.classList.add('one-handed-'+side);
+          document.body.classList.remove('one-handed-'+(side==='left'?'right':'left'));
+          document.getElementById('togOneHanded').classList.add('on');
+          document.getElementById('oneHandedSideWrap').style.display='';
+          // update seg
+          document.querySelectorAll('#oneHandedSeg .seg-btn').forEach(b=>b.classList.toggle('on',b.dataset.side===side));
+          showGestureToast(side==='left'?'◀ One-Handed Left':'One-Handed Right ▶');
+        } else {
+          // toggle off if same side
+          S.oneHanded=false;
+          document.body.classList.remove('one-handed-left','one-handed-right');
+          document.getElementById('togOneHanded').classList.remove('on');
+          document.getElementById('oneHandedSideWrap').style.display='none';
+          showGestureToast('✦ Full Keyboard');
+        }
+        saveSettings();
+      }
+    }
+    
+    if(fingers===1&&isTrackpadActive){
+      const touch=e.touches[0];const rect=trackpadEl.getBoundingClientRect();
+      const x=touch.clientX-rect.left;const y=touch.clientY-rect.top;
+      trackpadIndicator.style.left=(x/rect.width*100)+'%';
+      trackpadIndicator.style.top=(y/rect.height*100)+'%';
+    }
+  },{passive:true});
+  
   trackpadEl.addEventListener('mousemove',e=>{
     if(isTrackpadActive){
       const rect=trackpadEl.getBoundingClientRect();
@@ -1419,14 +1591,20 @@ if(trackpadEl){
       trackpadIndicator.style.top=(y/rect.height*100)+'%';
     }
   });
-  trackpadEl.addEventListener('touchmove',e=>{
-    if(isTrackpadActive){
-      const touch=e.touches[0];const rect=trackpadEl.getBoundingClientRect();
-      const x=touch.clientX-rect.left;const y=touch.clientY-rect.top;
-      trackpadIndicator.style.left=(x/rect.width*100)+'%';
-      trackpadIndicator.style.top=(y/rect.height*100)+'%';
-    }
-  });
+}
+
+/* Gesture toast */
+let gestureToastEl=null,gestureToastTimer=null;
+function showGestureToast(msg){
+  if(!gestureToastEl){
+    gestureToastEl=document.createElement('div');
+    gestureToastEl.style.cssText='position:fixed;bottom:120px;left:50%;transform:translateX(-50%);background:rgba(0,0,0,.8);color:#fff;padding:8px 18px;border-radius:20px;font-size:14px;font-weight:600;z-index:9999;pointer-events:none;opacity:0;transition:opacity .2s;font-family:DM Sans,sans-serif;white-space:nowrap;';
+    document.body.appendChild(gestureToastEl);
+  }
+  clearTimeout(gestureToastTimer);
+  gestureToastEl.textContent=msg;
+  gestureToastEl.style.opacity='1';
+  gestureToastTimer=setTimeout(()=>{gestureToastEl.style.opacity='0';},1400);
 }
 
 /* ── MENU WIRING ── */
@@ -1443,7 +1621,21 @@ function segActivate(id,btn){
 document.getElementById('layoutSeg').addEventListener('click',e=>{const b=e.target.closest('.seg-btn');if(!b)return;segActivate('layoutSeg',b);S.layout=b.dataset.layout;applyLayout(S.layout);saveSettings();});
 document.getElementById('shapeSeg').addEventListener('click',e=>{const b=e.target.closest('.seg-btn');if(!b)return;segActivate('shapeSeg',b);document.body.classList.remove('shape-circular','shape-rounded','shape-classic');if(b.dataset.shape!=='default')document.body.classList.add('shape-'+b.dataset.shape);S.keyShape=b.dataset.shape||'default';saveSettings();});
 document.getElementById('displaySeg').addEventListener('click',e=>{const b=e.target.closest('.seg-btn');if(!b)return;segActivate('displaySeg',b);S.displayMode=b.dataset.display;applyDisplayMode(b.dataset.display);saveSettings();});
-document.getElementById('themeSeg').addEventListener('click',e=>{const b=e.target.closest('.seg-btn');if(!b)return;segActivate('themeSeg',b);S.theme=b.dataset.theme;document.documentElement.setAttribute('data-theme',S.theme==='light'?'light':'');if(!S.bgColorCustom)resetBgColor();saveSettings();});
+document.getElementById('themeSeg').addEventListener('click',e=>{
+  const b=e.target.closest('.seg-btn');if(!b)return;segActivate('themeSeg',b);
+  S.theme=b.dataset.theme;
+  document.documentElement.setAttribute('data-theme',S.theme==='light'?'light':'');
+  if(!S.bgColorCustom)resetBgColor();
+  // update platter color for theme if not custom
+  if(S.theme==='light'){
+    if(!S.platterBgCustom) applyPlatterColor('#dcdce8');
+    document.getElementById('platterColorLabel').textContent='Light Theme Default';
+  } else {
+    if(!S.platterBgCustom) applyPlatterColor('#2a2a2a');
+    document.getElementById('platterColorLabel').textContent=S.platterBgColor||'#2a2a2a';
+  }
+  saveSettings();
+});
 document.getElementById('dynThemeSeg').addEventListener('click',e=>{const b=e.target.closest('.seg-btn');if(!b)return;segActivate('dynThemeSeg',b);S.dynTheme=b.dataset.dyntheme;applyDynTheme();saveSettings();});
 
 document.getElementById('bgColorSwatch').addEventListener('click',()=>bgColorPicker.click());
@@ -1456,13 +1648,45 @@ platterColorPicker.addEventListener('input',function(){S.platterBgColor=this.val
 document.getElementById('swatchesCap').addEventListener('click',e=>{const sw=e.target.closest('.swatch');if(!sw)return;document.querySelectorAll('#swatchesCap .swatch').forEach(s=>s.classList.remove('on'));sw.classList.add('on');S.accentCapColor=sw.dataset.color;applyAccent();saveSettings();});
 document.getElementById('swatchesLabel').addEventListener('click',e=>{const sw=e.target.closest('.swatch');if(!sw)return;document.querySelectorAll('#swatchesLabel .swatch').forEach(s=>s.classList.remove('on'));sw.classList.add('on');S.accentLabelColor=sw.dataset.color;applyAccent();saveSettings();});
 
-document.getElementById('bgFileInput').addEventListener('change',function(){
-  const file=this.files[0];if(!file)return;
-  const reader=new FileReader();
-  reader.onload=e=>{bgLayer.style.backgroundImage=`url(${e.target.result})`;bgLayer.classList.add('active');document.getElementById('bgClearBtn').classList.add('visible');};
-  reader.readAsDataURL(file);
+// BG color presets
+document.getElementById('bgPresets').addEventListener('click',e=>{
+  const p=e.target.closest('.color-preset');if(!p)return;
+  document.querySelectorAll('#bgPresets .color-preset').forEach(x=>x.classList.remove('on'));
+  p.classList.add('on');
+  S.bgColor=p.dataset.color;S.bgColorCustom=true;
+  applyBgColor(p.dataset.color);
+  document.getElementById('bgColorLabel').textContent=p.dataset.color;
+  saveSettings();
 });
-document.getElementById('bgClearBtn').addEventListener('click',()=>{bgLayer.style.backgroundImage='';bgLayer.classList.remove('active');document.getElementById('bgClearBtn').classList.remove('visible');document.getElementById('bgFileInput').value='';});
+
+// Platter color presets
+document.getElementById('platterPresets').addEventListener('click',e=>{
+  const p=e.target.closest('.color-preset');if(!p)return;
+  document.querySelectorAll('#platterPresets .color-preset').forEach(x=>x.classList.remove('on'));
+  p.classList.add('on');
+  S.platterBgColor=p.dataset.color;
+  applyPlatterColor(p.dataset.color);
+  saveSettings();
+});
+
+// Trackpad size
+document.getElementById('trackpadSizeSeg').addEventListener('click',e=>{
+  const b=e.target.closest('.seg-btn');if(!b)return;
+  segActivate('trackpadSizeSeg',b);
+  applyTrackpadSize(b.dataset.tpsize);
+  saveSettings();
+});
+
+// Font picker
+document.getElementById('fontGrid').addEventListener('click',e=>{
+  const b=e.target.closest('.font-btn');if(!b)return;
+  document.querySelectorAll('#fontGrid .font-btn').forEach(x=>x.classList.remove('on'));
+  b.classList.add('on');
+  applyKeyFont(b.dataset.font);
+  saveSettings();
+});
+
+// bg image upload removed
 
 document.getElementById('oneHandedSeg').addEventListener('click',e=>{const b=e.target.closest('.seg-btn');if(!b)return;segActivate('oneHandedSeg',b);S.oneHandedSide=b.dataset.side;if(S.oneHanded){document.body.classList.remove('one-handed-left','one-handed-right');document.body.classList.add('one-handed-'+S.oneHandedSide);}});
 
@@ -1477,7 +1701,7 @@ bindTog('togBattery','showBattery',()=>{document.getElementById('batteryIndicato
 bindTog('togSuggBar','showSuggBar',()=>{suggBar.classList.remove('hidden');applySuggBarVisibility();},()=>{suggBar.classList.add('hidden');applySuggBarVisibility();});
 bindTog('togPopup','popup');
 bindTog('togDepress','depress');
-bindTog('togFlash','flash');
+// flash toggle removed
 bindTog('togSound','sound');
 bindTog('togHaptic','haptic');
 bindTog('togBatterySaver','batterySaver',()=>checkBatterySaver(),()=>{document.body.classList.remove('battery-dim');document.getElementById('batterySaverBadge').classList.remove('active');document.getElementById('menuBatterySaverBadge').classList.remove('active');});
@@ -1506,6 +1730,8 @@ loadSettings();
 applyDisplayMode(S.displayMode);
 document.documentElement.setAttribute('data-theme',S.theme==='light'?'light':'');
 if(S.highContrast)document.documentElement.setAttribute('data-hc','1');
+applyKeyFont(S.keyFont||'IBM Plex Mono');
+applyTrackpadSize(S.trackpadSize||'regular');
 document.body.classList.toggle('show-heatmap',S.showHeatmap);
 if(S.oneHanded)document.body.classList.add('one-handed-'+S.oneHandedSide);
 if(S.simpleMode)document.body.classList.add('simple-mode');
@@ -1524,9 +1750,9 @@ document.querySelector('.topbar').style.display=S.showBattery?'':'none';
 /* ── RESTORE UI STATES ── */
 document.getElementById('togBattery').classList.toggle('on',S.showBattery);
 document.getElementById('togSuggBar').classList.toggle('on',S.showSuggBar);
-document.getElementById('togPopup').classList.toggle('on',S.popup);
+document.getElementById('togPopup').classList.toggle('on',S.popup); // default false
 document.getElementById('togDepress').classList.toggle('on',S.depress);
-document.getElementById('togFlash').classList.toggle('on',S.flash);
+// flash toggle removed from DOM
 document.getElementById('togSound').classList.toggle('on',S.sound);
 document.getElementById('togHaptic').classList.toggle('on',S.haptic);
 document.getElementById('togBatterySaver').classList.toggle('on',S.batterySaver);
@@ -1538,6 +1764,10 @@ document.getElementById('togProximity').classList.toggle('on',S.proximity);
 document.getElementById('togTrackpad').classList.toggle('on',S.showTrackpad);
 document.getElementById('oneHandedSideWrap').style.display=S.oneHanded?'':'none';
 
+/* Restore font */
+document.querySelectorAll('#fontGrid .font-btn').forEach(btn=>{btn.classList.toggle('on',btn.dataset.font===(S.keyFont||'IBM Plex Mono'));});
+/* Restore trackpad size */
+document.querySelectorAll('#trackpadSizeSeg .seg-btn').forEach(btn=>{btn.classList.toggle('on',btn.dataset.tpsize===(S.trackpadSize||'regular'));});
 /* Restore segmented controls */
 document.querySelectorAll('#layoutSeg .seg-btn').forEach(btn=>{btn.classList.toggle('on',btn.dataset.layout===S.layout);});
 document.querySelectorAll('#shapeSeg .seg-btn').forEach(btn=>{btn.classList.toggle('on',btn.dataset.shape===S.keyShape);});
