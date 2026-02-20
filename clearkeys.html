@@ -1,69 +1,9 @@
-<!DOCTYPE html>
-<html lang="en">
+<html>
 <head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Clear Keys</title>
-    <style>
-        body { font-family: Arial, sans-serif; }
-        #toggle-size { margin: 20px; }
-        .settings { margin: 20px; }
-    </style>
 </head>
 <body>
     <h1>Clear Keys</h1>
-
-    <!-- Settings Menu -->
-    <div class="settings">
-        <label for="font-selector">Select Font:</label>
-        <select id="font-selector">
-            <option value="Arial" selected>Arial</option>
-            <option value="Times New Roman">Times New Roman</option>
-            <option value="Courier New">Courier New</option>
-        </select>
-
-        <label for="accent-color">Select Accent Color:</label>
-        <select id="accent-color">
-            <option value="black" selected>Black</option>
-            <option value="blue">Blue</option>
-            <option value="green">Green</option>
-            <option value="red">Red</option>
-        </select>
-    </div>
-
-    <label for="toggle-size">Toggle Trackpad Size:</label>
-    <input type="checkbox" id="toggle-size">
-
-    <div id="trackpad">
-        <p>Swipe gestures:</p>
-        <p>3 finger swipe up/down to control volume</p>
-        <p>4 finger swipe left/right to enable one-handed mode</p>
-    </div>
-
-    <script>
-        const toggleSize = document.getElementById('toggle-size');
-        const trackpad = document.getElementById('trackpad');
-        const fontSelector = document.getElementById('font-selector');
-        const accentColor = document.getElementById('accent-color');
-
-        // Handle font size change
-        toggleSize.addEventListener('change', function () {
-            if (this.checked) {
-                trackpad.style.fontSize = '1.5em'; // Large Size
-            } else {
-                trackpad.style.fontSize = '1em'; // Normal Size
-            }
-        });
-
-        // Change font dynamically
-        fontSelector.addEventListener('change', function () {
-            document.body.style.fontFamily = fontSelector.value;
-        });
-
-        // Change accent color dynamically
-        accentColor.addEventListener('change', function () {
-            trackpad.style.color = accentColor.value;
-        });
-    </script>
+    <p>This is the content of clearkeys.html as of commit 5fc8eca83489b2fe86e66c7a1555dd5afd7f34e5.</p>
 </body>
 </html>
