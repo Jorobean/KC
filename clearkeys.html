@@ -7,22 +7,47 @@
     <style>
         body { font-family: Arial, sans-serif; }
         #toggle-size { margin: 20px; }
+        .settings { margin: 20px; }
     </style>
 </head>
 <body>
     <h1>Clear Keys</h1>
+
+    <!-- Settings Menu -->
+    <div class="settings">
+        <label for="font-selector">Select Font:</label>
+        <select id="font-selector">
+            <option value="Arial" selected>Arial</option>
+            <option value="Times New Roman">Times New Roman</option>
+            <option value="Courier New">Courier New</option>
+        </select>
+
+        <label for="accent-color">Select Accent Color:</label>
+        <select id="accent-color">
+            <option value="black" selected>Black</option>
+            <option value="blue">Blue</option>
+            <option value="green">Green</option>
+            <option value="red">Red</option>
+        </select>
+    </div>
+
     <label for="toggle-size">Toggle Trackpad Size:</label>
     <input type="checkbox" id="toggle-size">
+
     <div id="trackpad">
         <p>Swipe gestures:</p>
         <p>3 finger swipe up/down to control volume</p>
         <p>4 finger swipe left/right to enable one-handed mode</p>
     </div>
+
     <script>
         const toggleSize = document.getElementById('toggle-size');
         const trackpad = document.getElementById('trackpad');
+        const fontSelector = document.getElementById('font-selector');
+        const accentColor = document.getElementById('accent-color');
 
-        toggleSize.addEventListener('change', function() {
+        // Handle font size change
+        toggleSize.addEventListener('change', function () {
             if (this.checked) {
                 trackpad.style.fontSize = '1.5em'; // Large Size
             } else {
@@ -30,39 +55,14 @@
             }
         });
 
-        let initialY = null;
-        let initialX = null;
-        trackpad.addEventListener('touchstart', function(e) {
-            const touch = e.touches[0];
-            initialY = touch.clientY;
-            initialX = touch.clientX;
+        // Change font dynamically
+        fontSelector.addEventListener('change', function () {
+            document.body.style.fontFamily = fontSelector.value;
         });
 
-        trackpad.addEventListener('touchmove', function(e) {
-            if (initialY === null || initialX === null) return;
-            const touch = e.touches[0];
-            const diffY = touch.clientY - initialY;
-            const diffX = touch.clientX - initialX;
-
-            if (Math.abs(diffY) > Math.abs(diffX)) {
-                if (diffY > 0) {
-                    // Swipe Down
-                    console.log('Volume Up');
-                } else {
-                    // Swipe Up
-                    console.log('Volume Down');
-                }
-                initialY = touch.clientY; // Reset initial position for continuous swiping
-            } else {
-                if (diffX > 0) {
-                    // Swipe Right
-                    console.log('Enable One-Handed Mode');
-                } else {
-                    // Swipe Left
-                    console.log('Disable One-Handed Mode');
-                }
-                initialX = touch.clientX; // Reset initial position for continuous swiping
-            }
+        // Change accent color dynamically
+        accentColor.addEventListener('change', function () {
+            trackpad.style.color = accentColor.value;
         });
     </script>
 </body>
