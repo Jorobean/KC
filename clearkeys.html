@@ -138,7 +138,7 @@ body.battery-dim   { filter: brightness(0.5); }
 .suggestion-bar {
   display: flex; align-items: center; height: 40px; gap: 2px;
   padding: 4px 8px;
-  background: var(--platter-bg); border-top: 1px solid var(--border);
+  background: var(--kb-bg); border-top: 1px solid var(--border);
   border-radius: 12px 12px 0 0;
   flex-shrink: 0; overflow: hidden;
 }
@@ -211,6 +211,8 @@ body.one-handed-left  .key.space, body.one-handed-right .key.space { max-width: 
 
 .keyboard-idle      .key { opacity: var(--dim-op); }
 .keyboard-proximity .key { opacity: 0.3; }
+.keyboard-idle      .mk { opacity: var(--dim-op); }
+.keyboard-proximity .mk { opacity: 0.3; }
 
 /* ─ SIMPLE MODE ─ */
 body.simple-mode .row:nth-child(1) { display: none; }
@@ -655,9 +657,13 @@ input[type=color] { width: 0; height: 0; opacity: 0; position: absolute; pointer
 .mk.space-mb { flex: 4; font-size: 12px; font-family: 'DM Sans',sans-serif; letter-spacing:.08em; }
 .mk.shift-active { background: var(--accent) !important; color: #000 !important; }
 .mk.caps-active  { background: var(--accent) !important; color: #000 !important; }
+/* Shape styles for mobile keyboard */
+body.shape-rounded  .mk { border-radius: 14px; }
+body.shape-classic  .mk { border-radius: 2px; }
+body.shape-circular .mk { border-radius: 999px; }
 .mb-emoji-grid {
-  display: grid; grid-template-columns: repeat(8, 1fr); gap: 4px;
-  padding: 6px 4px 8px; max-height: 230px; overflow-y: auto; scrollbar-width: none;
+  display: grid; grid-template-columns: repeat(8, 1fr); grid-template-rows: repeat(4, 1fr); gap: 4px;
+  padding: 6px 4px 8px; max-height: 188px; overflow: hidden; scrollbar-width: none;
 }
 .mb-emoji-grid::-webkit-scrollbar { display: none; }
 .mb-emoji-key {
@@ -666,6 +672,9 @@ input[type=color] { width: 0; height: 0; opacity: 0; position: absolute; pointer
   cursor: pointer; border-radius: 8px; touch-action: manipulation;
   transition: background .1s;
 }
+body.shape-rounded  .mb-emoji-key { border-radius: 14px; }
+body.shape-classic  .mb-emoji-key { border-radius: 2px; }
+body.shape-circular .mb-emoji-key { border-radius: 999px; }
 .mb-emoji-key:active { background: rgba(255,255,255,.15); }
 </style>
 <body>
@@ -953,27 +962,6 @@ input[type=color] { width: 0; height: 0; opacity: 0; position: absolute; pointer
       <div class="panel-title">Display</div>
 
       <div class="p-group">
-        <div class="p-group-label">Text Display</div>
-        <div class="display-cards">
-          <div class="display-card on" data-display="singleline">
-            <div class="display-card-icon">▬</div>
-            <div class="display-card-lbl">Single Line</div>
-          </div>
-          <div class="display-card" data-display="none">
-            <div class="display-card-icon">✕</div>
-            <div class="display-card-lbl">Hidden</div>
-          </div>
-        </div>
-        <div class="t-row">
-          <div class="t-info">
-            <div class="t-label">Suggestion Bar</div>
-            <div class="t-sub">Word completions above keyboard</div>
-          </div>
-          <button class="tog on" id="togSuggBar"></button>
-        </div>
-      </div>
-
-      <div class="p-group">
         <div class="p-group-label">Battery</div>
         <div class="battery-card" id="menuBattery">
           <div class="menu-bat-body">
@@ -1002,6 +990,27 @@ input[type=color] { width: 0; height: 0; opacity: 0; position: absolute; pointer
       </div>
 
       <div class="p-group">
+        <div class="p-group-label">Text Display</div>
+        <div class="display-cards">
+          <div class="display-card on" data-display="singleline">
+            <div class="display-card-icon">▬</div>
+            <div class="display-card-lbl">Single Line</div>
+          </div>
+          <div class="display-card" data-display="none">
+            <div class="display-card-icon">✕</div>
+            <div class="display-card-lbl">Hidden</div>
+          </div>
+        </div>
+        <div class="t-row">
+          <div class="t-info">
+            <div class="t-label">Suggestion Bar</div>
+            <div class="t-sub">Word completions above keyboard</div>
+          </div>
+          <button class="tog on" id="togSuggBar"></button>
+        </div>
+      </div>
+
+      <div class="p-group">
         <div class="p-group-label">Dynamic Background</div>
         <div class="seg-wrap">
           <div class="seg" id="dynThemeSeg">
@@ -1018,124 +1027,146 @@ input[type=color] { width: 0; height: 0; opacity: 0; position: absolute; pointer
       <div class="panel-title">Appearance</div>
 
       <div class="p-group">
-        <div class="p-group-label">Background Color</div>
-        <div class="color-presets" id="bgPresets">
-          <div class="color-preset on" data-color="#1a1a1a" style="background:#1a1a1a" title="Default"></div>
-          <div class="color-preset" data-color="#000000" style="background:#000" title="Black"></div>
-          <div class="color-preset" data-color="#0d1117" style="background:#0d1117" title="Midnight"></div>
-          <div class="color-preset" data-color="#0a0f1e" style="background:#0a0f1e" title="Navy"></div>
-          <div class="color-preset" data-color="#1a0a2e" style="background:#1a0a2e" title="Deep Purple"></div>
-          <div class="color-preset" data-color="#0d1a0a" style="background:#0d1a0a" title="Forest"></div>
-          <div class="color-preset" data-color="#1a0a0a" style="background:#1a0a0a" title="Deep Red"></div>
-          <div class="color-preset" data-color="#1a1208" style="background:#1a1208" title="Espresso"></div>
-          <div class="color-preset" data-color="#0a1a1a" style="background:#0a1a1a" title="Teal Dark"></div>
-          <div class="color-preset" data-color="#141414" style="background:#141414" title="Charcoal"></div>
-          <div class="color-preset" data-color="#ace1af" style="background:#ace1af;border-color:#8ab08c" title="Celadon"></div>
+        <div class="p-group-label">Background Colors</div>
+        <div style="font-size: 11px; color: var(--text-dim); margin: 0 14px 10px; line-height: 1.4;">
+          <strong>Background:</strong> Main app background<br>
+          <strong>Platter:</strong> Menu/settings panel background<br>
+          <strong>Keyboard:</strong> Keyboard surface background
         </div>
-        <div class="custom-color-row">
-          <div class="custom-color-thumb" id="bgColorSwatch" style="background:#1a1a1a"></div>
-          <span class="custom-color-lbl" id="bgColorLabel">Default Dark</span>
-          <button class="custom-reset-btn" id="bgColorReset">Reset</button>
-        </div>
-      </div>
-
-      <div class="p-group">
-        <div class="p-group-label">Platter / Menu Background</div>
-        <div class="color-presets" id="platterPresets">
-          <div class="color-preset on" data-color="#2a2a2a" style="background:#2a2a2a" title="Default"></div>
-          <div class="color-preset" data-color="#1a1a1a" style="background:#1a1a1a" title="Darker"></div>
-          <div class="color-preset" data-color="#111111" style="background:#111" title="Near Black"></div>
-          <div class="color-preset" data-color="#16213e" style="background:#16213e" title="Deep Blue"></div>
-          <div class="color-preset" data-color="#1a1a2e" style="background:#1a1a2e" title="Navy"></div>
-          <div class="color-preset" data-color="#1e1e2e" style="background:#1e1e2e" title="Catppuccin"></div>
-          <div class="color-preset" data-color="#0f2027" style="background:#0f2027" title="Dark Teal"></div>
-          <div class="color-preset" data-color="#2d1b33" style="background:#2d1b33" title="Purple Dark"></div>
-          <div class="color-preset" data-color="#1a1008" style="background:#1a1008" title="Espresso"></div>
-          <div class="color-preset" data-color="#0a1a10" style="background:#0a1a10" title="Pine"></div>
-          <div class="color-preset" data-color="#c8edd0" style="background:#c8edd0;border-color:#8ab08c" title="Celadon Light"></div>
-        </div>
-        <div class="custom-color-row">
-          <div class="custom-color-thumb" id="platterColorSwatch" style="background:#2a2a2a"></div>
-          <span class="custom-color-lbl" id="platterColorLabel">#2a2a2a</span>
-        </div>
-      </div>
-
-      <div class="p-group">
-        <div class="p-group-label">Keyboard Background</div>
-        <div class="color-presets" id="kbPresets">
-          <div class="color-preset on" data-color="#2a2a2a" style="background:#2a2a2a" title="Default"></div>
-          <div class="color-preset" data-color="#1a1a1a" style="background:#1a1a1a" title="Darker"></div>
-          <div class="color-preset" data-color="#111111" style="background:#111" title="Near Black"></div>
-          <div class="color-preset" data-color="#16213e" style="background:#16213e" title="Deep Blue"></div>
-          <div class="color-preset" data-color="#1a1a2e" style="background:#1a1a2e" title="Navy"></div>
-          <div class="color-preset" data-color="#1e1e2e" style="background:#1e1e2e" title="Catppuccin"></div>
-          <div class="color-preset" data-color="#0f2027" style="background:#0f2027" title="Dark Teal"></div>
-          <div class="color-preset" data-color="#2d1b33" style="background:#2d1b33" title="Purple Dark"></div>
-          <div class="color-preset" data-color="#1a1008" style="background:#1a1008" title="Espresso"></div>
-          <div class="color-preset" data-color="#0a1a10" style="background:#0a1a10" title="Pine"></div>
-          <div class="color-preset" data-color="#c8edd0" style="background:#c8edd0;border-color:#8ab08c" title="Celadon Light"></div>
-        </div>
-        <div class="custom-color-row">
-          <div class="custom-color-thumb" id="kbColorSwatch" style="background:#2a2a2a"></div>
-          <span class="custom-color-lbl" id="kbColorLabel">#2a2a2a</span>
-        </div>
-      </div>
-
-      <div class="p-group">
-        <div class="p-group-label">Key Cap Accent</div>
-        <div class="swatches" id="swatchesCap">
-          <div class="swatch on" data-color="#4f8ef7" style="background:#4f8ef7" title="Blue"></div>
-          <div class="swatch" data-color="#f75f4f" style="background:#f75f4f" title="Red"></div>
-          <div class="swatch" data-color="#4ff7a0" style="background:#4ff7a0" title="Mint"></div>
-          <div class="swatch" data-color="#ace1af" style="background:#ace1af" title="Celadon"></div>
-          <div class="swatch" data-color="#f7c84f" style="background:#f7c84f" title="Gold"></div>
-          <div class="swatch" data-color="#c44ff7" style="background:#c44ff7" title="Purple"></div>
-          <div class="swatch" data-color="#f74fb8" style="background:#f74fb8" title="Pink"></div>
-          <div class="swatch" data-color="#4fe8f7" style="background:#4fe8f7" title="Cyan"></div>
-          <div class="swatch" data-color="#ff7043" style="background:#ff7043" title="Orange"></div>
-          <div class="swatch" data-color="#a5d6a7" style="background:#a5d6a7" title="Sage"></div>
-          <div class="swatch" data-color="#90caf9" style="background:#90caf9" title="Sky"></div>
-          <div class="swatch" data-color="#f48fb1" style="background:#f48fb1" title="Rose"></div>
-          <div class="swatch" data-color="#ffe082" style="background:#ffe082" title="Amber"></div>
-          <div class="swatch" data-color="#b39ddb" style="background:#b39ddb" title="Lavender"></div>
-          <div class="swatch" data-color="#80deea" style="background:#80deea" title="Teal"></div>
-          <div class="swatch" data-color="#ef9a9a" style="background:#ef9a9a" title="Blush"></div>
-          <div class="swatch" data-color="#a3e635" style="background:#a3e635" title="Lime"></div>
-          <div class="swatch" data-color="#ffd6e7" style="background:#ffd6e7" title="Petal"></div>
-          <div class="swatch" data-color="#c8b8ff" style="background:#c8b8ff" title="Wisteria"></div>
-          <div class="swatch" data-color="#ffffff" style="background:#fff" title="White"></div>
-          <div class="swatch" data-color="#888888" style="background:#888" title="Mid Grey"></div>
-          <div class="swatch" data-color="#444444" style="background:#444" title="Dark Grey"></div>
-          <div class="swatch" data-color="#000000" style="background:#000" title="Black"></div>
+        <div style="padding: 0 14px 8px; display: grid; grid-template-columns: 1fr 1fr 1fr; gap: 12px;">
+          <div>
+            <div style="font-size: 10px; font-weight: 600; color: var(--text-dim); margin-bottom: 6px; text-transform: uppercase; letter-spacing: .05em;">Background</div>
+            <div class="color-presets" id="bgPresets" style="padding: 0; gap: 6px; margin: 0;">
+              <div class="color-preset on" data-color="#1a1a1a" style="background:#1a1a1a" title="Default"></div>
+              <div class="color-preset" data-color="#000000" style="background:#000" title="Black"></div>
+              <div class="color-preset" data-color="#0d1117" style="background:#0d1117" title="Midnight"></div>
+              <div class="color-preset" data-color="#0a0f1e" style="background:#0a0f1e" title="Navy"></div>
+              <div class="color-preset" data-color="#1a0a2e" style="background:#1a0a2e" title="Deep Purple"></div>
+              <div class="color-preset" data-color="#0d1a0a" style="background:#0d1a0a" title="Forest"></div>
+              <div class="color-preset" data-color="#1a0a0a" style="background:#1a0a0a" title="Deep Red"></div>
+              <div class="color-preset" data-color="#1a1208" style="background:#1a1208" title="Espresso"></div>
+              <div class="color-preset" data-color="#0a1a1a" style="background:#0a1a1a" title="Teal Dark"></div>
+              <div class="color-preset" data-color="#141414" style="background:#141414" title="Charcoal"></div>
+              <div class="color-preset" data-color="#2d2d2d" style="background:#2d2d2d" title="Dark Grey"></div>
+              <div class="color-preset" data-color="#3a3a3a" style="background:#3a3a3a" title="Grey"></div>
+              <div class="color-preset" data-color="#4a4a4a" style="background:#4a4a4a" title="Light Grey"></div>
+              <div class="color-preset" data-color="#f5f5f5" style="background:#f5f5f5;border-color:#ccc" title="Off White"></div>
+              <div class="color-preset" data-color="#e8e8e8" style="background:#e8e8e8;border-color:#999" title="Light"></div>
+              <div class="color-preset" data-color="#d0d0d0" style="background:#d0d0d0;border-color:#999" title="Silver"></div>
+              <div class="color-preset" data-color="#ace1af" style="background:#ace1af;border-color:#8ab08c" title="Celadon"></div>
+            </div>
+            <div class="custom-color-row" style="margin-top: 6px; font-size: 10px;">
+              <div class="custom-color-thumb" id="bgColorSwatch" style="background:#1a1a1a; width: 20px; height: 20px;"></div>
+              <span class="custom-color-lbl" id="bgColorLabel" style="font-size: 10px;">Default Dark</span>
+              <button class="custom-reset-btn" id="bgColorReset" style="font-size: 10px; padding: 2px 6px;">Reset</button>
+            </div>
+          </div>
+          <div>
+            <div style="font-size: 10px; font-weight: 600; color: var(--text-dim); margin-bottom: 6px; text-transform: uppercase; letter-spacing: .05em;">Platter</div>
+            <div class="color-presets" id="platterPresets" style="padding: 0; gap: 6px; margin: 0;">
+              <div class="color-preset on" data-color="#2a2a2a" style="background:#2a2a2a" title="Default"></div>
+              <div class="color-preset" data-color="#1a1a1a" style="background:#1a1a1a" title="Darker"></div>
+              <div class="color-preset" data-color="#111111" style="background:#111" title="Near Black"></div>
+              <div class="color-preset" data-color="#16213e" style="background:#16213e" title="Deep Blue"></div>
+              <div class="color-preset" data-color="#1a1a2e" style="background:#1a1a2e" title="Navy"></div>
+              <div class="color-preset" data-color="#1e1e2e" style="background:#1e1e2e" title="Catppuccin"></div>
+              <div class="color-preset" data-color="#0f2027" style="background:#0f2027" title="Dark Teal"></div>
+              <div class="color-preset" data-color="#2d1b33" style="background:#2d1b33" title="Purple Dark"></div>
+              <div class="color-preset" data-color="#1a1008" style="background:#1a1008" title="Espresso"></div>
+              <div class="color-preset" data-color="#0a1a10" style="background:#0a1a10" title="Pine"></div>
+              <div class="color-preset" data-color="#c8edd0" style="background:#c8edd0;border-color:#8ab08c" title="Celadon Light"></div>
+            </div>
+            <div class="custom-color-row" style="margin-top: 6px; font-size: 10px;">
+              <div class="custom-color-thumb" id="platterColorSwatch" style="background:#2a2a2a; width: 20px; height: 20px;"></div>
+              <span class="custom-color-lbl" id="platterColorLabel" style="font-size: 10px;">#2a2a2a</span>
+            </div>
+          </div>
+          <div>
+            <div style="font-size: 10px; font-weight: 600; color: var(--text-dim); margin-bottom: 6px; text-transform: uppercase; letter-spacing: .05em;">Keyboard</div>
+            <div class="color-presets" id="kbPresets" style="padding: 0; gap: 6px; margin: 0;">
+              <div class="color-preset on" data-color="#2a2a2a" style="background:#2a2a2a" title="Default"></div>
+              <div class="color-preset" data-color="#1a1a1a" style="background:#1a1a1a" title="Darker"></div>
+              <div class="color-preset" data-color="#111111" style="background:#111" title="Near Black"></div>
+              <div class="color-preset" data-color="#16213e" style="background:#16213e" title="Deep Blue"></div>
+              <div class="color-preset" data-color="#1a1a2e" style="background:#1a1a2e" title="Navy"></div>
+              <div class="color-preset" data-color="#1e1e2e" style="background:#1e1e2e" title="Catppuccin"></div>
+              <div class="color-preset" data-color="#0f2027" style="background:#0f2027" title="Dark Teal"></div>
+              <div class="color-preset" data-color="#2d1b33" style="background:#2d1b33" title="Purple Dark"></div>
+              <div class="color-preset" data-color="#1a1008" style="background:#1a1008" title="Espresso"></div>
+              <div class="color-preset" data-color="#0a1a10" style="background:#0a1a10" title="Pine"></div>
+              <div class="color-preset" data-color="#c8edd0" style="background:#c8edd0;border-color:#8ab08c" title="Celadon Light"></div>
+            </div>
+            <div class="custom-color-row" style="margin-top: 6px; font-size: 10px;">
+              <div class="custom-color-thumb" id="kbColorSwatch" style="background:#2a2a2a; width: 20px; height: 20px;"></div>
+              <span class="custom-color-lbl" id="kbColorLabel" style="font-size: 10px;">#2a2a2a</span>
+            </div>
+          </div>
         </div>
       </div>
 
       <div class="p-group">
-        <div class="p-group-label">Key Label Color → also tints UI accent</div>
-        <div class="swatches" id="swatchesLabel">
-          <div class="swatch" data-color="#4f8ef7" style="background:#4f8ef7" title="Blue"></div>
-          <div class="swatch on" data-color="#4ff7a0" style="background:#4ff7a0" title="Mint"></div>
-          <div class="swatch" data-color="#ace1af" style="background:#ace1af" title="Celadon"></div>
-          <div class="swatch" data-color="#f75f4f" style="background:#f75f4f" title="Red"></div>
-          <div class="swatch" data-color="#f7c84f" style="background:#f7c84f" title="Gold"></div>
-          <div class="swatch" data-color="#c44ff7" style="background:#c44ff7" title="Purple"></div>
-          <div class="swatch" data-color="#f74fb8" style="background:#f74fb8" title="Pink"></div>
-          <div class="swatch" data-color="#4fe8f7" style="background:#4fe8f7" title="Cyan"></div>
-          <div class="swatch" data-color="#ff7043" style="background:#ff7043" title="Orange"></div>
-          <div class="swatch" data-color="#a5d6a7" style="background:#a5d6a7" title="Sage"></div>
-          <div class="swatch" data-color="#90caf9" style="background:#90caf9" title="Sky"></div>
-          <div class="swatch" data-color="#f48fb1" style="background:#f48fb1" title="Rose"></div>
-          <div class="swatch" data-color="#ffe082" style="background:#ffe082" title="Amber"></div>
-          <div class="swatch" data-color="#b39ddb" style="background:#b39ddb" title="Lavender"></div>
-          <div class="swatch" data-color="#80deea" style="background:#80deea" title="Teal"></div>
-          <div class="swatch" data-color="#ef9a9a" style="background:#ef9a9a" title="Blush"></div>
-          <div class="swatch" data-color="#a3e635" style="background:#a3e635" title="Lime"></div>
-          <div class="swatch" data-color="#ffd6e7" style="background:#ffd6e7" title="Petal"></div>
-          <div class="swatch" data-color="#c8b8ff" style="background:#c8b8ff" title="Wisteria"></div>
-          <div class="swatch" data-color="#ffffff" style="background:#fff" title="White"></div>
-          <div class="swatch" data-color="#888888" style="background:#888" title="Mid Grey"></div>
-          <div class="swatch" data-color="#444444" style="background:#444" title="Dark Grey"></div>
-          <div class="swatch" data-color="#000000" style="background:#000" title="Black"></div>
+        <div class="p-group-label">Accent Colors</div>
+        <div style="font-size: 11px; color: var(--text-dim); margin: 0 14px 10px; line-height: 1.4;">
+          <strong>Key Cap Accent:</strong> Background color of highlighted keys<br>
+          <strong>Key Label Color:</strong> Text color on keys and UI accents
+        </div>
+        <div style="padding: 0 14px 8px; display: grid; grid-template-columns: 1fr 1fr; gap: 12px;">
+          <div>
+            <div style="font-size: 10px; font-weight: 600; color: var(--text-dim); margin-bottom: 6px; text-transform: uppercase; letter-spacing: .05em;">Key Cap Accent</div>
+            <div class="swatches" id="swatchesCap" style="gap: 6px; padding: 0; flex-wrap: wrap;">
+              <div class="swatch on" data-color="#4f8ef7" style="background:#4f8ef7" title="Blue"></div>
+              <div class="swatch" data-color="#f75f4f" style="background:#f75f4f" title="Red"></div>
+              <div class="swatch" data-color="#4ff7a0" style="background:#4ff7a0" title="Mint"></div>
+              <div class="swatch" data-color="#ace1af" style="background:#ace1af" title="Celadon"></div>
+              <div class="swatch" data-color="#f7c84f" style="background:#f7c84f" title="Gold"></div>
+              <div class="swatch" data-color="#c44ff7" style="background:#c44ff7" title="Purple"></div>
+              <div class="swatch" data-color="#f74fb8" style="background:#f74fb8" title="Pink"></div>
+              <div class="swatch" data-color="#4fe8f7" style="background:#4fe8f7" title="Cyan"></div>
+              <div class="swatch" data-color="#ff7043" style="background:#ff7043" title="Orange"></div>
+              <div class="swatch" data-color="#a5d6a7" style="background:#a5d6a7" title="Sage"></div>
+              <div class="swatch" data-color="#90caf9" style="background:#90caf9" title="Sky"></div>
+              <div class="swatch" data-color="#f48fb1" style="background:#f48fb1" title="Rose"></div>
+              <div class="swatch" data-color="#ffe082" style="background:#ffe082" title="Amber"></div>
+              <div class="swatch" data-color="#b39ddb" style="background:#b39ddb" title="Lavender"></div>
+              <div class="swatch" data-color="#80deea" style="background:#80deea" title="Teal"></div>
+              <div class="swatch" data-color="#ef9a9a" style="background:#ef9a9a" title="Blush"></div>
+              <div class="swatch" data-color="#a3e635" style="background:#a3e635" title="Lime"></div>
+              <div class="swatch" data-color="#ffd6e7" style="background:#ffd6e7" title="Petal"></div>
+              <div class="swatch" data-color="#c8b8ff" style="background:#c8b8ff" title="Wisteria"></div>
+              <div class="swatch" data-color="#ffffff" style="background:#fff" title="White"></div>
+              <div class="swatch" data-color="#888888" style="background:#888" title="Mid Grey"></div>
+              <div class="swatch" data-color="#444444" style="background:#444" title="Dark Grey"></div>
+              <div class="swatch" data-color="#000000" style="background:#000" title="Black"></div>
+            </div>
+          </div>
+          <div>
+            <div style="font-size: 10px; font-weight: 600; color: var(--text-dim); margin-bottom: 6px; text-transform: uppercase; letter-spacing: .05em;">Key Label Color</div>
+            <div class="swatches" id="swatchesLabel" style="gap: 6px; padding: 0; flex-wrap: wrap;">
+              <div class="swatch" data-color="#4f8ef7" style="background:#4f8ef7" title="Blue"></div>
+              <div class="swatch on" data-color="#4ff7a0" style="background:#4ff7a0" title="Mint"></div>
+              <div class="swatch" data-color="#ace1af" style="background:#ace1af" title="Celadon"></div>
+              <div class="swatch" data-color="#f75f4f" style="background:#f75f4f" title="Red"></div>
+              <div class="swatch" data-color="#f7c84f" style="background:#f7c84f" title="Gold"></div>
+              <div class="swatch" data-color="#c44ff7" style="background:#c44ff7" title="Purple"></div>
+              <div class="swatch" data-color="#f74fb8" style="background:#f74fb8" title="Pink"></div>
+              <div class="swatch" data-color="#4fe8f7" style="background:#4fe8f7" title="Cyan"></div>
+              <div class="swatch" data-color="#ff7043" style="background:#ff7043" title="Orange"></div>
+              <div class="swatch" data-color="#a5d6a7" style="background:#a5d6a7" title="Sage"></div>
+              <div class="swatch" data-color="#90caf9" style="background:#90caf9" title="Sky"></div>
+              <div class="swatch" data-color="#f48fb1" style="background:#f48fb1" title="Rose"></div>
+              <div class="swatch" data-color="#ffe082" style="background:#ffe082" title="Amber"></div>
+              <div class="swatch" data-color="#b39ddb" style="background:#b39ddb" title="Lavender"></div>
+              <div class="swatch" data-color="#80deea" style="background:#80deea" title="Teal"></div>
+              <div class="swatch" data-color="#ef9a9a" style="background:#ef9a9a" title="Blush"></div>
+              <div class="swatch" data-color="#a3e635" style="background:#a3e635" title="Lime"></div>
+              <div class="swatch" data-color="#ffd6e7" style="background:#ffd6e7" title="Petal"></div>
+              <div class="swatch" data-color="#c8b8ff" style="background:#c8b8ff" title="Wisteria"></div>
+              <div class="swatch" data-color="#ffffff" style="background:#fff" title="White"></div>
+              <div class="swatch" data-color="#888888" style="background:#888" title="Mid Grey"></div>
+              <div class="swatch" data-color="#444444" style="background:#444" title="Dark Grey"></div>
+              <div class="swatch" data-color="#000000" style="background:#000" title="Black"></div>
+            </div>
+          </div>
         </div>
       </div>
 
@@ -1154,17 +1185,6 @@ input[type=color] { width: 0; height: 0; opacity: 0; position: absolute; pointer
     <!-- ── KEYBOARD ── -->
     <div class="s-panel" id="panel-keyboard">
       <div class="panel-title">Keyboard</div>
-
-      <div class="p-group">
-        <div class="p-group-label">Layout</div>
-        <div class="seg-wrap">
-          <div class="seg" id="layoutSeg">
-            <button class="seg-btn on" data-layout="qwerty">QWERTY</button>
-            <button class="seg-btn" data-layout="dvorak">Dvorak</button>
-            <button class="seg-btn" data-layout="colemak">Colemak</button>
-          </div>
-        </div>
-      </div>
 
       <div class="p-group">
         <div class="p-group-label">Key Shape</div>
@@ -1289,25 +1309,6 @@ input[type=color] { width: 0; height: 0; opacity: 0; position: absolute; pointer
       </div>
 
       <div class="p-group">
-        <div class="p-group-label">Proximity Highlight</div>
-        <div class="t-row">
-          <div class="t-info">
-            <div class="t-label">Proximity Effect</div>
-            <div class="t-sub">Keys glow when cursor is near</div>
-          </div>
-          <button class="tog on" id="togProximity"></button>
-        </div>
-        <div class="sl-wrap">
-          <div class="sl-head"><span class="sl-name">Glow Intensity</span><span class="sl-val" id="boostVal">Low</span></div>
-          <input type="range" id="boostSlider" min="1" max="3" step="1" value="1">
-        </div>
-        <div class="sl-wrap">
-          <div class="sl-head"><span class="sl-name">Idle Timeout</span><span class="sl-val" id="timeoutVal">3s</span></div>
-          <input type="range" id="timeoutSlider" min="1" max="8" step="1" value="3">
-        </div>
-      </div>
-
-      <div class="p-group">
         <div class="p-group-label">Audio &amp; Haptic</div>
         <div class="t-row">
           <div class="t-info">
@@ -1326,6 +1327,25 @@ input[type=color] { width: 0; height: 0; opacity: 0; position: absolute; pointer
         <div class="sl-wrap">
           <div class="sl-head"><span class="sl-name">Volume</span><span class="sl-val" id="volVal">60%</span></div>
           <input type="range" id="volSlider" min="0" max="100" step="10" value="60">
+        </div>
+      </div>
+
+      <div class="p-group">
+        <div class="p-group-label">Proximity Highlight</div>
+        <div class="t-row">
+          <div class="t-info">
+            <div class="t-label">Proximity Effect</div>
+            <div class="t-sub">Keys glow when cursor is near</div>
+          </div>
+          <button class="tog on" id="togProximity"></button>
+        </div>
+        <div class="sl-wrap">
+          <div class="sl-head"><span class="sl-name">Glow Intensity</span><span class="sl-val" id="boostVal">Low</span></div>
+          <input type="range" id="boostSlider" min="1" max="3" step="1" value="1">
+        </div>
+        <div class="sl-wrap">
+          <div class="sl-head"><span class="sl-name">Idle Timeout</span><span class="sl-val" id="timeoutVal">3s</span></div>
+          <input type="range" id="timeoutSlider" min="1" max="8" step="1" value="3">
         </div>
       </div>
     </div>
@@ -1353,6 +1373,9 @@ input[type=color] { width: 0; height: 0; opacity: 0; position: absolute; pointer
           <div class="stat-card"><div class="stat-val" id="statKeys">0</div><div class="stat-lbl">Keys</div></div>
         </div>
         <div class="heatmap-keys" id="topKeysList"></div>
+        <div style="padding: 0 14px 8px;">
+          <button style="width: 100%; padding: 8px 12px; background: rgba(255,255,255,.08); color: var(--text); border: 1px solid var(--border); border-radius: 8px; cursor: pointer; font-size: 12px; font-weight: 600; transition: background .2s; font-family: 'IBM Plex Mono', monospace;" id="resetStatsBtn" onmouseover="this.style.background='rgba(255,255,255,.12)'" onmouseout="this.style.background='rgba(255,255,255,.08)'">Reset Stats</button>
+        </div>
       </div>
     </div>
 
@@ -1608,7 +1631,7 @@ function applyBoost(val){
   let s=document.getElementById('dynStyle');
   if(!s){s=document.createElement('style');s.id='dynStyle';document.head.appendChild(s);}
   const cfg={1:{o:'0.65',sh:'none'},2:{o:'0.92',sh:'0 0 10px rgba(255,255,255,.2)'},3:{o:'1',sh:'0 0 20px rgba(255,255,255,.42)'}}[val];
-  s.textContent=`.keyboard-proximity .key{opacity:${cfg.o};box-shadow:${cfg.sh}}`;
+  s.textContent=`.keyboard-proximity .key{opacity:${cfg.o};box-shadow:${cfg.sh}}.keyboard-proximity .mk{opacity:${cfg.o};box-shadow:${cfg.sh}}`;
 }
 
 /* ── KEY PRESS ── */
@@ -1667,6 +1690,15 @@ function typeChar(ch){
 }
 
 /* ── STATS ── */
+function resetStats(){
+  S.keystrokes=0;
+  S.wordCount=0;
+  S.startTime=null;
+  S.keyCounts={};
+  updateStatsDisplay();
+  updateHeatmap();
+}
+
 function updateStatsDisplay(){
   document.getElementById('statWords').textContent=S.wordCount;
   document.getElementById('statKeys').textContent=S.keystrokes;
@@ -1785,7 +1817,7 @@ function applyKeyFont(font){
   }[font] || "'IBM Plex Mono',monospace";
   let s=document.getElementById('dynFontStyle');
   if(!s){s=document.createElement('style');s.id='dynFontStyle';document.head.appendChild(s);}
-  s.textContent=`.key{font-family:${fam}!important}`;
+  s.textContent=`.key,.mk{font-family:${fam}!important}`;
 }
 
 /* ── TRACKPAD SIZE ── */
@@ -2075,6 +2107,11 @@ document.getElementById('boostSlider').addEventListener('input',function(){S.boo
 document.getElementById('timeoutSlider').addEventListener('input',function(){S.idleTimeout=+this.value*1000;document.getElementById('timeoutVal').textContent=this.value+'s';saveSettings();});
 document.getElementById('volSlider').addEventListener('input',function(){S.volume=+this.value/100;document.getElementById('volVal').textContent=this.value+'%';saveSettings();});
 document.getElementById('keySizeSlider').addEventListener('input',function(){S.keySize=+this.value;document.getElementById('keySizeVal').textContent=KEY_SIZE_LABELS[S.keySize];applyKeySize(S.keySize);saveSettings();});
+
+/* ── RESET STATS ── */
+document.getElementById('resetStatsBtn').addEventListener('click',()=>{
+  if(confirm('Reset all keyboard usage stats?')) resetStats();
+});
 
 document.addEventListener('keydown',e=>{
   if(e.key==='/'){e.preventDefault();overlay.classList.add('open');return;}
