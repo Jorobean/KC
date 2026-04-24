@@ -1,4 +1,5 @@
 <!DOCTYPE html>
+
 <html lang="en">
 <head>
 <meta charset="UTF-8">
@@ -19,137 +20,147 @@
     padding-bottom: 30px;
   }
 
-  #log {
-    width: 90%;
-    max-width: 720px;
-    height: 0;
-    padding-bottom: 50.625%;
-    flex-grow: 0;
-    background: linear-gradient(180deg, #d0d0d0 0%, #a8a8a8 50%, #8a8a8a 100%);
-    border: none;
-    border-radius: 20px;
-    outline: 5px solid #1a1a1a;
-    outline-offset: 8px;
-    box-shadow: inset 0 2px 4px rgba(0,0,0,0.3);
-    color: transparent;
-    text-shadow: none;
-    overflow: visible;
-    margin-top: 50px;
-    margin-bottom: 100px;
-    position: relative;
-    transition: box-shadow 0.3s ease;
-  }
+#log {
+width: 90%;
+max-width: 720px;
+height: 0;
+padding-bottom: 52%;
+flex-grow: 0;
+background: linear-gradient(180deg, #d0d0d0 0%, #a8a8a8 50%, #8a8a8a 100%);
+border: none;
+border-radius: 20px;
+outline: 5px solid #1a1a1a;
+outline-offset: 8px;
+box-shadow: inset 0 2px 4px rgba(0,0,0,0.3);
+color: transparent;
+text-shadow: none;
+overflow: visible;
+margin-top: 50px;
+margin-bottom: 100px;
+position: relative;
+transition: box-shadow 0.3s ease;
+}
 
-  #log.recording {
-    box-shadow: inset 0 2px 4px rgba(0,0,0,0.3), 0 0 20px rgba(255,200,0,0.8);
-  }
+#log.recording {
+box-shadow: inset 0 2px 4px rgba(0,0,0,0.3), 0 0 20px rgba(255,200,0,0.8);
+}
 
-  @media (min-width: 768px) {
-    #log { width: 720px; height: 405px; padding-bottom: 0; }
-  }
+@media (min-width: 768px) {
+#log { width: 720px; height: 220px; padding-bottom: 0; }
+}
 
-  #log::before {
-    content: '';
-    position: absolute;
-    top: 50%; left: 50%;
-    transform: translate(-50%, -50%);
-    width: 10px; height: 10px;
-    background: #000;
-    border-radius: 50%;
-  }
+#log::before {
+content: '';
+position: absolute;
+top: 50%; left: 50%;
+transform: translate(-50%, -50%);
+width: 10px; height: 10px;
+background: #000;
+border-radius: 50%;
+}
 
-  #log > div:not(#assistant-wrap) { display: none; }
-  #log #assistant-wrap { display: flex; }
+#log > div:not(#assistant-wrap) { display: none; }
+#log #assistant-wrap { display: flex; }
 
-  #button {
-    width: 160px; height: 42px;
-    border-radius: 21px;
-    background: #2a2a2a;
-    color: #1a1a1a;
-    font-size: 28px; font-weight: bold;
-    letter-spacing: 10px; padding-left: 10px;
-    display: flex; justify-content: center; align-items: center;
-    user-select: none; touch-action: manipulation;
-    margin-bottom: 30px;
-    transition: background 0.1s;
-    cursor: pointer;
-    outline: 5px solid #2a2a2a;
-    outline-offset: 8px;
-    text-shadow: 0 -1px 0 #000, 0 1px 1px rgba(255,255,255,0.08);
-  }
-  #button:active { background: #1a1a1a; }
+/* button + indicator stack */
+#button-wrap {
+display: grid;
+place-items: center;
+margin-bottom: 30px;
+}
 
-  #pill {
-    width: 160px; height: 26px;
-    border-radius: 13px;
-    background: transparent; opacity: 0.3;
-    margin-bottom: 20px;
-    border: 2px solid #444;
-  }
-  #pill.booting { animation: fadeIn 1s forwards; background: #bdbdbd !important; border: none !important; }
-  #pill.recording { background: #e74c3c !important; opacity: 1 !important; animation: pillPulse 1s infinite !important; border: none !important; }
-  #pill.on { background: #bdbdbd !important; opacity: 1 !important; animation: none !important; border: none !important; }
+#pill {
+grid-area: 1 / 1;
+width: 180px; height: 52px;
+border-radius: 26px;
+background: transparent; opacity: 0.3;
+border: 2px solid #444;
+z-index: 0;
+pointer-events: none;
+}
+#button {
+grid-area: 1 / 1;
+width: 160px; height: 42px;
+border-radius: 21px;
+background: #2a2a2a;
+color: #1a1a1a;
+font-size: 28px; font-weight: bold;
+letter-spacing: 10px; padding-left: 10px;
+display: flex; justify-content: center; align-items: center;
+user-select: none; touch-action: manipulation;
+transition: background 0.1s;
+cursor: pointer;
+outline: 5px solid #2a2a2a;
+outline-offset: 8px;
+text-shadow: 0 -1px 0 #000, 0 1px 1px rgba(255,255,255,0.08);
+z-index: 1;
+}
+#button:active { background: #1a1a1a; }
+#pill.booting { animation: fadeIn 1s forwards; background: #bdbdbd !important; border: none !important; }
+#pill.recording { background: #e74c3c !important; opacity: 1 !important; animation: pillPulse 1s infinite !important; border: none !important; }
+#pill.on { background: #bdbdbd !important; opacity: 1 !important; animation: none !important; border: none !important; box-shadow: 0 0 12px 4px rgba(189,189,189,0.6) !important; }
 
-  @keyframes pillPulse {
-    0% { box-shadow: 0 0 5px #e74c3c; }
-    50% { box-shadow: 0 0 20px #e74c3c; }
-    100% { box-shadow: 0 0 5px #e74c3c; }
-  }
-  @keyframes fadeIn {
-    0% { opacity: 0; box-shadow: 0 0 5px #bdbdbd; }
-    100% { opacity: 1; box-shadow: 0 0 10px #bdbdbd; }
-  }
+@keyframes pillPulse {
+0%   { box-shadow: 0 0 8px 4px rgba(231,76,60,0.5); }
+50%  { box-shadow: 0 0 24px 8px rgba(231,76,60,0.9); }
+100% { box-shadow: 0 0 8px 4px rgba(231,76,60,0.5); }
+}
+@keyframes fadeIn {
+0%   { opacity: 0; box-shadow: 0 0 4px 2px rgba(189,189,189,0.3); }
+100% { opacity: 1; box-shadow: 0 0 14px 5px rgba(189,189,189,0.7); }
+}
 
-  /* assistant container */
-  #assistant-wrap {
-    position: absolute;
-    bottom: 10px; right: 10px;
-    width: 80px;
-    border-radius: 8px;
-    background: #000;
-    border: 1px solid #222;
-    padding: 4px 4px 5px;
-    display: flex;
-    flex-direction: column;
-    align-items: center;
-    gap: 3px;
-    z-index: 10;
-    cursor: pointer;
-    box-sizing: border-box;
-    opacity: 0.08;          /* default: dim when off */
-    transition: opacity 0.4s ease;
-  }
+/* assistant container */
+#assistant-wrap {
+position: absolute;
+bottom: 10px; right: 10px;
+width: 80px;
+border-radius: 8px;
+background: #000;
+border: 1px solid #222;
+padding: 2px 4px 2px;
+display: flex;
+flex-direction: column;
+align-items: center;
+gap: 1px;
+z-index: 10;
+cursor: pointer;
+box-sizing: border-box;
+opacity: 0.08;          /* default: dim when off */
+transition: opacity 0.4s ease;
+}
 
-  #assistant-wrap.active {
-    opacity: 1;             /* fully visible when on+shown */
-  }
+#assistant-wrap.active {
+opacity: 1;             /* fully visible when on+shown */
+}
 
-  #assistant-wrap.hidden-char {
-    opacity: 0.08;          /* dim box when character hidden by user */
-  }
+#assistant-wrap.hidden-char {
+opacity: 0.08;          /* dim box when character hidden by user */
+}
 
-  #assistant-canvas {
-    width: 64px; height: 64px;
-    display: block;
-    image-rendering: pixelated;
-    image-rendering: crisp-edges;
-  }
+#assistant-canvas {
+width: 64px; height: 44px;
+display: block;
+image-rendering: pixelated;
+image-rendering: crisp-edges;
+}
 
-  #char-label {
-    color: #8bac0f;
-    font-size: 8px;
-    font-family: monospace;
-    letter-spacing: 0.5px;
-    text-transform: uppercase;
-    text-align: center;
-    line-height: 1.2;
-    min-height: 10px;
-    width: 100%;
-    opacity: 0;
-    transition: opacity 0.3s ease;
-  }
-  #char-label.visible { opacity: 1; }
+#char-label {
+color: #8bac0f;
+font-size: 8px;
+font-family: monospace;
+letter-spacing: 0.5px;
+text-transform: uppercase;
+text-align: center;
+line-height: 1.2;
+min-height: 10px;
+width: 100%;
+opacity: 0;
+transition: opacity 0.3s ease;
+}
+#char-label.visible { opacity: 1; }
 </style>
+
 </head>
 <body>
 
@@ -159,8 +170,10 @@
     <div id="char-label"></div>
   </div>
 </div>
-<div id="button">KEMS</div>
-<div id="pill"></div>
+<div id="button-wrap">
+  <div id="pill"></div>
+  <div id="button"></div>
+</div>
 
 <script>
 // ── Game Boy DMG palette ─────────────────────────────────────────────
@@ -512,26 +525,31 @@ SPRITES.shutdown = S([
 
 
 
-// MAIL envelope sprite overlay (drawn on top of character)
-// just the envelope shape, centered
-function drawEnvelope(ctx, alpha) {
+// SAVED icon overlay (drawn on top of character)
+// checkmark/tick icon, centered
+function drawSavedIcon(ctx, alpha) {
   ctx.globalAlpha = alpha;
-  const ex=8, ey=10, ew=16, eh=11;
-  // envelope body
-  ctx.fillStyle = GB.lightest;
-  ctx.fillRect(ex, ey, ew, eh);
-  // flap lines (V shape)
-  ctx.fillStyle = GB.dark;
-  for(let i=0;i<ew;i++){
-    const y = ey + Math.abs(i - ew/2) * 0.5 | 0;
-    ctx.fillRect(ex+i, y, 1, 1);
-  }
-  // border
-  ctx.fillStyle = GB.darkest;
-  ctx.fillRect(ex, ey, ew, 1);
-  ctx.fillRect(ex, ey+eh-1, ew, 1);
-  ctx.fillRect(ex, ey, 1, eh);
-  ctx.fillRect(ex+ew-1, ey, 1, eh);
+  const cx=16, cy=16;  // center
+  const size = 8;
+  
+  // draw checkmark: two connected lines forming a tick
+  ctx.strokeStyle = GB.lightest;
+  ctx.lineWidth = 2;
+  ctx.lineCap = "round";
+  ctx.lineJoin = "round";
+  
+  // short line (lower left to middle)
+  ctx.beginPath();
+  ctx.moveTo(cx - size/2, cy + size/4);
+  ctx.lineTo(cx - size/4, cy + size/2);
+  ctx.stroke();
+  
+  // long line (middle to upper right)
+  ctx.beginPath();
+  ctx.moveTo(cx - size/4, cy + size/2);
+  ctx.lineTo(cx + size/2, cy - size/3);
+  ctx.stroke();
+  
   ctx.globalAlpha = 1;
 }
 
@@ -626,7 +644,7 @@ function drawZs(frame) {
   }
 }
 
-// envelope fly-in overlay
+// saved overlay animation
 function drawMailOverlay(phase) {
   // phase 0.0-1.0: fade in; 1.0-2.0 hold; 2.0-3.0 fade out
   let alpha;
@@ -641,7 +659,7 @@ function drawMailOverlay(phase) {
   ctx.fillRect(0, 0, 32, 32);
   ctx.globalAlpha = 1;
 
-  drawEnvelope(ctx, alpha);
+  drawSavedIcon(ctx, alpha);
 }
 
 // ── Animation state ──────────────────────────────────────────────────
@@ -649,6 +667,8 @@ const wrap = document.getElementById("assistant-wrap");
 const button = document.getElementById("button");
 const log = document.getElementById("log");
 const pill = document.getElementById("pill");
+const assistantCanvas = document.getElementById("assistant-canvas");
+const charLabel = document.getElementById("char-label");
 
 let deviceOn = false, recording = false;
 let charVisible = true;  // toggled by long-press on wrap
@@ -658,7 +678,7 @@ let holdTimeout, multiPressTimeout;
 let wrapHoldTimer = null;
 let firstInteraction = true;
 
-let blinkTimer=null, sleepTimer=null, tiredTimer=null;
+let blinkTimer=null, sleepTimer=null, tiredTimer=null, recordFadeTimer=null;
 let animTimer=null;
 let recordStart=0;
 
@@ -668,6 +688,7 @@ let mailActive=false;
 function clearAnim() {
   clearTimeout(animTimer); animTimer=null;
   clearTimeout(blinkTimer); blinkTimer=null;
+  clearTimeout(recordFadeTimer); recordFadeTimer=null;
 }
 
 // ── State machine ────────────────────────────────────────────────────
@@ -677,8 +698,14 @@ function setState(state) {
   clearTimeout(sleepTimer); clearTimeout(tiredTimer);
   currentState = state;
   setCharLabel(state);
+  // Reset any inline styles that may have been set by previous states
+  assistantCanvas.style.visibility = "";
+  wrap.style.opacity = "";
+  wrap.style.transition = "";
+  charLabel.style.opacity = "";
+  charLabel.style.transition = "";
 
-  if (state === "idle" || state === "on") {
+  if (state === "idle") {
     let breathFrame = 0;
     function breathTick() {
       // gentle 1-px breathing bob: down on frames 8-15 of 16-frame cycle
@@ -689,7 +716,40 @@ function setState(state) {
     }
     breathTick();
     scheduleBlink();
-    if (state === "on") scheduleIdle();
+
+  } else if (state === "on") {
+    wrap.classList.remove("hidden-char");
+    wrap.classList.add("active");
+    assistantCanvas.style.visibility = "visible";
+    charLabel.classList.add("visible");
+
+    let breathFrame = 0;
+    function breathTick() {
+      // gentle 1-px breathing bob: down on frames 8-15 of 16-frame cycle
+      const bob = breathFrame % 16 < 8 ? 0 : 1;
+      drawSpriteOffset("idle", bob);
+      breathFrame++;
+      animTimer = setTimeout(breathTick, 120);
+    }
+    breathTick();
+    scheduleBlink();
+    scheduleIdle();
+
+  } else if (state === "talkToMe") {
+    wrap.classList.remove("hidden-char");
+    wrap.classList.add("active");
+    assistantCanvas.style.visibility = "hidden";
+    charLabel.classList.add("visible");
+    charLabel.style.transition = "opacity 2.2s ease-in-out";
+    charLabel.style.opacity = "0.2";
+
+    let fadeVisible = true;
+    function talkTick() {
+      charLabel.style.opacity = fadeVisible ? "1" : "0.2";
+      fadeVisible = !fadeVisible;
+      animTimer = setTimeout(talkTick, 2400);
+    }
+    talkTick();
 
   } else if (state === "booting") {
     drawSprite("sleeping"); // eyes closed, then wake
@@ -697,13 +757,22 @@ function setState(state) {
     animTimer = setTimeout(() => setState("on"), 900);
 
   } else if (state === "recording") {
+    wrap.classList.remove("hidden-char");
+    wrap.classList.add("active");
+    assistantCanvas.style.visibility = "visible";
     drawSprite("recording");
+    wrap.style.opacity = "1";
+    wrap.style.transition = "opacity 0.5s ease";
     recordStart = Date.now();
-    tiredTimer = setTimeout(() => {
-      if (recording) { drawSprite("tired"); }
+    recordFadeTimer = setTimeout(() => {
+      if (recording) { wrap.style.opacity = "0.08"; }
     }, 10000);
 
   } else if (state === "thinking") {
+    wrap.classList.remove("hidden-char");
+    wrap.classList.add("active");
+    assistantCanvas.style.visibility = "visible";
+    charLabel.classList.add("visible");
     thinkFrame = 0;
     function thinkTick() {
       drawSprite("thinking", () => drawThinkDots(thinkFrame % 4));
@@ -713,6 +782,10 @@ function setState(state) {
     thinkTick();
 
   } else if (state === "wakeup") {
+    wrap.classList.remove("hidden-char");
+    wrap.classList.add("active");
+    assistantCanvas.style.visibility = "visible";
+    charLabel.classList.add("visible");
     // blink-shake wake from sleep
     let wf = 0;
     const wakes = ["blink","idle","blink","idle"];
@@ -720,40 +793,44 @@ function setState(state) {
       drawSprite(wakes[wf] || "idle");
       wf++;
       if (wf < wakes.length) animTimer = setTimeout(wakeTick, 120);
-      else setState("on");
+      else setState("talkToMe");
     }
     wakeTick();
 
   } else if (state === "success") {
-    // starburst then mail
-    starFrame = 0;
-    function starTick() {
-      drawSprite("success", () => { if(starFrame>0) drawStar(starFrame-1); });
-      starFrame++;
-      if (starFrame <= 7) animTimer = setTimeout(starTick, 80);
-      else {
-        // hold success face, then trigger mail
-        animTimer = setTimeout(() => {
-          mailActive = true; mailPhase = 0;
-          setState("mail");
-        }, 400);
-      }
-    }
-    starTick();
+    wrap.classList.remove("hidden-char");
+    wrap.classList.add("active");
+    assistantCanvas.style.visibility = "visible";
+    charLabel.classList.add("visible");
+    drawSprite("success");
+    animTimer = setTimeout(() => { mailActive = true; mailPhase = 0; setState("mail"); }, 400);
 
   } else if (state === "mail") {
     mailPhase = 0;
     function mailTick() {
       drawSprite("idle");
       drawMailOverlay(mailPhase);
-      mailPhase += 0.15;
-      if (mailPhase < 3) animTimer = setTimeout(mailTick, 60);
+      mailPhase += 0.1;
+      if (mailPhase < 4) animTimer = setTimeout(mailTick, 60);
       else {
         mailActive = false;
-        setState("on");
+        setState("talkToMe");
       }
     }
     mailTick();
+
+  } else if (state === "tired") {
+    // fade and hide character like off instance
+    clearAnim();
+    clearTimeout(sleepTimer); clearTimeout(tiredTimer);
+    charVisible = false;
+    setWrapVisibility(true, false);
+    // Auto-restore after idle period to keep device responsive
+    animTimer = setTimeout(() => {
+      charVisible = true;
+      setState("talkToMe");
+      scheduleIdle();
+    }, 5000);
 
   } else if (state === "sleeping") {
     sleepFrame = 0;
@@ -800,15 +877,14 @@ function scheduleIdle() {
 const STATE_LABELS = {
   idle:      "Ready",
   on:        "Ready",
-  booting:   "Waking up...",
+  booting:   "Booting...",
   blink:     "Ready",
   recording: "Recording",
-  thinking:  "Thinking...",
-  tired:     "...",
+  thinking:  "Processing",
+  talkToMe:  "Talk To Me",
   sleeping:  "Sleeping",
   sleeping2: "Sleeping",
-  success:   "Got it!",
-  mail:      "Sending...",
+  mail:      "Saved",
   shutdown:  "Off",
   wakeup:    "Waking up...",
 };
@@ -888,8 +964,7 @@ function handlePress() {
     logAction("Booting device...");
     deviceOn=true; charVisible=true;
     updatePill("boot");
-    setWrapVisibility(true, true);
-    setState("booting");
+    setState("talkToMe");
     setTimeout(() => { updatePill("on"); pressCount=0; }, 1000);
     return;
   }
@@ -916,10 +991,12 @@ function startRecording() {
 function stopRecording() {
   logAction("Sending recording...");
   recording=false;
+  clearTimeout(tiredTimer);   // cancel the recording fade-out timer
+  wrap.style.opacity = "";    // clear any inline opacity set during recording fade
+  wrap.style.transition = "";
   updatePill("on");
   setState("thinking");
-  clearTimeout(tiredTimer);
-  setTimeout(() => { logAction("Sent!"); setState("success"); }, 1800);
+  setTimeout(() => { logAction("Saved"); setState("success"); }, 1800);
 }
 
 function doShutdown() {
@@ -990,5 +1067,6 @@ typeText("Hold 3s to shutdown", null, true);
 setWrapVisibility(false, false);
 drawSprite("idle");
 </script>
+
 </body>
 </html>
