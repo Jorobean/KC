@@ -1,10 +1,9 @@
 <!DOCTYPE html>
-
 <html lang="en">
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>Multi-function Button Simulator</title>
+<title>mSIM</title>
 <style>
   body {
     font-family: sans-serif;
@@ -20,157 +19,149 @@
     padding-bottom: 30px;
   }
 
-#log {
-width: 90%;
-max-width: 720px;
-height: 0;
-padding-bottom: 50.625%;
-flex-grow: 0;
-background: linear-gradient(180deg, #d0d0d0 0%, #a8a8a8 50%, #8a8a8a 100%);
-border: none;
-border-radius: 20px;
-outline: 5px solid #1a1a1a;
-outline-offset: 8px;
-box-shadow: inset 0 2px 4px rgba(0,0,0,0.3);
-color: transparent;
-text-shadow: none;
-overflow: visible;
-margin-top: 50px;
-margin-bottom: 100px;
-position: relative;
-transition: box-shadow 0.3s ease;
-}
+  #log {
+    width: 90%;
+    max-width: 720px;
+    height: 0;
+    padding-bottom: 50.625%;
+    flex-grow: 0;
+    background: linear-gradient(180deg, #d0d0d0 0%, #a8a8a8 50%, #8a8a8a 100%);
+    border: none;
+    border-radius: 20px;
+    outline: 5px solid #1a1a1a;
+    outline-offset: 8px;
+    box-shadow: inset 0 2px 4px rgba(0,0,0,0.3);
+    color: transparent;
+    text-shadow: none;
+    overflow: visible;
+    margin-top: 50px;
+    margin-bottom: 100px;
+    position: relative;
+    transition: box-shadow 0.3s ease;
+  }
 
-#log.recording {
-box-shadow: inset 0 2px 4px rgba(0,0,0,0.3), 0 0 20px rgba(255,200,0,0.8);
-}
+  #log.recording {
+    box-shadow: inset 0 2px 4px rgba(0,0,0,0.3), 0 0 20px rgba(255,200,0,0.8);
+  }
 
-@media (min-width: 768px) {
-#log { width: 720px; height: 405px; padding-bottom: 0; }
-}
+  @media (min-width: 768px) {
+    #log { width: 720px; height: 405px; padding-bottom: 0; }
+  }
 
-#log::before {
-content: '';
-position: absolute;
-top: 50%; left: 50%;
-transform: translate(-50%, -50%);
-width: 10px; height: 10px;
-background: #000;
-border-radius: 50%;
-}
+  #log::before {
+    content: '';
+    position: absolute;
+    top: 50%; left: 50%;
+    transform: translate(-50%, -50%);
+    width: 10px; height: 10px;
+    background: #000;
+    border-radius: 50%;
+  }
 
-#log > div:not(#assistant-wrap) { display: none; }
-#log #assistant-wrap { display: flex; }
+  #log > div:not(#assistant-wrap) { display: none; }
+  #log #assistant-wrap { display: flex; }
 
-/* button + indicator stack */
-#button-wrap {
-display: grid;
-place-items: center;
-margin-bottom: 30px;
-}
+  /* button + indicator stack */
+  #button-wrap {
+    display: grid;
+    place-items: center;
+    margin-bottom: 30px;
+  }
 
-#pill {
-grid-area: 1 / 1;
-width: 180px; height: 52px;
-border-radius: 26px;
-background: transparent; opacity: 0.3;
-border: 2px solid #444;
-z-index: 0;
-pointer-events: none;
-}
-#button {
-grid-area: 1 / 1;
-width: 160px; height: 42px;
-border-radius: 21px;
-background: #2a2a2a;
-color: #1a1a1a;
-font-size: 28px; font-weight: bold;
-letter-spacing: 10px; padding-left: 10px;
-display: flex; justify-content: center; align-items: center;
-user-select: none; touch-action: manipulation;
-transition: background 0.1s;
-cursor: pointer;
-outline: 5px solid #2a2a2a;
-outline-offset: 8px;
-text-shadow: 0 -1px 0 #000, 0 1px 1px rgba(255,255,255,0.08);
-z-index: 1;
-}
-#button:active { background: #1a1a1a; }
-#pill.booting { animation: fadeIn 1s forwards; background: #bdbdbd !important; border: none !important; }
-#pill.recording { background: #e74c3c !important; opacity: 1 !important; animation: pillPulse 1s infinite !important; border: none !important; }
-#pill.on { background: #bdbdbd !important; opacity: 1 !important; animation: none !important; border: none !important; box-shadow: 0 0 12px 4px rgba(189,189,189,0.6) !important; }
+  #pill {
+    grid-area: 1 / 1;
+    width: 180px; height: 52px;
+    border-radius: 26px;
+    background: transparent; opacity: 0.3;
+    border: 2px solid #444;
+    z-index: 0;
+    pointer-events: none;
+  }
 
-@keyframes pillPulse {
-0%   { box-shadow: 0 0 8px 4px rgba(231,76,60,0.5); }
-50%  { box-shadow: 0 0 24px 8px rgba(231,76,60,0.9); }
-100% { box-shadow: 0 0 8px 4px rgba(231,76,60,0.5); }
-}
-@keyframes fadeIn {
-0%   { opacity: 0; box-shadow: 0 0 4px 2px rgba(189,189,189,0.3); }
-100% { opacity: 1; box-shadow: 0 0 14px 5px rgba(189,189,189,0.7); }
-}
+  #button {
+    grid-area: 1 / 1;
+    width: 160px; height: 42px;
+    border-radius: 21px;
+    background: #2a2a2a;
+    color: #1a1a1a;
+    font-size: 28px; font-weight: bold;
+    letter-spacing: 10px; padding-left: 10px;
+    display: flex; justify-content: center; align-items: center;
+    user-select: none; touch-action: manipulation;
+    transition: background 0.1s;
+    cursor: pointer;
+    outline: 5px solid #2a2a2a;
+    outline-offset: 8px;
+    text-shadow: 0 -1px 0 #000, 0 1px 1px rgba(255,255,255,0.08);
+    z-index: 1;
+  }
+  #button:active { background: #1a1a1a; }
 
-/* assistant container */
-#assistant-wrap {
-position: absolute;
-bottom: 10px; right: 10px;
-width: 80px;
-border-radius: 8px;
-background: #7c7c7c;
-border: 1px solid #222;
-padding: 2px 4px 2px;
-display: flex;
-flex-direction: column;
-align-items: center;
-gap: 1px;
-z-index: 10;
-cursor: pointer;
-box-sizing: border-box;
-opacity: 0.08;          /* default: dim when off */
-transition: opacity 0.4s ease;
-}
+  #pill.booting   { animation: fadeIn 1s forwards; background: #bdbdbd !important; border: none !important; }
+  #pill.recording { background: #e74c3c !important; opacity: 1 !important; animation: pillPulse 1s infinite !important; border: none !important; }
+  #pill.on        { background: #bdbdbd !important; opacity: 1 !important; animation: none !important; border: none !important; box-shadow: 0 0 12px 4px rgba(189,189,189,0.6) !important; }
 
-#assistant-wrap.active {
-opacity: 1;             /* fully visible when on+shown */
-}
+  @keyframes pillPulse {
+    0%   { box-shadow: 0 0 8px 4px rgba(231,76,60,0.5); }
+    50%  { box-shadow: 0 0 24px 8px rgba(231,76,60,0.9); }
+    100% { box-shadow: 0 0 8px 4px rgba(231,76,60,0.5); }
+  }
+  @keyframes fadeIn {
+    0%   { opacity: 0; box-shadow: 0 0 4px 2px rgba(189,189,189,0.3); }
+    100% { opacity: 1; box-shadow: 0 0 14px 5px rgba(189,189,189,0.7); }
+  }
 
-#assistant-wrap.hidden-char {
-opacity: 0.08;          /* dim box when character hidden by user */
-}
+  /* assistant container */
+  #assistant-wrap {
+    position: absolute;
+    bottom: 10px; right: 10px;
+    width: 80px;
+    border-radius: 8px;
+    background: linear-gradient(135deg, #7c7c7c 0%, #5a5a5a 100%);
+    padding: 2px 4px 2px;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 1px;
+    z-index: 10;
+    cursor: pointer;
+    box-sizing: border-box;
+    opacity: 0.08;
+    transition: opacity 0.4s ease;
+    box-shadow: inset 0 4px 8px rgba(0,0,0,0.5), inset 0 -4px 8px rgba(255,255,255,0.2);
+  }
 
-#assistant-canvas {
-display: none;
-}
+  #assistant-wrap.active      { opacity: 1; }
+  #assistant-wrap.hidden-char { opacity: 0.08; }
 
-#assistant-img {
-width: 64px;
-height: 64px;
-display: block;
-object-fit: contain;
-}
+  #assistant-img {
+    width: 64px;
+    height: 64px;
+    display: block;
+    object-fit: contain;
+    transition: opacity 0.35s ease;
+  }
 
-#char-label {
-color: #8bac0f;
-font-size: 8px;
-font-family: monospace;
-letter-spacing: 0.5px;
-text-transform: uppercase;
-text-align: center;
-line-height: 1.2;
-min-height: 10px;
-width: 100%;
-opacity: 0;
-transition: opacity 0.3s ease;
-}
-#char-label.visible { opacity: 1; }
+  #char-label {
+    color: #8bac0f;
+    font-size: 8px;
+    font-family: monospace;
+    letter-spacing: 0.5px;
+    text-transform: uppercase;
+    text-align: center;
+    line-height: 1.2;
+    min-height: 10px;
+    width: 100%;
+    opacity: 0;
+    transition: opacity 0.3s ease;
+  }
+  #char-label.visible { opacity: 1; }
 </style>
-
 </head>
 <body>
 
 <div id="log">
   <div id="assistant-wrap">
-    <canvas id="assistant-canvas" width="32" height="32"></canvas>
     <img id="assistant-img" src="duck%20state/duck-state_hello.png" alt="Duck state">
     <div id="char-label"></div>
   </div>
@@ -181,771 +172,177 @@ transition: opacity 0.3s ease;
 </div>
 
 <script>
-// ── Game Boy DMG palette ─────────────────────────────────────────────
-const GB = {
-  darkest:  "#0f380f",
-  dark:     "#306230",
-  light:    "#8bac0f",
-  lightest: "#9bbc0f",
-  off:      "#1a2e1a"   // very dark for "screen off" bg
-};
-
-// ── 32x32 pixel sprites ─────────────────────────────────────────────
-// Palette keys: 0=lightest(#9bbc0f), 1=light(#8bac0f), 2=dark(#306230), 3=darkest(#0f380f), .=transparent(black bg)
-const PAL = [GB.lightest, GB.light, GB.dark, GB.darkest];
-
-function S(rows) {
-  return rows.map(r => r.padEnd(32, '.'));
-}
-
-const SPRITES = {};
-
-// ── ZOOMED-IN HEAD PORTRAITS (32×32, full canvas = just the face) ────
-// Head fills entire 32×32. Eyes are large 2×2 blocks for readability.
-// Palette: 0=#9bbc0f  1=#8bac0f  2=#306230  3=#0f380f  .=black bg
-
-// IDLE: neutral open eyes, small smile
-SPRITES.idle = S([
-  "................................", // 0
-  "...........333333333............", // 1 hair
-  "..........33333333333...........", // 2
-  ".........3333333333333..........", // 3
-  ".........3000000000003..........", // 4 forehead
-  ".........3000000000003..........", // 5
-  ".........3000000000003..........", // 6
-  ".........3003000030003..........", // 7 eyes: 1×2 block each
-  ".........3003000030003..........", // 8
-  ".........3000000000003..........", // 9
-  ".........3000000000003..........", // 10
-  ".........3000000000003..........", // 11
-  ".........3003000030003..........", // 12 smile corners up
-  ".........3000300300003..........", // 13 smile centre low = U
-  ".........3000000000003..........", // 14
-  ".........33333333333333.........", // 15 chin
-  "................................", // 16
-  "........3333333333333333........", // 17 shirt collar/neck
-  "........3300000000000033........", // 18 shoulders
-  "........3300000000000033........", // 19
-  "......33330000000000003333......", // 20 arms
-  "......33330000000000003333......", // 21
-  "........3300000000000033........", // 22
-  "........33333333333333333.......", // 23 bottom
-  "................................", // 24
-  "................................", // 25
-  "................................", // 26
-  "................................", // 27
-  "................................", // 28
-  "................................", // 29
-  "................................", // 30
-  "................................", // 31
-]);
-
-// BLINK: eyes replaced with closed horizontal bar
-SPRITES.blink = S([
-  "................................",
-  "...........333333333............",
-  "..........33333333333...........",
-  ".........3333333333333..........",
-  ".........3000000000003..........",
-  ".........3000000000003..........",
-  ".........3000000000003..........",
-  ".........3033333330003..........", // closed eyes: solid bar
-  ".........3000000000003..........",
-  ".........3000000000003..........",
-  ".........3000000000003..........",
-  ".........3000000000003..........",
-  ".........3003000030003..........",
-  ".........3000300300003..........",
-  ".........3000000000003..........",
-  ".........33333333333333.........",
-  "................................",
-  "........3333333333333333........",
-  "........3300000000000033........",
-  "........3300000000000033........",
-  "......33330000000000003333......",
-  "......33330000000000003333......",
-  "........3300000000000033........",
-  "........33333333333333333.......",
-  "................................",
-  "................................",
-  "................................",
-  "................................",
-  "................................",
-  "................................",
-  "................................",
-  "................................",
-]);
-
-// RECORDING: wide 2×3 eyes, open O-mouth, arms raised
-SPRITES.recording = S([
-  "................................",
-  "...........333333333............",
-  "..........33333333333...........",
-  ".........3333333333333..........",
-  ".........3000000000003..........",
-  ".........3000000000003..........",
-  ".........3033000033003..........", // wide eyes: 2×3 blocks
-  ".........3033000033003..........",
-  ".........3033000033003..........",
-  ".........3000000000003..........",
-  ".........3000000000003..........",
-  ".........3003333330003..........", // O-mouth top
-  ".........3003000330003..........", // O-mouth sides
-  ".........3003333330003..........", // O-mouth bottom
-  ".........3000000000003..........",
-  ".........33333333333333.........",
-  "................................",
-  "......3333333333333333333.......", // arms raised high
-  ".....333000000000000000333......",
-  "......3333333333333333333.......",
-  "........3300000000000033........",
-  "........3300000000000033........",
-  "........3300000000000033........",
-  "........33333333333333333.......",
-  "................................",
-  "................................",
-  "................................",
-  "................................",
-  "................................",
-  "................................",
-  "................................",
-  "................................",
-]);
-
-// THINKING: eyes look right+up, one arm up
-SPRITES.thinking = S([
-  "................................",
-  "...........333333333............",
-  "..........33333333333...........",
-  ".........3333333333333..........",
-  ".........3000000000003..........",
-  ".........3000000000003..........",
-  ".........3000000000003..........",
-  ".........3000003300003..........", // eyes shifted right
-  ".........3000003300003..........",
-  ".........3000000000003..........",
-  ".........3000000000003..........",
-  ".........3000000000003..........",
-  ".........3003333000003..........", // thinking flat mouth
-  ".........3000000000003..........",
-  ".........3000000000003..........",
-  ".........33333333333333.........",
-  "................................",
-  "........3333333333333333........",
-  "........3300000000000033........",
-  "........3300000000000033........",
-  "...33333330000000000003333......", // left arm raised to chin
-  "...33333330000000000003333......",
-  "........3300000000000033........",
-  "........33333333333333333.......",
-  "................................",
-  "................................",
-  "................................",
-  "................................",
-  "................................",
-  "................................",
-  "................................",
-  "................................",
-]);
-
-// TIRED: heavy drooping lids (top 2 rows filled), frown
-SPRITES.tired = S([
-  "................................",
-  "...........333333333............",
-  "..........33333333333...........",
-  ".........3333333333333..........",
-  ".........3000000000003..........",
-  ".........3000000000003..........",
-  ".........3033333330003..........", // heavy lids: top 2 rows blocked
-  ".........3033333330003..........",
-  ".........3003000030003..........", // tiny eyes barely visible
-  ".........3000000000003..........",
-  ".........3000000000003..........",
-  ".........3000000000003..........",
-  ".........3030000000303..........", // frown: corners raised, centre dips
-  ".........3003003300003..........",
-  ".........3000000000003..........",
-  ".........33333333333333.........",
-  "................................",
-  "........3333333333333333........",
-  "........3300000000000033........",
-  "........3300000000000033........",
-  "......33330000000000003333......",
-  "......33330000000000003333......",
-  "........3300000000000033........",
-  "........33333333333333333.......",
-  "................................",
-  "................................",
-  "................................",
-  "................................",
-  "................................",
-  "................................",
-  "................................",
-  "................................",
-]);
-
-// SLEEPING: X eyes, flat mouth, Zzz floats up
-SPRITES.sleeping = S([
-  "................................",
-  "...........333333333............",
-  "..........33333333333...........",
-  ".........3333333333333..........",
-  ".........3000000000003..........",
-  ".........3000000000003..........",
-  ".........3030003003003..........", // X eye: \ /
-  ".........3003030300003..........", //          \/
-  ".........3030003003003..........", //          /\
-  ".........3000000000003..........",
-  ".........3000000000003..........",
-  ".........3000000000003..........",
-  ".........3003333330003..........", // flat mouth
-  ".........3000000000003..........",
-  ".........3000000000003..........",
-  ".........33333333333333.........",
-  "................................",
-  "........3333333333333333........",
-  "........3300000000000033........",
-  "........3300000000000033........",
-  "......33330000000000003333......",
-  "......33330000000000003333......",
-  "........3300000000000033........",
-  "........33333333333333333.......",
-  ".........................000....", // small z
-  ".....................000........",
-  ".........................000....",
-  "................................",
-  "................................",
-  "................................",
-  "................................",
-  "................................",
-]);
-
-SPRITES.sleeping2 = S([
-  "................................",
-  "...........333333333............",
-  "..........33333333333...........",
-  ".........3333333333333..........",
-  ".........3000000000003..........",
-  ".........3000000000003..........",
-  ".........3030003003003..........",
-  ".........3003030300003..........",
-  ".........3030003003003..........",
-  ".........3000000000003..........",
-  ".........3000000000003..........",
-  ".........3000000000003..........",
-  ".........3003333330003..........",
-  ".........3000000000003..........",
-  ".........3000000000003..........",
-  ".........33333333333333.........",
-  "................................",
-  "........3333333333333333........",
-  "........3300000000000033........",
-  "........3300000000000033........",
-  "......33330000000000003333......",
-  "......33330000000000003333......",
-  "........3300000000000033........",
-  "........33333333333333333.......",
-  ".........................000....", // small z
-  ".....................000........",
-  ".........................000....",
-  "...................00000........", // big Z
-  ".....................0..........",
-  "...................00000........",
-  "................................",
-  "................................",
-]);
-
-// SUCCESS: arch ^ eyes (happy), big D-grin, arms raised
-SPRITES.success = S([
-  "................................",
-  "...........333333333............",
-  "..........33333333333...........",
-  ".........3333333333333..........",
-  ".........3000000000003..........",
-  ".........3000000000003..........",
-  ".........3033000033003..........", // ^ arch: top 2px wide, open below
-  ".........3000000000003..........", // empty below = happy arch
-  ".........3000000000003..........",
-  ".........3000000000003..........",
-  ".........3000000000003..........",
-  ".........3003333330003..........", // D-grin top
-  ".........3030000003003..........", // grin sides — open
-  ".........3033333330003..........", // grin bottom — big smile
-  ".........3000000000003..........",
-  ".........33333333333333.........",
-  "................................",
-  "......3333333333333333333.......", // both arms raised
-  ".....333000000000000000333......",
-  "......3333333333333333333.......",
-  "........3300000000000033........",
-  "........3300000000000033........",
-  "........3300000000000033........",
-  "........33333333333333333.......",
-  "................................",
-  "................................",
-  "................................",
-  "................................",
-  "................................",
-  "................................",
-  "................................",
-  "................................",
-]);
-
-// SHUTDOWN: X eyes, sad downturned mouth
-SPRITES.shutdown = S([
-  "................................",
-  "...........333333333............",
-  "..........33333333333...........",
-  ".........3333333333333..........",
-  ".........3000000000003..........",
-  ".........3000000000003..........",
-  ".........3030003003003..........", // X eyes
-  ".........3003030300003..........",
-  ".........3030003003003..........",
-  ".........3000000000003..........",
-  ".........3000000000003..........",
-  ".........3000000000003..........",
-  ".........3030000000303..........", // sad: corners up, centre down
-  ".........3003003300003..........",
-  ".........3000000000003..........",
-  ".........33333333333333.........",
-  "................................",
-  "........3333333333333333........",
-  "........3300000000000033........",
-  "........3300000000000033........",
-  "......33330000000000003333......",
-  "......33330000000000003333......",
-  "........3300000000000033........",
-  "........33333333333333333.......",
-  "................................",
-  "................................",
-  "................................",
-  "................................",
-  "................................",
-  "................................",
-  "................................",
-  "................................",
-]);
-
-
-
-
-// SAVED icon overlay (drawn on top of character)
-// checkmark/tick icon, centered
-function drawSavedIcon(ctx, alpha) {
-  ctx.globalAlpha = alpha;
-  const cx=16, cy=16;  // center
-  const size = 8;
-  
-  // draw checkmark: two connected lines forming a tick
-  ctx.strokeStyle = GB.lightest;
-  ctx.lineWidth = 2;
-  ctx.lineCap = "round";
-  ctx.lineJoin = "round";
-  
-  // short line (lower left to middle)
-  ctx.beginPath();
-  ctx.moveTo(cx - size/2, cy + size/4);
-  ctx.lineTo(cx - size/4, cy + size/2);
-  ctx.stroke();
-  
-  // long line (middle to upper right)
-  ctx.beginPath();
-  ctx.moveTo(cx - size/4, cy + size/2);
-  ctx.lineTo(cx + size/2, cy - size/3);
-  ctx.stroke();
-  
-  ctx.globalAlpha = 1;
-}
-
-// ── Renderer ─────────────────────────────────────────────────────────
-const canvas = document.getElementById("assistant-canvas");
-const ctx = canvas.getContext("2d");
-
-function drawSprite(spriteKey, extras) {
-  const rows = SPRITES[spriteKey] || SPRITES.idle;
-  ctx.fillStyle = "#000000";  // black background
-  ctx.fillRect(0, 0, 32, 32);
-
-  for (let y = 0; y < 32; y++) {
-    const row = rows[y] || "";
-    for (let x = 0; x < 32; x++) {
-      const ch = row[x] || '.';
-      if (ch === '.') continue;
-      const idx = parseInt(ch, 10);
-      if (idx >= 0 && idx <= 3) {
-        ctx.fillStyle = PAL[idx];
-        ctx.fillRect(x, y, 1, 1);
-
-      }
-    }
-  }
-
-  if (extras) extras();
-}
-
-// drawSpriteOffset: like drawSprite but shifts sprite down by yOff pixels (breathing bob)
-function drawSpriteOffset(spriteKey, yOff) {
-  const rows = SPRITES[spriteKey] || SPRITES.idle;
-  ctx.fillStyle = "#000000";
-  ctx.fillRect(0, 0, 32, 32);
-  for (let y = 0; y < 32; y++) {
-    const destY = y + yOff;
-    if (destY < 0 || destY >= 32) continue;
-    const row = rows[y] || "";
-    for (let x = 0; x < 32; x++) {
-      const ch = row[x] || '.';
-      if (ch === '.') continue;
-      const idx = parseInt(ch, 10);
-      if (idx >= 0 && idx <= 3) {
-        ctx.fillStyle = PAL[idx];
-        ctx.fillRect(x, destY, 1, 1);
-      }
-    }
-  }
-}
-
-// draw think dots (2x2 pixel dots above head)
-function drawThinkDots(count) {
-  const dotX = [12, 16, 20];
-  for (let i = 0; i < 3; i++) {
-    ctx.fillStyle = i < count ? GB.lightest : GB.dark;
-    ctx.fillRect(dotX[i], 1, 2, 2);
-  }
-}
-
-// draw starburst (8 rays from center)
-function drawStar(frame) {  // frame 0-7, expands outward
-  const cx=16, cy=14;
-  const len = frame + 1;
-  const dirs = [[1,0],[-1,0],[0,1],[0,-1],[1,1],[-1,1],[1,-1],[-1,-1]];
-  const colors = [GB.lightest, GB.light, GB.lightest, GB.light];
-  dirs.forEach(([dx,dy], i) => {
-    ctx.fillStyle = colors[i % colors.length];
-    for(let j=1; j<=len; j++){
-      const px=cx+dx*j, py=cy+dy*j;
-      if(px>=0&&px<32&&py>=0&&py<32) ctx.fillRect(px,py,1,1);
-    }
-  });
-}
-
-// draw floating Z
-function drawZs(frame) {
-  // frame 0-11: z rises and fades
-  const t = frame % 12;
-  const y = 24 - (t * 1.5 | 0);
-  if (t < 8) {
-    ctx.fillStyle = t < 4 ? GB.lightest : GB.light;
-    // small z: 3 pixels wide
-    ctx.fillRect(24, y, 3, 1);
-    ctx.fillRect(26, y+1, 1, 1);
-    ctx.fillRect(24, y+2, 3, 1);
-  }
-  if (t >= 4 && t < 12) {
-    ctx.fillStyle = t < 8 ? GB.lightest : GB.light;
-    ctx.fillRect(26, y-5, 2, 1);
-    ctx.fillRect(27, y-4, 1, 1);
-    ctx.fillRect(26, y-3, 2, 1);
-  }
-}
-
-// saved overlay animation
-function drawMailOverlay(phase) {
-  // phase 0.0-1.0: fade in; 1.0-2.0 hold; 2.0-3.0 fade out
-  let alpha;
-  if (phase < 1) alpha = phase;
-  else if (phase < 2) alpha = 1;
-  else alpha = Math.max(0, 3 - phase);
-  if (alpha <= 0) return;
-
-  // dark overlay
-  ctx.globalAlpha = alpha * 0.75;
-  ctx.fillStyle = GB.darkest;
-  ctx.fillRect(0, 0, 32, 32);
-  ctx.globalAlpha = 1;
-
-  drawSavedIcon(ctx, alpha);
-}
-
-// ── Animation state ──────────────────────────────────────────────────
-const wrap = document.getElementById("assistant-wrap");
-const button = document.getElementById("button");
-const log = document.getElementById("log");
-const pill = document.getElementById("pill");
-const assistantCanvas = document.getElementById("assistant-canvas");
+// ── DOM refs ──────────────────────────────────────────────────────────
+const wrap         = document.getElementById("assistant-wrap");
+const button       = document.getElementById("button");
+const log          = document.getElementById("log");
+const pill         = document.getElementById("pill");
 const assistantImg = document.getElementById("assistant-img");
-const charLabel = document.getElementById("char-label");
+const charLabel    = document.getElementById("char-label");
 
-let deviceOn = false, recording = false;
-let charVisible = true;  // toggled by long-press on wrap
-let currentState = "idle";
-let pressTimer, pressCount=0, lastPressTime=0;
-let holdTimeout, multiPressTimeout;
-let wrapHoldTimer = null;
+// ── State ─────────────────────────────────────────────────────────────
+let deviceOn         = false;
+let recording        = false;
+let charVisible      = true;
+let currentState     = "idle";
 let firstInteraction = true;
+let notificationAllowed = false;
 
-let blinkTimer=null, sleepTimer=null, tiredTimer=null, recordFadeTimer=null, notificationTimer=null;
-let animTimer=null;
-let recordStart=0;
+let pressTimer, pressCount = 0, lastPressTime = 0;
+let holdTimeout, multiPressTimeout, wrapHoldTimer;
+let animTimer, blinkTimer, sleepTimer, tiredTimer, notificationTimer;
 
-let sleepFrame=0, thinkFrame=0, starFrame=0, mailPhase=0;
-let mailActive=false;
-let notificationAllowed=false;
-
-function clearAnim() {
-  clearTimeout(animTimer); animTimer=null;
-  clearTimeout(blinkTimer); blinkTimer=null;
-  clearTimeout(recordFadeTimer); recordFadeTimer=null;
-}
-
-// ── State machine ────────────────────────────────────────────────────
-
-function setState(state) {
-  clearAnim();
-  clearTimeout(sleepTimer); clearTimeout(tiredTimer);
-  currentState = state;
-  setCharLabel(state);
-  // Reset any inline styles that may have been set by previous states
-  assistantCanvas.style.visibility = "";
-  assistantImg.src = getDuckStateImage(state);
-  assistantImg.style.visibility = "";
-  wrap.style.opacity = "";
-  wrap.style.transition = "";
-  charLabel.style.opacity = "";
-  charLabel.style.transition = "";
-
-  if (state === "idle") {
-    let breathFrame = 0;
-    function breathTick() {
-      // gentle 1-px breathing bob: down on frames 8-15 of 16-frame cycle
-      const bob = breathFrame % 16 < 8 ? 0 : 1;
-      drawSpriteOffset("idle", bob);
-      breathFrame++;
-      animTimer = setTimeout(breathTick, 120);
-    }
-    breathTick();
-    scheduleBlink();
-
-  } else if (state === "on") {
-    wrap.classList.remove("hidden-char");
-    wrap.classList.add("active");
-    assistantCanvas.style.visibility = "visible";
-    assistantImg.style.visibility = "visible";
-    charLabel.classList.add("visible");
-
-    let breathFrame = 0;
-    function breathTick() {
-      // gentle 1-px breathing bob: down on frames 8-15 of 16-frame cycle
-      const bob = breathFrame % 16 < 8 ? 0 : 1;
-      drawSpriteOffset("idle", bob);
-      breathFrame++;
-      animTimer = setTimeout(breathTick, 120);
-    }
-    breathTick();
-    scheduleBlink();
-    scheduleIdle();
-
-  } else if (state === "talkToMe") {
-    wrap.classList.remove("hidden-char");
-    wrap.classList.add("active");
-    assistantCanvas.style.visibility = "hidden";
-    assistantImg.style.visibility = "visible";
-    charLabel.classList.add("visible");
-    charLabel.style.transition = "opacity 2.2s ease-in-out";
-    charLabel.style.opacity = "0.2";
-
-    let fadeVisible = true;
-    function talkTick() {
-      charLabel.style.opacity = fadeVisible ? "1" : "0.2";
-      fadeVisible = !fadeVisible;
-      animTimer = setTimeout(talkTick, 2400);
-    }
-    talkTick();
-    scheduleIdle();
-
-  } else if (state === "booting") {
-    drawSprite("sleeping"); // eyes closed, then wake
-    // after short pause, show idle
-    animTimer = setTimeout(() => setState("on"), 900);
-
-  } else if (state === "recording") {
-    wrap.classList.remove("hidden-char");
-    wrap.classList.add("active");
-    assistantCanvas.style.visibility = "visible";
-    assistantImg.style.visibility = "visible";
-    drawSprite("recording");
-    wrap.style.opacity = "1";
-    wrap.style.transition = "opacity 0.5s ease";
-    recordStart = Date.now();
-    recordFadeTimer = setTimeout(() => {
-      if (recording) { wrap.style.opacity = "0.08"; }
-    }, 10000);
-
-  } else if (state === "thinking") {
-    wrap.classList.remove("hidden-char");
-    wrap.classList.add("active");
-    assistantCanvas.style.visibility = "visible";
-    assistantImg.style.visibility = "visible";
-    charLabel.classList.add("visible");
-    thinkFrame = 0;
-    function thinkTick() {
-      drawSprite("thinking", () => drawThinkDots(thinkFrame % 4));
-      thinkFrame++;
-      animTimer = setTimeout(thinkTick, 320);
-    }
-    thinkTick();
-
-  } else if (state === "wakeup") {
-    wrap.classList.remove("hidden-char");
-    wrap.classList.add("active");
-    assistantCanvas.style.visibility = "visible";
-    charLabel.classList.add("visible");
-    // blink-shake wake from sleep
-    let wf = 0;
-    const wakes = ["blink","idle","blink","idle"];
-    function wakeTick() {
-      drawSprite(wakes[wf] || "idle");
-      wf++;
-      if (wf < wakes.length) animTimer = setTimeout(wakeTick, 120);
-      else setState("talkToMe");
-    }
-    wakeTick();
-
-  } else if (state === "success") {
-    wrap.classList.remove("hidden-char");
-    wrap.classList.add("active");
-    assistantCanvas.style.visibility = "visible";
-    charLabel.classList.add("visible");
-    drawSprite("success");
-    animTimer = setTimeout(() => { mailActive = true; mailPhase = 0; setState("mail"); }, 400);
-
-  } else if (state === "mail") {
-    mailPhase = 0;
-    function mailTick() {
-      drawSprite("idle");
-      drawMailOverlay(mailPhase);
-      mailPhase += 0.1;
-      if (mailPhase < 4) animTimer = setTimeout(mailTick, 60);
-      else {
-        mailActive = false;
-        setState("talkToMe");
-      }
-    }
-    mailTick();
-
-  } else if (state === "notification") {
-    wrap.classList.remove("hidden-char");
-    wrap.classList.add("active");
-    assistantImg.style.visibility = "visible";
-    charLabel.classList.add("visible");
-    setTimeout(() => {
-      if (deviceOn && !recording) setState("talkToMe");
-    }, 4000);
-
-  } else if (state === "tired") {
-    // fade and hide character like off instance
-    clearAnim();
-    clearTimeout(sleepTimer); clearTimeout(tiredTimer);
-    charVisible = false;
-    setWrapVisibility(true, false);
-    // Auto-restore after idle period to keep device responsive
-    animTimer = setTimeout(() => {
-      charVisible = true;
-      setState("talkToMe");
-      scheduleIdle();
-    }, 5000);
-
-  } else if (state === "sleeping") {
-    sleepFrame = 0;
-    const sleepSprites = ["sleeping","sleeping","sleeping2","sleeping2"];
-    function sleepTick() {
-      drawSprite(sleepSprites[sleepFrame % sleepSprites.length], () => drawZs(sleepFrame));
-      sleepFrame++;
-      animTimer = setTimeout(sleepTick, 200);
-    }
-    sleepTick();
-
-  } else if (state === "shutdown") {
-    drawSprite("shutdown");
-  }
-}
-
-function scheduleBlink() {
-  clearTimeout(blinkTimer);
-  blinkTimer = setTimeout(() => {
-    if (!["sleeping","recording","thinking"].includes(currentState)) {
-      const prev = currentState;
-      drawSprite("blink");
-      blinkTimer = setTimeout(() => {
-        drawSprite(prev === "blink" ? "idle" : prev);
-        scheduleBlink();
-      }, 110);
-    } else {
-      scheduleBlink();
-    }
-  }, 2200 + Math.random() * 3000);
-}
-
-function scheduleIdle() {
-  clearTimeout(tiredTimer); clearTimeout(sleepTimer);
-  tiredTimer = setTimeout(() => {
-    if (deviceOn && !recording) { currentState="tired"; setState("tired"); scheduleBlink(); }
-  }, 20000);
-  sleepTimer = setTimeout(() => {
-    if (deviceOn && !recording) { currentState="sleeping"; setState("sleeping"); }
-  }, 35000);
-  scheduleNotification();
-}
-
-// ── Label map ────────────────────────────────────────────────────────
-const STATE_LABELS = {
-  idle:      "Hello",
-  on:        "Hello",
-  booting:   "Booting...",
-  blink:     "Hello",
-  recording: "Record",
-  thinking:  "Processing",
-  talkToMe:  "Hello",
-  sleeping:  "Sleep",
-  sleeping2: "Sleep",
-  mail:      "Save",
-  success:   "Save",
-  notification: "Notification",
-  shutdown:  "Off",
-  wakeup:    "Hello",
-};
-
-function setCharLabel(state) {
-  const label = document.getElementById("char-label");
-  label.textContent = STATE_LABELS[state] || "";
-  if (deviceOn) label.classList.add("visible");
-  else label.classList.remove("visible");
-}
-
-function getDuckStateImage(state) {
+// ── Duck image map ────────────────────────────────────────────────────
+function getDuckImage(state) {
   switch (state) {
     case "sleeping":
-    case "sleeping2":
     case "booting":
-      return "duck%20state/duck-state_sleep.png";
-    case "recording":
-      return "duck%20state/duck-state_record.png";
-    case "thinking":
-      return "duck%20state/duck-state_error.png";
+    case "shutdown":     return "duck%20state/duck-state_sleep.png";
+    case "recording":    return "duck%20state/duck-state_record.png";
+    case "thinking":     return "duck%20state/duck-state_error.png";
     case "mail":
-    case "success":
-      return "duck%20state/duck-state_save.png";
-    case "notification":
-      return "duck%20state/duck-state_notification.png";
-    case "talkToMe":
-    case "on":
-    case "idle":
-    case "blink":
-    case "wakeup":
-      return "duck%20state/duck-state_hello.png";
-    default:
-      return "duck%20state/duck-state_hello.png";
+    case "success":      return "duck%20state/duck-state_save.png";
+    case "notification": return "duck%20state/duck-state_notification.png";
+    default:             return "duck%20state/duck-state_hello.png";
   }
+}
+
+// ── Label map ─────────────────────────────────────────────────────────
+const STATE_LABELS = {
+  idle:         "Talk to me",
+  on:           "Talk to me",
+  booting:      "Booting...",
+  recording:    "Recording",
+  thinking:     "Processing",
+  talkToMe:     "Talk to me",
+  sleeping:     "Sleep",
+  mail:         "Saved",
+  success:      "Saved",
+  notification: "Notification",
+  shutdown:     "Off",
+  wakeup:       "Talk to me",
+};
+
+// ── Visibility helpers ────────────────────────────────────────────────
+function setWrapVisible(on, visible) {
+  if (!on) {
+    wrap.classList.remove("active", "hidden-char");
+    assistantImg.style.visibility = "hidden";
+    charLabel.classList.remove("visible");
+  } else if (visible) {
+    wrap.classList.remove("hidden-char");
+    wrap.classList.add("active");
+    assistantImg.style.visibility = "visible";
+    charLabel.classList.add("visible");
+  } else {
+    wrap.classList.remove("active");
+    wrap.classList.add("hidden-char");
+    assistantImg.style.visibility = "hidden";
+    charLabel.classList.remove("visible");
+  }
+}
+
+function clearAnim() {
+  clearTimeout(animTimer);  animTimer  = null;
+  clearTimeout(blinkTimer); blinkTimer = null;
+}
+
+// ── Crossfade duck image + label ──────────────────────────────────────
+function crossfadeTo(newSrc, newLabel, callback) {
+  const FADE = 300;
+  assistantImg.style.opacity = "0";
+  charLabel.style.opacity    = "0";
+  setTimeout(() => {
+    assistantImg.src      = newSrc;
+    charLabel.textContent = newLabel;
+    assistantImg.style.opacity = "";
+    charLabel.style.opacity    = "";
+    if (callback) callback();
+  }, FADE);
+}
+
+// ── State machine ─────────────────────────────────────────────────────
+function setState(state) {
+  clearAnim();
+  clearTimeout(sleepTimer);
+  clearTimeout(tiredTimer);
+  currentState = state;
+
+  // Reset any inline style overrides from previous states
+  wrap.style.opacity    = "";
+  wrap.style.transition = "";
+  charLabel.style.transition = "";
+
+  crossfadeTo(getDuckImage(state), STATE_LABELS[state] || "", () => {
+
+    if (state === "idle" || state === "on") {
+      setWrapVisible(true, true);
+      if (state === "on") scheduleIdle();
+
+    } else if (state === "talkToMe") {
+      setWrapVisible(true, true);
+      charLabel.style.transition = "opacity 2.2s ease-in-out";
+      let fadeVisible = true;
+      function talkTick() {
+        charLabel.style.opacity = fadeVisible ? "1" : "0.2";
+        fadeVisible = !fadeVisible;
+        animTimer = setTimeout(talkTick, 2400);
+      }
+      talkTick();
+      scheduleIdle();
+
+    } else if (state === "booting") {
+      setWrapVisible(true, true);
+      animTimer = setTimeout(() => setState("on"), 2000);
+
+    } else if (state === "wakeup") {
+      setWrapVisible(true, true);
+      animTimer = setTimeout(() => setState("talkToMe"), 600);
+
+    } else if (state === "recording" || state === "thinking") {
+      setWrapVisible(true, true);
+
+    } else if (state === "success" || state === "mail") {
+      setWrapVisible(true, true);
+      animTimer = setTimeout(() => setState("talkToMe"), 2200);
+
+    } else if (state === "notification") {
+      setWrapVisible(true, true);
+      animTimer = setTimeout(() => {
+        if (deviceOn && !recording) setState("talkToMe");
+      }, 4000);
+
+    } else if (state === "sleeping") {
+      setWrapVisible(true, true);
+
+    } else if (state === "tired") {
+      charVisible = false;
+      setWrapVisible(true, false);
+      animTimer = setTimeout(() => {
+        charVisible = true;
+        setState("talkToMe");
+        scheduleIdle();
+      }, 5000);
+
+    } else if (state === "shutdown") {
+      setWrapVisible(true, true);
+      setTimeout(() => setWrapVisible(false, false), 2000);
+    }
+
+  }); // end crossfadeTo
+}
+
+// ── Timers ────────────────────────────────────────────────────────────
+function scheduleIdle() {
+  clearTimeout(tiredTimer);
+  clearTimeout(sleepTimer);
+  tiredTimer = setTimeout(() => {
+    if (deviceOn && !recording) setState("tired");
+  }, 20000);
+  sleepTimer = setTimeout(() => {
+    if (deviceOn && !recording) setState("sleeping");
+  }, 35000);
+  scheduleNotification();
 }
 
 function cancelNotification() {
@@ -967,111 +364,69 @@ function scheduleNotification() {
   }, 20000);
 }
 
-// ── Wrap visibility ──────────────────────────────────────────────────
-
-function setWrapVisibility(on, visible) {
-  const canvas = document.getElementById("assistant-canvas");
-  const image = document.getElementById("assistant-img");
-  const label = document.getElementById("char-label");
-  if (!on) {
-    // Device off: dim box to ~8%, hide character image and label
-    wrap.classList.remove("active", "hidden-char");
-    if (canvas) canvas.style.visibility = "hidden";
-    if (image) image.style.visibility = "hidden";
-    label.classList.remove("visible");
-  } else if (visible) {
-    // Device on, character shown: full opacity, image visible
-    wrap.classList.remove("hidden-char");
-    wrap.classList.add("active");
-    if (canvas) canvas.style.visibility = "visible";
-    if (image) image.style.visibility = "visible";
-    label.classList.add("visible");
-  } else {
-    // Device on, but user hid character: dim box, hide image
-    wrap.classList.remove("active");
-    wrap.classList.add("hidden-char");
-    if (canvas) canvas.style.visibility = "hidden";
-    if (image) image.style.visibility = "hidden";
-    label.classList.remove("visible");
+// ── Pill indicator ────────────────────────────────────────────────────
+function updatePill(state) {
+  pill.className = "";
+  pill.style.cssText = "";
+  if (!deviceOn) {
+    pill.style.background = "transparent";
+    pill.style.opacity    = "0.3";
+    pill.style.border     = "2px solid #444";
+    log.classList.remove("recording");
+  } else if (state === "boot") {
+    pill.classList.add("booting");
+    log.classList.remove("recording");
+  } else if (state === "recording") {
+    pill.classList.add("recording");
+    log.classList.add("recording");
+  } else if (state === "on") {
+    pill.classList.add("on");
+    log.classList.remove("recording");
   }
 }
 
-// ── Log helpers ──────────────────────────────────────────────────────
-
-function typeText(text, callback, isIntro=false) {
-  let i=0;
-  const div = document.createElement('div');
-  if (isIntro) div.classList.add('intro');
+// ── Log helpers ───────────────────────────────────────────────────────
+function typeText(text, callback, isIntro = false) {
+  let i = 0;
+  const div = document.createElement("div");
+  if (isIntro) div.classList.add("intro");
   log.appendChild(div);
   function type() {
-    if (i < text.length) { div.textContent += text.charAt(i++); log.scrollTop=log.scrollHeight; setTimeout(type, 28); }
-    else { log.scrollTop=log.scrollHeight; if(callback) callback(); }
+    if (i < text.length) {
+      div.textContent += text.charAt(i++);
+      log.scrollTop = log.scrollHeight;
+      setTimeout(type, 28);
+    } else {
+      log.scrollTop = log.scrollHeight;
+      if (callback) callback();
+    }
   }
   type();
 }
 
 function logAction(msg) {
   if (firstInteraction) {
-    Array.from(log.querySelectorAll('div.intro')).forEach(d=>d.remove());
+    Array.from(log.querySelectorAll("div.intro")).forEach(d => d.remove());
     firstInteraction = false;
   }
   typeText(msg);
 }
 
-function updatePill(state) {
-  pill.className = ""; pill.style.cssText = "";
-  if (!deviceOn) {
-    pill.style.background="transparent"; pill.style.opacity="0.3"; pill.style.border="2px solid #444";
-    log.classList.remove("recording");
-  } else if (state==="boot") {
-    pill.classList.add("booting"); log.classList.remove("recording");
-  } else if (state==="recording") {
-    pill.classList.add("recording"); log.classList.add("recording");
-  } else if (state==="on") {
-    pill.classList.add("on"); log.classList.remove("recording");
-  }
-}
-
-// ── Button logic ─────────────────────────────────────────────────────
-
-function handlePress() {
-  cancelNotification();
-  scheduleNotification();
-  if (!deviceOn && pressCount===1) {
-    logAction("Booting device...");
-    deviceOn=true; charVisible=true;
-    updatePill("boot");
-    setState("talkToMe");
-    setTimeout(() => { updatePill("on"); pressCount=0; }, 1000);
-    return;
-  }
-  if (deviceOn && !recording && pressCount===1) {
-    if (currentState==="sleeping" || currentState==="tired") {
-      setState("wakeup");
-      setTimeout(() => { startRecording(); }, 600);
-    } else { startRecording(); }
-    pressCount=0; return;
-  }
-  if (deviceOn && recording && pressCount===1) {
-    stopRecording();
-    pressCount=0; return;
-  }
-}
-
+// ── Actions ───────────────────────────────────────────────────────────
 function startRecording() {
   notificationAllowed = true;
   cancelNotification();
   logAction("Recording...");
-  recording=true;
+  recording = true;
   updatePill("recording");
   setState("recording");
 }
 
 function stopRecording() {
   logAction("Sending recording...");
-  recording=false;
-  clearTimeout(tiredTimer);   // cancel the recording fade-out timer
-  wrap.style.opacity = "";    // clear any inline opacity set during recording fade
+  recording = false;
+  clearTimeout(tiredTimer);
+  wrap.style.opacity = "";
   wrap.style.transition = "";
   updatePill("on");
   setState("thinking");
@@ -1080,71 +435,98 @@ function stopRecording() {
 
 function doShutdown() {
   logAction("Shutting down...");
-  recording=false; deviceOn=false;
-  clearAnim(); clearTimeout(sleepTimer); clearTimeout(tiredTimer);
+  recording = false;
+  deviceOn  = false;
+  clearAnim();
+  clearTimeout(sleepTimer);
+  clearTimeout(tiredTimer);
   updatePill("off");
   setState("shutdown");
-  setWrapVisibility(false, false);
-  pressCount=0; clearTimeout(multiPressTimeout);
+  pressCount = 0;
+  clearTimeout(multiPressTimeout);
 }
 
-// main button
+function handlePress() {
+  cancelNotification();
+  scheduleNotification();
+
+  if (!deviceOn && pressCount === 1) {
+    logAction("Booting device...");
+    deviceOn    = true;
+    charVisible = true;
+    updatePill("boot");
+    setState("booting");
+    setTimeout(() => { updatePill("on"); pressCount = 0; }, 1000);
+    return;
+  }
+  if (deviceOn && !recording && pressCount === 1) {
+    if (currentState === "sleeping" || currentState === "tired") {
+      setState("wakeup");
+      setTimeout(startRecording, 600);
+    } else {
+      startRecording();
+    }
+    pressCount = 0;
+    return;
+  }
+  if (deviceOn && recording && pressCount === 1) {
+    stopRecording();
+    pressCount = 0;
+  }
+}
+
+// ── Button events ─────────────────────────────────────────────────────
 button.addEventListener("mousedown", () => {
-  pressTimer=Date.now();
-  holdTimeout=setTimeout(() => { if(deviceOn) doShutdown(); }, 3000);
+  pressTimer  = Date.now();
+  holdTimeout = setTimeout(() => { if (deviceOn) doShutdown(); }, 3000);
 });
 button.addEventListener("mouseup", () => {
   clearTimeout(holdTimeout);
-  if ((Date.now()-pressTimer)/1000 >= 3) return;
-  const now=Date.now();
-  if (now-lastPressTime > 1000) pressCount=0;
-  pressCount++; lastPressTime=now;
+  if ((Date.now() - pressTimer) / 1000 >= 3) return;
+  const now = Date.now();
+  if (now - lastPressTime > 1000) pressCount = 0;
+  pressCount++; lastPressTime = now;
   clearTimeout(multiPressTimeout);
-  multiPressTimeout=setTimeout(handlePress, 300);
+  multiPressTimeout = setTimeout(handlePress, 300);
 });
 button.addEventListener("touchstart", (e) => {
-  e.preventDefault(); pressTimer=Date.now();
-  holdTimeout=setTimeout(() => { if(deviceOn) doShutdown(); }, 3000);
+  e.preventDefault();
+  pressTimer  = Date.now();
+  holdTimeout = setTimeout(() => { if (deviceOn) doShutdown(); }, 3000);
 });
 button.addEventListener("touchend", (e) => {
-  e.preventDefault(); clearTimeout(holdTimeout);
-  if ((Date.now()-pressTimer)/1000 >= 3) return;
-  const now=Date.now();
-  if (now-lastPressTime > 1000) pressCount=0;
-  pressCount++; lastPressTime=now;
+  e.preventDefault();
+  clearTimeout(holdTimeout);
+  if ((Date.now() - pressTimer) / 1000 >= 3) return;
+  const now = Date.now();
+  if (now - lastPressTime > 1000) pressCount = 0;
+  pressCount++; lastPressTime = now;
   clearTimeout(multiPressTimeout);
-  multiPressTimeout=setTimeout(handlePress, 300);
+  multiPressTimeout = setTimeout(handlePress, 300);
 });
 
-// wrap long-press to toggle character visibility
+// Wrap long-press: toggle character visibility
 wrap.addEventListener("mousedown", (e) => {
   e.stopPropagation();
-  wrapHoldTimer=setTimeout(() => {
-    if (deviceOn) {
-      charVisible=!charVisible;
-      setWrapVisibility(true, charVisible);
-    }
+  wrapHoldTimer = setTimeout(() => {
+    if (deviceOn) { charVisible = !charVisible; setWrapVisible(true, charVisible); }
   }, 1000);
 });
-wrap.addEventListener("mouseup", (e) => { e.stopPropagation(); clearTimeout(wrapHoldTimer); });
+wrap.addEventListener("mouseup",    (e) => { e.stopPropagation(); clearTimeout(wrapHoldTimer); });
 wrap.addEventListener("touchstart", (e) => {
   e.stopPropagation();
-  wrapHoldTimer=setTimeout(() => {
-    if (deviceOn) {
-      charVisible=!charVisible;
-      setWrapVisibility(true, charVisible);
-    }
+  wrapHoldTimer = setTimeout(() => {
+    if (deviceOn) { charVisible = !charVisible; setWrapVisible(true, charVisible); }
   }, 1000);
 });
 wrap.addEventListener("touchend", (e) => { e.stopPropagation(); clearTimeout(wrapHoldTimer); });
 
-// ── Init ─────────────────────────────────────────────────────────────
+// ── Init ──────────────────────────────────────────────────────────────
 typeText("KEMS Button Simulator", null, true);
 typeText("Press once to boot, once to record, once to stop", null, true);
 typeText("Hold 3s to shutdown", null, true);
 
-setWrapVisibility(false, false);
-drawSprite("idle");
+setWrapVisible(false, false);
 </script>
 
 </body>
