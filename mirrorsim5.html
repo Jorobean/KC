@@ -1,0 +1,596 @@
+<!DOCTYPE html>
+
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>mSIM</title>
+<style>
+  body {
+    font-family: sans-serif;
+    background: #000;
+    color: #fff;
+    display: flex;
+    flex-direction: column;
+    justify-content: flex-start;
+    align-items: center;
+    min-height: 100vh;
+    margin: 0;
+    padding-top: 40px;
+    padding-bottom: 30px;
+  }
+
+#log {
+width: 90%;
+max-width: 720px;
+height: 0;
+padding-bottom: 50.625%;
+flex-grow: 0;
+background: linear-gradient(180deg, #d0d0d0 0%, #a8a8a8 50%, #8a8a8a 100%);
+border: none;
+border-radius: 20px;
+outline: 5px solid #1a1a1a;
+outline-offset: 8px;
+box-shadow: inset 0 2px 4px rgba(0,0,0,0.3);
+color: transparent;
+text-shadow: none;
+overflow: hidden;
+margin-top: 50px;
+margin-bottom: 100px;
+position: relative;
+transition: box-shadow 0.3s ease;
+}
+
+#log.recording {
+box-shadow: inset 0 2px 4px rgba(0,0,0,0.3), 0 0 20px rgba(255,200,0,0.8);
+}
+
+@media (min-width: 768px) {
+#log { width: 720px; height: 405px; padding-bottom: 0; }
+}
+
+#log::before {
+content: ‘’;
+position: absolute;
+top: 50%; left: 50%;
+transform: translate(-50%, -50%);
+width: 10px; height: 10px;
+background: #000;
+border-radius: 50%;
+}
+
+#log > div:not(#assistant-wrap) { display: none; }
+#log #assistant-wrap { display: flex; }
+
+/* button + indicator stack */
+#button-wrap {
+display: grid;
+place-items: center;
+margin-bottom: 30px;
+}
+
+#pill {
+grid-area: 1 / 1;
+width: 180px; height: 52px;
+border-radius: 26px;
+background: transparent; opacity: 0.3;
+border: 2px solid #444;
+z-index: 0;
+pointer-events: none;
+}
+
+#button {
+grid-area: 1 / 1;
+width: 160px; height: 42px;
+border-radius: 21px;
+background: #2a2a2a;
+color: #1a1a1a;
+font-size: 28px; font-weight: bold;
+letter-spacing: 10px; padding-left: 10px;
+display: flex; justify-content: center; align-items: center;
+user-select: none; touch-action: manipulation;
+transition: background 0.1s;
+cursor: pointer;
+outline: 5px solid #2a2a2a;
+outline-offset: 8px;
+text-shadow: 0 -1px 0 #000, 0 1px 1px rgba(255,255,255,0.08);
+z-index: 1;
+}
+#button:active { background: #1a1a1a; }
+
+#pill.booting   { animation: fadeIn 1s forwards; background: #bdbdbd !important; border: none !important; }
+#pill.recording { background: #e74c3c !important; opacity: 1 !important; animation: pillPulse 1s infinite !important; border: none !important; }
+#pill.on        { background: #bdbdbd !important; opacity: 1 !important; animation: none !important; border: none !important; box-shadow: 0 0 12px 4px rgba(189,189,189,0.6) !important; }
+
+@keyframes pillPulse {
+0%   { box-shadow: 0 0 8px 4px rgba(231,76,60,0.5); }
+50%  { box-shadow: 0 0 24px 8px rgba(231,76,60,0.9); }
+100% { box-shadow: 0 0 8px 4px rgba(231,76,60,0.5); }
+}
+@keyframes fadeIn {
+0%   { opacity: 0; box-shadow: 0 0 4px 2px rgba(189,189,189,0.3); }
+100% { opacity: 1; box-shadow: 0 0 14px 5px rgba(189,189,189,0.7); }
+}
+
+/* assistant container */
+#assistant-wrap {
+position: absolute;
+bottom: 10px; right: 10px;
+width: 80px;
+border-radius: 8px;
+background: linear-gradient(135deg, #7c7c7c 0%, #5a5a5a 100%);
+padding: 2px 4px 2px;
+display: flex;
+flex-direction: column;
+align-items: center;
+gap: 1px;
+z-index: 10;
+cursor: pointer;
+box-sizing: border-box;
+opacity: 0.08;
+transition: opacity 0.4s ease;
+box-shadow: inset 0 4px 8px rgba(0,0,0,0.5), inset 0 -4px 8px rgba(255,255,255,0.2);
+}
+
+#assistant-wrap.active      { opacity: 1; }
+#assistant-wrap.hidden-char { opacity: 0.08; }
+
+#assistant-img {
+width: 64px;
+height: 64px;
+display: block;
+object-fit: contain;
+overflow: hidden;
+transition: opacity 0.35s ease, height 0.25s ease, margin 0.25s ease;
+}
+
+#char-label {
+color: #000;
+font-size: 8px;
+font-family: monospace;
+letter-spacing: 0.5px;
+text-transform: uppercase;
+text-align: center;
+line-height: 1.2;
+min-height: 10px;
+width: 100%;
+opacity: 0;
+transition: opacity 0.3s ease;
+}
+#char-label.visible { opacity: 1; }
+
+/* gear button */
+#gear-btn {
+position: fixed;
+bottom: 18px;
+right: 18px;
+width: 38px;
+height: 38px;
+border-radius: 50%;
+background: #1e1e1e;
+border: 1px solid #333;
+color: #666;
+font-size: 18px;
+display: flex;
+align-items: center;
+justify-content: center;
+cursor: pointer;
+z-index: 9999;
+transition: color 0.2s, background 0.2s;
+user-select: none;
+line-height: 1;
+}
+#gear-btn:hover { background: #2a2a2a; color: #aaa; }
+#gear-btn.active { color: #8bac0f; }
+
+/* compact mode: shrink wrap to content height */
+#assistant-wrap.compact {
+height: auto;
+}
+</style>
+
+</head>
+<body>
+
+<div id="log">
+  <div id="assistant-wrap">
+    <img id="assistant-img" src="duck%20state/duck-state_hello.png" alt="Duck state">
+    <div id="char-label"></div>
+  </div>
+</div>
+<div id="button-wrap">
+  <div id="pill"></div>
+  <div id="button">KEMS</div>
+</div>
+
+<button id="gear-btn" title="Toggle container fit">⚙</button>
+
+<script>
+// ── DOM refs ──────────────────────────────────────────────────────────
+const wrap         = document.getElementById("assistant-wrap");
+const button       = document.getElementById("button");
+const log          = document.getElementById("log");
+const pill         = document.getElementById("pill");
+const assistantImg = document.getElementById("assistant-img");
+const charLabel    = document.getElementById("char-label");
+
+// ── State ─────────────────────────────────────────────────────────────
+let deviceOn         = false;
+let recording        = false;
+let charVisible      = true;
+let currentState     = "idle";
+let firstInteraction = true;
+let notificationAllowed = false;
+
+let pressTimer, pressCount = 0, lastPressTime = 0;
+let holdTimeout, multiPressTimeout, wrapHoldTimer;
+let animTimer, blinkTimer, sleepTimer, tiredTimer, notificationTimer;
+
+// ── Duck image map ────────────────────────────────────────────────────
+function getDuckImage(state) {
+  switch (state) {
+    case "sleeping":
+    case "booting":
+    case "shutdown":     return "duck%20state/duck-state_sleep.png";
+    case "recording":    return "duck%20state/duck-state_record.png";
+    case "thinking":     return "duck%20state/duck-state_error.png";
+    case "mail":
+    case "success":      return "duck%20state/duck-state_save.png";
+    case "notification": return "duck%20state/duck-state_notification.png";
+    case "wakeup":       return "duck%20state/duck-state_hello.png";
+    default:             return "duck%20state/duck-state_hello.png";
+  }
+}
+
+// ── Label map ─────────────────────────────────────────────────────────
+const STATE_LABELS = {
+  idle:         "Talk to me",
+  on:           "Talk to me",
+  booting:      "Booting...",
+  recording:    "Recording",
+  thinking:     "Processing",
+  talkToMe:     "Talk to me",
+  sleeping:     "Sleep",
+  mail:         "Saved",
+  success:      "Saved",
+  notification: "Notification",
+  shutdown:     "Off",
+  wakeup:       "Talk to me",
+};
+
+// ── Visibility helpers ────────────────────────────────────────────────
+function setWrapVisible(on, visible) {
+  if (!on) {
+    wrap.classList.remove("active", "hidden-char");
+    assistantImg.style.visibility = "hidden";
+    charLabel.classList.remove("visible");
+  } else if (visible) {
+    wrap.classList.remove("hidden-char");
+    wrap.classList.add("active");
+    assistantImg.style.visibility = "visible";
+    charLabel.classList.add("visible");
+  } else {
+    wrap.classList.remove("active");
+    wrap.classList.add("hidden-char");
+    assistantImg.style.visibility = "hidden";
+    charLabel.classList.remove("visible");
+  }
+}
+
+function clearAnim() {
+  clearTimeout(animTimer);  animTimer  = null;
+  clearTimeout(blinkTimer); blinkTimer = null;
+}
+
+// ── Crossfade duck image + label ──────────────────────────────────────
+function crossfadeTo(newSrc, newLabel, callback) {
+  const FADE = 300;
+  assistantImg.style.opacity = "0";
+  charLabel.style.opacity    = "0";
+  setTimeout(() => {
+    assistantImg.src      = newSrc;
+    charLabel.textContent = newLabel;
+    assistantImg.style.opacity = "1";
+    charLabel.style.opacity    = "1";
+    if (callback) callback();
+  }, FADE);
+}
+
+// ── State machine ─────────────────────────────────────────────────────
+function setState(state) {
+  clearAnim();
+  clearTimeout(sleepTimer);
+  clearTimeout(tiredTimer);
+  currentState = state;
+
+  // Reset any inline style overrides from previous states
+  wrap.style.opacity    = "";
+  wrap.style.transition = "";
+  charLabel.style.transition = "";
+
+  crossfadeTo(getDuckImage(state), STATE_LABELS[state] || "", () => {
+
+    if (state === "idle" || state === "on") {
+      setWrapVisible(true, true);
+      if (state === "on") scheduleIdle();
+
+    } else if (state === "talkToMe") {
+      setWrapVisible(true, true);
+      charLabel.style.transition = "opacity 2.2s ease-in-out";
+      let fadeVisible = true;
+      function talkTick() {
+        charLabel.style.opacity = fadeVisible ? "1" : "0.2";
+        fadeVisible = !fadeVisible;
+        animTimer = setTimeout(talkTick, 2400);
+      }
+      talkTick();
+      scheduleIdle();
+
+    } else if (state === "booting") {
+      setWrapVisible(true, true);
+      animTimer = setTimeout(() => setState("on"), 2000);
+
+    } else if (state === "wakeup") {
+      setWrapVisible(true, true);
+      animTimer = setTimeout(() => setState("talkToMe"), 600);
+
+    } else if (state === "recording" || state === "thinking") {
+      setWrapVisible(true, true);
+
+    } else if (state === "success" || state === "mail") {
+      setWrapVisible(true, true);
+      animTimer = setTimeout(() => setState("talkToMe"), 2200);
+
+    } else if (state === "notification") {
+      setWrapVisible(true, true);
+      animTimer = setTimeout(() => {
+        if (deviceOn && !recording) setState("talkToMe");
+      }, 4000);
+
+    } else if (state === "sleeping") {
+      setWrapVisible(true, true);
+
+    } else if (state === "tired") {
+      charVisible = false;
+      setWrapVisible(true, false);
+      animTimer = setTimeout(() => {
+        charVisible = true;
+        setState("talkToMe");
+        // scheduleIdle() removed: setState("talkToMe") → setState("on") already calls it
+      }, 5000);
+
+    } else if (state === "shutdown") {
+      setWrapVisible(true, true);
+      setTimeout(() => setWrapVisible(false, false), 2000);
+    }
+
+  }); // end crossfadeTo
+}
+
+// ── Timers ────────────────────────────────────────────────────────────
+function scheduleIdle() {
+  clearTimeout(tiredTimer);
+  clearTimeout(sleepTimer);
+  tiredTimer = setTimeout(() => {
+    if (deviceOn && !recording) setState("tired");
+  }, 20000);
+  sleepTimer = setTimeout(() => {
+    if (deviceOn && !recording) setState("sleeping");
+  }, 35000);
+  scheduleNotification();
+}
+
+function cancelNotification() {
+  clearTimeout(notificationTimer);
+  notificationTimer = null;
+}
+
+function scheduleNotification() {
+  cancelNotification();
+  if (!notificationAllowed || !deviceOn || recording) return;
+  notificationTimer = setTimeout(() => {
+    if (deviceOn && !recording) {
+      setState("notification");
+      setTimeout(() => {
+        if (deviceOn && !recording) setState("talkToMe");
+        // scheduleNotification() removed here: the notification state timeout
+        // in setState() handles the follow-up, and scheduleIdle() re-arms it.
+      }, 4000);
+    }
+  }, 20000);
+}
+
+// ── Pill indicator ────────────────────────────────────────────────────
+function updatePill(state) {
+  pill.className = "";
+  pill.style.cssText = "";
+  if (!deviceOn) {
+    pill.style.background = "transparent";
+    pill.style.opacity    = "0.3";
+    pill.style.border     = "2px solid #444";
+    log.classList.remove("recording");
+  } else if (state === "boot") {
+    pill.classList.add("booting");
+    log.classList.remove("recording");
+  } else if (state === "recording") {
+    pill.classList.add("recording");
+    log.classList.add("recording");
+  } else if (state === "on") {
+    pill.classList.add("on");
+    log.classList.remove("recording");
+  }
+  // "off" is handled by the !deviceOn branch above; no extra case needed,
+  // but callers should always set deviceOn = false before calling updatePill("off").
+}
+
+// ── Log helpers ───────────────────────────────────────────────────────
+function typeText(text, callback, isIntro = false) {
+  let i = 0;
+  const div = document.createElement("div");
+  if (isIntro) div.classList.add("intro");
+  log.appendChild(div);
+  function type() {
+    if (i < text.length) {
+      div.textContent += text.charAt(i++);
+      log.scrollTop = log.scrollHeight;
+      setTimeout(type, 28);
+    } else {
+      log.scrollTop = log.scrollHeight;
+      if (callback) callback();
+    }
+  }
+  type();
+}
+
+function logAction(msg) {
+  if (firstInteraction) {
+    Array.from(log.querySelectorAll("div.intro")).forEach(d => d.remove());
+    firstInteraction = false;
+  }
+  typeText(msg);
+}
+
+// ── Actions ───────────────────────────────────────────────────────────
+function startRecording() {
+  notificationAllowed = true;
+  cancelNotification();
+  logAction("Recording...");
+  recording = true;
+  updatePill("recording");
+  setState("recording");
+}
+
+function stopRecording() {
+  logAction("Sending recording...");
+  recording = false;
+  clearTimeout(tiredTimer);
+  updatePill("on");
+  setState("thinking");
+  setTimeout(() => { logAction("Saved"); setState("success"); }, 1800);
+}
+
+function doShutdown() {
+  logAction("Shutting down...");
+  recording = false;
+  deviceOn  = false;
+  clearAnim();
+  clearTimeout(sleepTimer);
+  clearTimeout(tiredTimer);
+  updatePill("off");
+  setState("shutdown");
+  pressCount = 0;
+  clearTimeout(multiPressTimeout);
+}
+
+function handlePress() {
+  cancelNotification();
+  scheduleNotification();
+
+  if (!deviceOn && pressCount === 1) {
+    logAction("Booting device...");
+    deviceOn    = true;
+    charVisible = true;
+    updatePill("boot");
+    setState("booting");
+    setTimeout(() => { updatePill("on"); pressCount = 0; }, 1000);
+    return;
+  }
+  if (deviceOn && !recording && pressCount === 1) {
+    if (currentState === "sleeping" || currentState === "tired") {
+      setState("wakeup");
+      setTimeout(startRecording, 600);
+    } else {
+      startRecording();
+    }
+    pressCount = 0;
+    return;
+  }
+  if (deviceOn && recording && pressCount === 1) {
+    stopRecording();
+    pressCount = 0;
+  }
+}
+
+// ── Button events ─────────────────────────────────────────────────────
+button.addEventListener("mousedown", () => {
+  pressTimer  = Date.now();
+  holdTimeout = setTimeout(() => { if (deviceOn) doShutdown(); }, 3000);
+});
+button.addEventListener("mouseup", () => {
+  clearTimeout(holdTimeout);
+  if ((Date.now() - pressTimer) / 1000 >= 3) return;
+  const now = Date.now();
+  if (now - lastPressTime > 1000) pressCount = 0;
+  pressCount++; lastPressTime = now;
+  clearTimeout(multiPressTimeout);
+  multiPressTimeout = setTimeout(handlePress, 300);
+});
+button.addEventListener("touchstart", (e) => {
+  e.preventDefault();
+  pressTimer  = Date.now();
+  holdTimeout = setTimeout(() => { if (deviceOn) doShutdown(); }, 3000);
+});
+button.addEventListener("touchend", (e) => {
+  e.preventDefault();
+  clearTimeout(holdTimeout);
+  if ((Date.now() - pressTimer) / 1000 >= 3) return;
+  const now = Date.now();
+  if (now - lastPressTime > 1000) pressCount = 0;
+  pressCount++; lastPressTime = now;
+  clearTimeout(multiPressTimeout);
+  multiPressTimeout = setTimeout(handlePress, 300);
+});
+
+// Wrap long-press: toggle character visibility
+wrap.addEventListener("mousedown", (e) => {
+  e.stopPropagation();
+  wrapHoldTimer = setTimeout(() => {
+    if (deviceOn) { charVisible = !charVisible; setWrapVisible(true, charVisible); }
+  }, 1000);
+});
+wrap.addEventListener("mouseup",    (e) => { e.stopPropagation(); clearTimeout(wrapHoldTimer); });
+wrap.addEventListener("touchstart", (e) => {
+  e.stopPropagation();
+  wrapHoldTimer = setTimeout(() => {
+    if (deviceOn) { charVisible = !charVisible; setWrapVisible(true, charVisible); }
+  }, 1000);
+});
+wrap.addEventListener("touchend", (e) => { e.stopPropagation(); clearTimeout(wrapHoldTimer); });
+
+// ── Init ──────────────────────────────────────────────────────────────
+typeText("KEMS Button Simulator", null, true);
+typeText("Press once to boot, once to record, once to stop", null, true);
+typeText("Hold 3s to shutdown", null, true);
+
+setWrapVisible(false, false);
+
+// ── Gear: toggle container fit-to-content (text only) ────────────────
+const gearBtn = document.getElementById("gear-btn");
+let compactMode = false;
+
+gearBtn.addEventListener("click", () => {
+  compactMode = !compactMode;
+  gearBtn.classList.toggle("active", compactMode);
+
+  if (compactMode) {
+    // Collapse image so container shrinks to just the label text
+    assistantImg.style.height   = "0";
+    assistantImg.style.minHeight = "0";
+    assistantImg.style.overflow  = "hidden";
+    assistantImg.style.margin    = "0";
+    wrap.style.gap     = "0";
+    wrap.style.padding = "2px 4px";
+  } else {
+    // Restore image dimensions
+    assistantImg.style.height    = "";
+    assistantImg.style.minHeight = "";
+    assistantImg.style.overflow  = "";
+    assistantImg.style.margin    = "";
+    wrap.style.gap     = "";
+    wrap.style.padding = "";
+  }
+});
+</script>
+
+</body>
+</html>
