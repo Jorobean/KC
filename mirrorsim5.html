@@ -287,13 +287,21 @@ function crossfadeTo(newSrc, newLabel, callback) {
   const FADE = 300;
   assistantImg.style.opacity = "0";
   charLabel.style.opacity    = "0";
-  setTimeout(() => {
-    assistantImg.src      = newSrc;
-    charLabel.textContent = newLabel;
-    assistantImg.style.opacity = "1";
-    charLabel.style.opacity    = "1";
-    if (callback) callback();
-  }, FADE);
+
+  // Preload the new image before swapping — prevents flash of wrong frame
+  const preload = new Image();
+  const swap = () => {
+    setTimeout(() => {
+      assistantImg.src      = newSrc;
+      charLabel.textContent = newLabel;
+      assistantImg.style.opacity = "1";
+      charLabel.style.opacity    = "1";
+      if (callback) callback();
+    }, FADE);
+  };
+  preload.onload  = swap;
+  preload.onerror = swap; // swap anyway if image missing, don't get stuck invisible
+  preload.src = newSrc;
 }
 
 // ── State machine ─────────────────────────────────────────────────────
