@@ -1,0 +1,1653 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>UI Sound Engine</title>
+<link href="https://fonts.googleapis.com/css2?family=DM+Mono:wght@300;400;500&family=Syne:wght@400;700;800&display=swap" rel="stylesheet">
+<style>
+*, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+/* ── Dark theme (default) ── */
+:root, body {
+  --bg: #0a0a0f; --surface: #12121a; --surface2: #0e0e16;
+  --border: #1e1e2e; --text: #e8e8f0; --muted: #5a5a7a;
+  --accent: #c8f0a0; --accent2: #f0c8a0; --glow: rgba(200,240,160,0.15);
+  --vis-r:200; --vis-g:240; --vis-b:160;
+}
+/* ── Light theme ── */
+body.light {
+  --bg: #f0f2ed; --surface: #ffffff; --surface2: #e8ece4;
+  --border: #cdd4c6; --text: #181e13; --muted: #6b7864;
+  --accent: #2d6b08; --accent2: #8a4208; --glow: rgba(45,107,8,0.1);
+  --vis-r:45; --vis-g:107; --vis-b:8;
+}
+
+html { scroll-behavior: smooth; }
+body {
+  background: var(--bg); color: var(--text);
+  font-family: 'DM Mono', monospace;
+  min-height: 100vh;
+  display: flex; flex-direction: column; align-items: stretch;
+  overflow-x: hidden;
+  transition: background .25s, color .25s;
+  padding-bottom: 200px;
+}
+body.light .timeline-bar { box-shadow: 0 -4px 20px rgba(0,0,0,.1); }
+
+/* ── Top bar ── */
+.top-bar {
+  position: sticky; top: 0; z-index: 20;
+  display: flex; align-items: center; justify-content: space-between;
+  padding: .55rem 1.25rem;
+  background: var(--bg);
+  border-bottom: 1px solid var(--border);
+  gap: 1rem;
+}
+.top-bar-title {
+  display: flex; align-items: center; gap: .5rem;
+}
+.top-bar-title h1 {
+  font-family: 'Syne', sans-serif; font-size: 1rem; font-weight: 800;
+  letter-spacing: -.02em; white-space: nowrap;
+}
+.top-bar-title h1 span { color: var(--accent); }
+.top-bar-title .mirror-icon {
+  width: 42px; height: 42px;
+  object-fit: contain;
+}
+.top-bar-title h1 {
+  display: inline-flex; align-items: center; gap: .35rem;
+}
+.top-bar-title p {
+  font-size: .58rem; color: var(--muted); letter-spacing: .1em;
+  text-transform: uppercase; white-space: nowrap;
+}
+
+/* ── Theme toggle ── */
+.theme-toggle {
+  background: var(--surface); border: 1px solid var(--border);
+  border-radius: 20px; padding: .22rem .6rem;
+  cursor: pointer; font-family: 'DM Mono', monospace;
+  font-size: .6rem; color: var(--muted); letter-spacing: .06em;
+  display: flex; align-items: center; gap: .35rem;
+  transition: all .15s; flex-shrink: 0;
+}
+.theme-toggle:hover { border-color: var(--accent); color: var(--accent); }
+.theme-toggle .toggle-icon { font-size: .75rem; }
+
+/* ── Page content wrapper ── */
+.scroll-pane { padding: 0 1.25rem 4rem; }
+
+.bottom-logo {
+  display: flex; justify-content: center; margin-top: 1rem; padding-bottom: 3rem;
+}
+.bottom-logo img {
+  width: 140px; max-width: 100%; height: auto;
+  display: block;
+}
+
+.section-label {
+  width: 100%; font-size:.6rem; letter-spacing:.14em;
+  text-transform:uppercase; color:var(--muted); margin:1.4rem 0 .45rem; padding-left:2px;
+  display:flex; align-items:center; gap:.8rem;
+}
+.section-label::after { content:''; flex:1; height:1px; background:var(--border); }
+.sticky-panel .section-label { margin-top: 0; margin-bottom: .4rem; }
+
+/* ── Search ── */
+.search-wrap { width: 100%; margin-bottom:.65rem; }
+.search-wrap input {
+  width:100%; background:var(--surface); border:1px solid var(--border);
+  border-radius:4px; padding:.5rem .85rem; color:var(--text);
+  font-family:'DM Mono',monospace; font-size:.73rem; outline:none;
+  transition:border-color .15s;
+}
+.search-wrap input::placeholder { color:var(--muted); }
+.search-wrap input:focus { border-color:var(--accent); }
+
+/* ── Main grid — 4 columns, 2 rows, compact ── */
+.grid-main {
+  display: grid;
+  grid-template-columns: repeat(4, 1fr);
+  gap: 1px; width: 100%;
+  background: var(--border);
+  border: 1px solid var(--border);
+  border-radius: 4px;
+  overflow: hidden;
+}
+.sound-btn {
+  background: var(--surface); border: none;
+  padding: .55rem .7rem .45rem;
+  cursor: pointer; display: flex; flex-direction: column; align-items: flex-start;
+  gap: .15rem; transition: background .15s; position: relative; overflow: hidden; text-align: left;
+}
+.sound-btn:hover { background: var(--surface2); }
+.sound-btn .glow-layer { position:absolute; inset:0; background:var(--glow); opacity:0; pointer-events:none; }
+.sound-btn.playing .glow-layer { animation:pulse-bg .5s ease-out forwards; }
+.sound-btn .icon { font-size: 1.1rem; line-height: 1; }
+.sound-btn .label {
+  font-family:'Syne',sans-serif; font-weight:700; font-size:.78rem;
+  color:var(--text); letter-spacing:-.01em; line-height: 1.2;
+}
+.sound-btn .desc { font-size:.58rem; color:var(--muted); letter-spacing:.02em; line-height:1.4; }
+.sound-btn .kbd-badge {
+  position:absolute; top:.45rem; right:.5rem; font-size:.55rem; color:var(--muted);
+  background:var(--border); padding:.08rem .28rem; border-radius:2px; letter-spacing:.04em;
+}
+.sound-btn .slot-name {
+  position:absolute; bottom:.4rem; right:.5rem; font-size:.52rem; color:var(--accent);
+  letter-spacing:.05em; text-transform:uppercase; opacity:.75;
+}
+
+/* ── Compact grid ── */
+.grid-compact {
+  display:grid; grid-template-columns:repeat(auto-fill,minmax(120px,1fr));
+  gap:1px; width:100%;
+  background:var(--border); border:1px solid var(--border); border-radius:4px; overflow:hidden;
+}
+.compact-btn {
+  background:var(--surface2); border:none; padding:.75rem .8rem .7rem;
+  cursor:pointer; display:flex; flex-direction:column; align-items:flex-start;
+  gap:.2rem; transition:background .15s; position:relative; overflow:hidden; text-align:left;
+}
+.compact-btn:hover { background:var(--surface); }
+.compact-btn .glow-layer { position:absolute; inset:0; background:var(--glow); opacity:0; pointer-events:none; }
+.compact-btn.playing .glow-layer { animation:pulse-bg .5s ease-out forwards; }
+.compact-btn .icon { font-size:.95rem; line-height:1; }
+.compact-btn .label { font-family:'Syne',sans-serif; font-weight:700; font-size:.7rem; color:var(--text); letter-spacing:-.01em; }
+.compact-btn .desc { font-size:.55rem; color:var(--muted); letter-spacing:.02em; line-height:1.4; }
+.compact-btn .actions {
+  display:flex; gap:.3rem; margin-top:.3rem; opacity:0; transition:opacity .15s;
+}
+.compact-btn:hover .actions { opacity:1; }
+.act-btn {
+  font-size:.55rem; padding:.15rem .35rem; border:1px solid var(--border);
+  border-radius:2px; background:var(--surface2); color:var(--muted); cursor:pointer;
+  font-family:'DM Mono',monospace; transition:all .15s; white-space:nowrap;
+}
+.act-btn:hover { border-color:var(--accent); color:var(--accent); }
+.act-btn.fav-active { border-color:var(--accent2); color:var(--accent2); }
+
+/* ── Favorites grid ── */
+.grid-fav {
+  display:grid; grid-template-columns:repeat(auto-fill,minmax(120px,1fr));
+  gap:1px; width:100%;
+  background:var(--border); border:1px solid var(--border); border-radius:4px; overflow:hidden;
+}
+.fav-empty {
+  grid-column:1/-1; padding:1.4rem; color:var(--muted);
+  font-size:.68rem; letter-spacing:.06em; text-align:center;
+}
+
+/* ── Curated section ── */
+.grid-curated {
+  display:grid; grid-template-columns:repeat(auto-fill,minmax(120px,1fr));
+  gap:1px; width:100%;
+  background:var(--border); border:1px solid var(--border); border-radius:4px; overflow:hidden;
+}
+.curated-slot-label {
+  width:100%; font-size:.58rem; letter-spacing:.12em;
+  text-transform:uppercase; color:var(--muted); margin:.8rem 0 .25rem; padding-left:2px;
+}
+.cat-label {
+  width: 100%; margin: 1.2rem 0 .15rem; padding-left: 2px;
+}
+.cat-label strong {
+  font-family: 'Syne', sans-serif; font-size: .72rem; font-weight: 700;
+  color: var(--text); letter-spacing: -.01em;
+}
+.cat-label span {
+  display: block; font-size: .58rem; color: var(--muted);
+  letter-spacing: .03em; margin-top: .1rem;
+}
+
+/* ── Assign modal ── */
+.modal-overlay {
+  position:fixed; inset:0; background:rgba(0,0,0,.65); backdrop-filter:blur(4px);
+  display:flex; align-items:center; justify-content:center; z-index:200; opacity:0;
+  pointer-events:none; transition:opacity .2s;
+}
+body.light .modal-overlay { background: rgba(60,70,50,.45); }
+.modal-overlay.open { opacity:1; pointer-events:all; }
+.modal {
+  background:var(--surface); border:1px solid var(--border); border-radius:6px;
+  padding:1.8rem; width:min(420px,90vw); display:flex; flex-direction:column; gap:1rem;
+}
+.modal h3 { font-family:'Syne',sans-serif; font-size:1rem; font-weight:700; }
+.modal p { font-size:.72rem; color:var(--muted); line-height:1.6; }
+.slot-grid { display:grid; grid-template-columns:repeat(4,1fr); gap:.5rem; }
+.slot-pick {
+  background:var(--surface2); border:1px solid var(--border); border-radius:3px;
+  padding:.7rem .4rem; cursor:pointer; text-align:center;
+  font-family:'Syne',sans-serif; font-weight:700; font-size:.7rem;
+  color:var(--text); transition:all .15s; display:flex; flex-direction:column; gap:.2rem;
+}
+.slot-pick span { font-size:.55rem; color:var(--muted); font-family:'DM Mono',monospace; font-weight:400; }
+.slot-pick:hover { border-color:var(--accent); color:var(--accent); }
+.modal-cancel {
+  background:none; border:1px solid var(--border); border-radius:3px;
+  color:var(--muted); font-family:'DM Mono',monospace; font-size:.72rem;
+  padding:.6rem; cursor:pointer; transition:all .15s;
+}
+.modal-cancel:hover { border-color:var(--muted); color:var(--text); }
+
+/* ── Editor modal ── */
+.editor-modal {
+  background:var(--surface); border:1px solid var(--border); border-radius:6px;
+  padding:1.6rem; width:min(500px,95vw); display:flex; flex-direction:column; gap:1rem;
+  max-height:90vh; overflow-y:auto;
+}
+.editor-modal h3 { font-family:'Syne',sans-serif; font-size:1rem; font-weight:700; }
+.editor-modal .editor-subtitle { font-size:.65rem; color:var(--muted); letter-spacing:.06em; text-transform:uppercase; }
+.param-rows { display:flex; flex-direction:column; gap:.7rem; }
+.param-row { display:grid; grid-template-columns:90px 1fr 60px; align-items:center; gap:.6rem; }
+.param-row label { font-size:.65rem; color:var(--muted); letter-spacing:.06em; text-transform:uppercase; }
+.param-row input[type=range] {
+  -webkit-appearance:none; appearance:none; width:100%;
+  height:3px; background:var(--border); border-radius:2px; outline:none; cursor:pointer;
+}
+.param-row input[type=range]::-webkit-slider-thumb {
+  -webkit-appearance:none; width:12px; height:12px; border-radius:50%;
+  background:var(--accent); cursor:pointer;
+}
+.param-row .val { font-size:.65rem; color:var(--accent); text-align:right; font-family:'DM Mono',monospace; }
+.param-row select {
+  grid-column:2/-1; background:var(--surface2); border:1px solid var(--border);
+  border-radius:3px; padding:.3rem .5rem; color:var(--text); font-family:'DM Mono',monospace;
+  font-size:.68rem; outline:none; cursor:pointer;
+}
+.editor-actions { display:flex; gap:.5rem; flex-wrap:wrap; }
+.editor-actions button {
+  flex:1; padding:.55rem; border-radius:3px; font-family:'DM Mono',monospace;
+  font-size:.7rem; cursor:pointer; border:1px solid var(--border); transition:all .15s;
+}
+.btn-preview { background:var(--surface2); color:var(--text); }
+.btn-preview:hover { border-color:var(--accent); color:var(--accent); }
+.btn-save { background:var(--accent); color:var(--bg); border-color:var(--accent); font-weight:700; }
+.btn-save:hover { opacity:.85; }
+.btn-reset { background:none; color:var(--muted); }
+.btn-reset:hover { border-color:var(--muted); color:var(--text); }
+.editor-note { font-size:.6rem; color:var(--muted); line-height:1.6; }
+.customized-badge {
+  display:inline-block; font-size:.48rem; color:var(--accent2); border:1px solid var(--accent2);
+  border-radius:2px; padding:.04rem .25rem; margin-left:.3rem; letter-spacing:.05em;
+  vertical-align:middle; text-transform:uppercase;
+}
+
+/* ── Timeline bar ── */
+.timeline-bar {
+  position: fixed;
+  bottom: 0; left: 0; right: 0;
+  z-index: 30;
+  background: var(--bg);
+  border-top: 1px solid var(--border);
+  padding: .35rem 1.25rem .45rem;
+  display: flex;
+  flex-direction: column;
+  gap: .35rem;
+  box-shadow: 0 -6px 24px rgba(0,0,0,.35);
+}
+.timeline-controls {
+  display: flex;
+  align-items: center;
+  gap: .65rem;
+}
+.tl-play-btn {
+  width: 28px; height: 28px; border-radius: 50%;
+  background: var(--accent); border: none; cursor: pointer;
+  display: flex; align-items: center; justify-content: center;
+  font-size: .75rem; color: var(--bg); flex-shrink: 0;
+  transition: opacity .15s, transform .1s;
+}
+.tl-play-btn:hover { opacity: .85; }
+.tl-play-btn:active { transform: scale(.93); }
+.tl-play-btn.playing { background: var(--accent2); }
+.tl-label {
+  font-size: .58rem; color: var(--muted); letter-spacing: .1em;
+  text-transform: uppercase; white-space: nowrap; flex-shrink: 0;
+}
+.tl-gap-ctrl {
+  display: flex; align-items: center; gap: .35rem; margin-left: auto;
+}
+.tl-gap-ctrl label { font-size: .55rem; color: var(--muted); letter-spacing: .07em; text-transform: uppercase; }
+.tl-gap-ctrl input[type=range] {
+  -webkit-appearance: none; width: 70px; height: 3px;
+  background: var(--border); border-radius: 2px; outline: none; cursor: pointer;
+}
+.tl-gap-ctrl input[type=range]::-webkit-slider-thumb {
+  -webkit-appearance: none; width: 10px; height: 10px; border-radius: 50%;
+  background: var(--muted); cursor: pointer;
+}
+.tl-gap-val { font-size: .55rem; color: var(--muted); width: 28px; }
+
+/* Timeline track */
+.timeline-track {
+  display: flex;
+  gap: 2px;
+  align-items: stretch;
+  height: 38px;
+  overflow-x: auto;
+  scrollbar-width: none;
+}
+.timeline-track::-webkit-scrollbar { display: none; }
+.tl-cell {
+  flex: 1;
+  min-width: 52px;
+  background: var(--surface);
+  border: 1px solid var(--border);
+  border-radius: 3px;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  cursor: pointer;
+  position: relative;
+  overflow: hidden;
+  transition: border-color .15s, background .15s;
+  gap: 1px;
+  user-select: none;
+}
+.tl-cell:hover { background: var(--surface2); }
+.tl-cell.tl-enabled { border-color: var(--accent); }
+.tl-cell.tl-enabled .tl-cell-icon { opacity: 1; }
+.tl-cell.tl-active {
+  background: var(--glow);
+  border-color: var(--accent);
+}
+.tl-cell.tl-active::after {
+  content: '';
+  position: absolute;
+  bottom: 0; left: 0; right: 0;
+  height: 2px;
+  background: var(--accent);
+  animation: tl-progress linear forwards;
+}
+.tl-cell-icon { font-size: .85rem; line-height: 1; opacity: .35; transition: opacity .15s; }
+.tl-cell-label { font-family: 'Syne', sans-serif; font-size: .52rem; font-weight: 700; color: var(--text); letter-spacing: -.01em; }
+.tl-cell-check {
+  position: absolute; top: 3px; right: 4px;
+  font-size: .5rem; color: var(--accent); opacity: 0; transition: opacity .15s;
+}
+.tl-cell.tl-enabled .tl-cell-check { opacity: 1; }
+@keyframes tl-progress-unused { from { transform: scaleX(0); transform-origin: left; } to { transform: scaleX(1); transform-origin: left; } }
+
+/* ── Visualizer ── */
+#visualizer {
+  width: 100%; height: 30px;
+  background: var(--surface); border: 1px solid var(--border);
+  border-radius: 4px; overflow: hidden; margin-bottom: 1rem;
+}
+#visualizer canvas { width:100%; height:100%; display:block; opacity:.6; }
+
+/* ── No results ── */
+.no-results {
+  padding:1.2rem; color:var(--muted);
+  font-size:.68rem; letter-spacing:.06em; text-align:center;
+}
+
+footer {
+  margin-top: 1.5rem; font-size: .6rem; color: var(--muted);
+  letter-spacing: .06em; text-align: center;
+}
+
+@keyframes pulse-bg { 0%{opacity:1} 100%{opacity:0} }
+.ring {
+  position:absolute; border:1px solid var(--accent); border-radius:50%;
+  width:20px; height:20px; opacity:.7; pointer-events:none;
+  animation:ring-out .6s ease-out forwards;
+}
+@keyframes ring-out { to{transform:scale(7);opacity:0} }
+</style>
+</head>
+<body>
+
+<div class="top-bar">
+  <div class="top-bar-title">
+    <img src="engine images/mirror-icon.png" alt="Mirror icon" class="mirror-icon">
+    <h1>UI <span>Sound</span> Engine</h1>
+  </div>
+  <button class="theme-toggle" id="theme-toggle">
+    <span class="toggle-icon">☀️</span>
+    <span class="toggle-label">Light</span>
+  </button>
+</div>
+
+<div class="scroll-pane" id="scroll-pane">
+<div id="fav-section" style="display:none">
+  <div class="section-label">Favorites</div>
+  <div class="grid-fav" id="grid-fav"></div>
+</div>
+
+  <div class="section-label">Library</div>
+  <div class="search-wrap"><input type="text" id="search" placeholder="Search sounds…" autocomplete="off"></div>
+  <div id="grid-extras"></div>
+
+  <footer>Click to play · ♡ to favorite · Assign to swap into main suite · Edit to customize · Keys 1–8 for main · Favorites & customizations saved automatically</footer>
+  <div class="bottom-logo">
+    <img src="engine images/kems-logo.png" alt="Kems logo">
+  </div>
+</div>
+
+<div class="modal-overlay" id="modal">
+  <div class="modal">
+    <h3 id="modal-title">Assign sound to slot</h3>
+    <p>Choose which main suite slot to replace:</p>
+    <div class="slot-grid" id="slot-grid"></div>
+    <button class="modal-cancel" id="modal-cancel">Cancel</button>
+  </div>
+</div>
+
+<div class="modal-overlay" id="editor-modal">
+  <div class="editor-modal">
+    <div>
+      <h3 id="editor-title">Edit Sound</h3>
+      <div class="editor-subtitle" id="editor-key-label"></div>
+    </div>
+    <div class="param-rows">
+      <div class="param-row">
+        <label>Wave</label>
+        <select id="ep-type">
+          <option value="sine">sine</option>
+          <option value="triangle">triangle</option>
+          <option value="square">square</option>
+          <option value="sawtooth">sawtooth</option>
+        </select>
+      </div>
+      <div class="param-row">
+        <label>Freq</label>
+        <input type="range" id="ep-freq" min="40" max="8000" step="1">
+        <span class="val" id="ev-freq">440 Hz</span>
+      </div>
+      <div class="param-row">
+        <label>Slide to</label>
+        <input type="range" id="ep-slide" min="0" max="8000" step="1">
+        <span class="val" id="ev-slide">— Hz</span>
+      </div>
+      <div class="param-row">
+        <label>Duration</label>
+        <input type="range" id="ep-dur" min="0.02" max="10" step="0.05">
+        <span class="val" id="ev-dur">0.5 s</span>
+      </div>
+      <div class="param-row">
+        <label>Gain</label>
+        <input type="range" id="ep-gain" min="0.01" max="0.4" step="0.005">
+        <span class="val" id="ev-gain">0.15</span>
+      </div>
+    </div>
+    <div class="editor-note">Tweaks override the first tone and scale the timing and duration of the entire sound. Complex multi-tone sounds will have their overall duration adjusted proportionally.</div>
+    <div class="editor-actions">
+      <button class="btn-preview" id="btn-preview">▶ Preview</button>
+      <button class="btn-reset" id="btn-reset">↺ Reset</button>
+      <button class="btn-save" id="btn-save">Save Override</button>
+    </div>
+    <button class="modal-cancel" id="editor-cancel">Cancel</button>
+  </div>
+</div>
+
+<!-- Timeline preview bar — fixed bottom, must be before <script> so getElementById works -->
+<div class="timeline-bar" id="timeline-bar">
+  <div class="grid-main" id="grid-main"></div>
+  <div class="timeline-controls">
+    <button class="tl-play-btn" id="tl-play-btn" title="Play suite preview">▶</button>
+    <span class="tl-label">Suite Preview</span>
+    <div class="tl-gap-ctrl">
+      <label>Gap</label>
+      <input type="range" id="tl-gap" min="0.2" max="3" step="0.1" value="0.8">
+      <span class="tl-gap-val" id="tl-gap-val">0.8s</span>
+    </div>
+  </div>
+  <div class="timeline-track" id="timeline-track"></div>
+  <div id="visualizer"><canvas id="canvas"></canvas></div>
+</div>
+
+<script>
+// ═══════════════════════════════════════════════
+// ENGINE
+// ═══════════════════════════════════════════════
+class UISoundEngine {
+  constructor() {
+    this.ctx = new (window.AudioContext || window.webkitAudioContext)();
+    this.analyser = this.ctx.createAnalyser();
+    this.analyser.fftSize = 256;
+    this.analyser.connect(this.ctx.destination);
+  }
+  async init() { if (this.ctx.state === 'suspended') await this.ctx.resume(); }
+  tone({ freq, t = 0, dur = 1, type = 'sine', gain = 0.2, slide = null }) {
+    const s = this.ctx.currentTime + t;
+    const osc = this.ctx.createOscillator();
+    const amp = this.ctx.createGain();
+    osc.type = type;
+    osc.frequency.setValueAtTime(freq, s);
+    if (slide) osc.frequency.exponentialRampToValueAtTime(slide, s + dur);
+    amp.gain.setValueAtTime(0, s);
+    amp.gain.linearRampToValueAtTime(gain, s + 0.02);
+    amp.gain.exponentialRampToValueAtTime(0.0001, s + dur);
+    osc.connect(amp); amp.connect(this.analyser);
+    osc.start(s); osc.stop(s + dur);
+  }
+  noise({ t = 0, dur = 0.1, gain = 0.1 }) {
+    const s = this.ctx.currentTime + t;
+    const bufSize = Math.ceil(dur * this.ctx.sampleRate);
+    const buf = this.ctx.createBuffer(1, bufSize, this.ctx.sampleRate);
+    const data = buf.getChannelData(0);
+    for (let i = 0; i < bufSize; i++) data[i] = Math.random() * 2 - 1;
+    const src = this.ctx.createBufferSource();
+    src.buffer = buf;
+    const amp = this.ctx.createGain();
+    amp.gain.setValueAtTime(gain, s);
+    amp.gain.exponentialRampToValueAtTime(0.0001, s + dur);
+    src.connect(amp); amp.connect(this.analyser);
+    src.start(s); src.stop(s + dur);
+  }
+
+  // ── Core 8 (original main suite) ──
+  boot()       { this.tone({freq:196,slide:392,dur:1.4,gain:.18}); this.tone({freq:392,t:.6,dur:.8,gain:.08}); }
+  ready()      { this.tone({freq:523.25,dur:.9,gain:.16}); }
+  record()     { this.tone({freq:880,dur:.12,gain:.14}); this.tone({freq:1108,t:.1,dur:.2,gain:.12}); }
+  processing() { this.tone({freq:220,slide:440,dur:.3,gain:.1,type:'triangle'}); [0,.2,.4].forEach((t,i)=>this.tone({freq:440*Math.pow(2,i/12),t,dur:.15,gain:.08,type:'triangle'})); }
+  photo()      { [0,.04,.08,.12,.16,.2].forEach(t=>this.tone({freq:4200,t,dur:.025,gain:.06,type:'square'})); }
+  save()       { this.tone({freq:523.25,t:0,dur:.25,gain:.12}); this.tone({freq:659.25,t:.08,dur:.3,gain:.14}); this.tone({freq:783.99,t:.16,dur:.5,gain:.16}); }
+  notify()     { this.tone({freq:880,dur:.12,gain:.16}); this.tone({freq:660,slide:1320,dur:.18,gain:.10,t:.03}); }
+  shutdown()   { this.tone({freq:392,slide:196,dur:1.2,gain:.16}); this.tone({freq:196,dur:.25,gain:.06,t:1.1}); }
+
+  // ── Batch 1 ──
+  undo()       { this.tone({freq:740,dur:.14,gain:.13}); this.tone({freq:587,t:.1,dur:.22,gain:.12}); }
+  error()      { this.tone({freq:160,dur:.35,gain:.18,type:'sawtooth'}); this.tone({freq:233,t:.04,dur:.28,gain:.10,type:'sawtooth'}); }
+  success()    { this.tone({freq:523.25,t:0,dur:.2,gain:.13}); this.tone({freq:659.25,t:.1,dur:.2,gain:.14}); this.tone({freq:1046.5,t:.2,dur:.4,gain:.16}); }
+  click()      { this.tone({freq:1200,dur:.04,gain:.18}); }
+  whoosh()     { this.tone({freq:80,slide:2400,dur:.35,gain:.12,type:'triangle'}); }
+  coin()       { this.tone({freq:987.77,dur:.08,gain:.18,type:'square'}); this.tone({freq:1318.5,t:.08,dur:.18,gain:.16,type:'square'}); }
+  alarm()      { [0,.18,.36].forEach(t=>this.tone({freq:1040,t,dur:.12,gain:.16})); }
+  glitch()     { this.tone({freq:312,dur:.06,gain:.14,type:'sawtooth'}); this.tone({freq:280,t:.05,dur:.04,gain:.12,type:'sawtooth'}); this.tone({freq:340,t:.09,dur:.07,gain:.10,type:'sawtooth'}); }
+  chime()      { this.tone({freq:1174.66,dur:1.2,gain:.13}); this.tone({freq:1567.98,t:.05,dur:1.0,gain:.08}); this.tone({freq:2349.32,t:.1,dur:.8,gain:.05}); }
+  heartbeat()  { this.tone({freq:55,dur:.12,gain:.22}); this.tone({freq:48,t:.18,dur:.14,gain:.18}); }
+  pop()        { this.tone({freq:800,slide:200,dur:.08,gain:.2}); }
+  swoopUp()    { this.tone({freq:200,slide:1600,dur:.5,gain:.14,type:'triangle'}); }
+  swoopDown()  { this.tone({freq:1600,slide:200,dur:.5,gain:.14,type:'triangle'}); }
+  doorbell()   { this.tone({freq:783.99,dur:.4,gain:.15}); this.tone({freq:659.25,t:.45,dur:.6,gain:.13}); }
+  drip()       { this.tone({freq:1800,slide:600,dur:.18,gain:.12}); }
+  ping()       { this.tone({freq:2093,dur:.5,gain:.1}); }
+  thud()       { this.tone({freq:80,slide:40,dur:.25,gain:.24}); }
+  blip()       { this.tone({freq:1400,dur:.06,gain:.16,type:'square'}); }
+  zap()        { this.tone({freq:2000,slide:100,dur:.15,gain:.16,type:'sawtooth'}); }
+  bounce()     { this.tone({freq:300,slide:900,dur:.12,gain:.16}); this.tone({freq:600,slide:1200,dur:.1,gain:.12,t:.14}); }
+  typeKey()    { this.tone({freq:900,dur:.03,gain:.12,type:'square'}); }
+  fanfare()    { this.tone({freq:523.25,t:0,dur:.15,gain:.14}); this.tone({freq:659.25,t:.12,dur:.15,gain:.14}); this.tone({freq:783.99,t:.24,dur:.15,gain:.14}); this.tone({freq:1046.5,t:.36,dur:.4,gain:.16}); }
+  unlock()     { this.tone({freq:440,dur:.1,gain:.14}); this.tone({freq:880,t:.12,dur:.2,gain:.12}); }
+  lock()       { this.tone({freq:880,dur:.1,gain:.14}); this.tone({freq:440,t:.12,dur:.2,gain:.12}); }
+  bubble()     { this.tone({freq:600,slide:1200,dur:.12,gain:.1}); this.tone({freq:800,slide:1600,dur:.1,gain:.08,t:.06}); }
+  crackle()    { [0,.03,.06,.09,.12].forEach((t,i)=>this.tone({freq:200+i*80,t,dur:.025,gain:.08,type:'sawtooth'})); }
+  warp()       { this.tone({freq:300,slide:3000,dur:.6,gain:.14,type:'sawtooth'}); this.tone({freq:300,slide:3000,dur:.6,gain:.06,type:'triangle'}); }
+  crystal()    { this.tone({freq:2637,dur:.8,gain:.08}); this.tone({freq:3136,t:.08,dur:.6,gain:.05}); }
+  morse()      { [0,.15,.3].forEach(t=>this.tone({freq:700,t,dur:.1,gain:.15})); }
+  sweep()      { this.tone({freq:100,slide:8000,dur:1.0,gain:.1}); }
+  knock()      { this.tone({freq:120,dur:.06,gain:.22}); this.tone({freq:100,t:.25,dur:.06,gain:.2}); }
+  tickTock()   { this.tone({freq:1800,dur:.03,gain:.18,type:'square'}); this.tone({freq:1400,t:.5,dur:.03,gain:.14,type:'square'}); }
+  powerUp()    { [0,.1,.2,.3].forEach((t,i)=>this.tone({freq:220*Math.pow(2,i/4),t,dur:.15,gain:.14,type:'square'})); }
+  powerDown()  { [0,.1,.2,.3].forEach((t,i)=>this.tone({freq:440/Math.pow(2,i/4),t,dur:.15,gain:.14,type:'square'})); }
+  chord()      { [261.63,329.63,392,523.25].forEach(freq=>this.tone({freq,dur:.8,gain:.08})); }
+  minor()      { [261.63,311.13,392].forEach(freq=>this.tone({freq,dur:.8,gain:.09})); }
+  snap()       { this.tone({freq:2500,slide:500,dur:.05,gain:.2,type:'triangle'}); }
+  flutter()    { [0,.05,.1,.15,.2].forEach((t,i)=>this.tone({freq:880+i*40,t,dur:.06,gain:.08})); }
+  exhale()     { this.tone({freq:400,slide:200,dur:.8,gain:.08,type:'triangle'}); }
+  inhale()     { this.tone({freq:200,slide:500,dur:.8,gain:.08,type:'triangle'}); }
+  stutter()    { [0,.04,.08,.14].forEach(t=>this.tone({freq:660,t,dur:.03,gain:.13,type:'square'})); }
+  droplet()    { this.tone({freq:1200,slide:400,dur:.22,gain:.1}); }
+  reveal()     { this.tone({freq:261.63,t:0,dur:.2,gain:.1}); this.tone({freq:523.25,t:.15,dur:.2,gain:.12}); this.tone({freq:1046.5,t:.3,dur:.4,gain:.14}); this.tone({freq:2093,t:.45,dur:.5,gain:.1}); }
+  vibe()       { [0,.08,.16,.24,.32].forEach(t=>this.tone({freq:180,t,dur:.07,gain:.18})); }
+  levelUp()    { this.tone({freq:523.25,t:0,dur:.12,gain:.14,type:'square'}); this.tone({freq:659.25,t:.1,dur:.12,gain:.14,type:'square'}); this.tone({freq:783.99,t:.2,dur:.12,gain:.14,type:'square'}); this.tone({freq:1046.5,t:.3,dur:.3,gain:.16,type:'square'}); }
+  disconnect() { this.tone({freq:440,dur:.15,gain:.14}); this.tone({freq:330,t:.12,dur:.15,gain:.12}); this.tone({freq:220,t:.24,dur:.3,gain:.10}); }
+  connect2()   { this.tone({freq:220,dur:.15,gain:.10}); this.tone({freq:330,t:.12,dur:.15,gain:.12}); this.tone({freq:440,t:.24,dur:.3,gain:.14}); }
+  glimmer()    { [0,.1,.2,.3,.4].forEach((t,i)=>this.tone({freq:1800+i*200,t,dur:.15,gain:.06})); }
+  impact()     { this.tone({freq:60,slide:30,dur:.3,gain:.28}); this.tone({freq:200,dur:.08,gain:.14,type:'sawtooth'}); }
+  womp()       { this.tone({freq:500,slide:60,dur:.6,gain:.18,type:'sawtooth'}); }
+
+  // ── Batch 2 ──
+  ricochet()   { this.tone({freq:1200,slide:400,dur:.15,gain:.14}); this.tone({freq:600,slide:200,dur:.12,gain:.10,t:.12}); }
+  dial()       { [0,.08,.16,.24,.32,.4].forEach((t,i)=>this.tone({freq:400+i*60,t,dur:.06,gain:.1,type:'square'})); }
+  glide()      { this.tone({freq:330,slide:660,dur:.7,gain:.12,type:'triangle'}); }
+  sparks()     { [0,.02,.05,.09,.14].forEach((t,i)=>this.tone({freq:1600+i*300,t,dur:.03,gain:.07,type:'sawtooth'})); }
+  hollow()     { this.tone({freq:220,dur:.6,gain:.08,type:'triangle'}); this.tone({freq:440,t:.05,dur:.5,gain:.04,type:'triangle'}); }
+  shimmer()    { [0,.06,.12,.18].forEach((t,i)=>this.tone({freq:2200+i*150,t,dur:.25,gain:.05})); }
+  chirp()      { this.tone({freq:1000,slide:2000,dur:.1,gain:.15,type:'sine'}); }
+  thump()      { this.tone({freq:90,slide:45,dur:.3,gain:.26,type:'sine'}); this.tone({freq:180,dur:.08,gain:.1,type:'triangle'}); }
+  clack()      { this.tone({freq:2200,dur:.025,gain:.2,type:'square'}); }
+  whorl()      { this.tone({freq:150,slide:600,dur:.5,gain:.13,type:'triangle'}); this.tone({freq:300,slide:1200,dur:.45,gain:.06,t:.05,type:'triangle'}); }
+  siren()      { this.tone({freq:600,slide:900,dur:.4,gain:.14}); this.tone({freq:900,slide:600,dur:.4,gain:.14,t:.4}); }
+  pulse3()     { [0,.12,.24].forEach(t=>this.tone({freq:800,t,dur:.08,gain:.15})); }
+  twinkle()    { [0,.1,.2,.3].forEach((t,i)=>this.tone({freq:[1047,1319,1568,2093][i],t,dur:.18,gain:.08})); }
+  growl()      { this.tone({freq:80,dur:.5,gain:.18,type:'sawtooth'}); this.tone({freq:85,dur:.5,gain:.08,type:'square'}); }
+  tick()       { this.tone({freq:3000,dur:.015,gain:.2,type:'square'}); }
+  sparkle()    { [0,.07,.14,.21,.28].forEach((t,i)=>this.tone({freq:1500+i*250,t,dur:.12,gain:.06})); }
+  plink()      { this.tone({freq:1760,dur:.3,gain:.12,type:'triangle'}); }
+  rattle()     { [0,.03,.06,.09,.12,.15].forEach(t=>this.tone({freq:280+Math.random()*40,t,dur:.025,gain:.09,type:'sawtooth'})); }
+  dissolve()   { [0,.1,.2,.3,.4].forEach((t,i)=>this.tone({freq:880-i*100,t,dur:.2-i*.02,gain:.12-i*.02})); }
+  ascend()     { [0,.12,.24,.36,.48].forEach((t,i)=>this.tone({freq:220*Math.pow(2,i/6),t,dur:.18,gain:.11})); }
+  descend()    { [0,.12,.24,.36,.48].forEach((t,i)=>this.tone({freq:880/Math.pow(2,i/6),t,dur:.18,gain:.11})); }
+  morse2()     { [0,.2,.4,.5,.6].forEach((t,i)=>this.tone({freq:700,t,dur:i<3?.15:.07,gain:.14})); }
+  breath()     { this.tone({freq:300,slide:350,dur:.6,gain:.07,type:'triangle'}); this.tone({freq:350,slide:300,dur:.6,gain:.07,t:.65,type:'triangle'}); }
+  scifi()      { this.tone({freq:400,slide:1600,dur:.3,gain:.12,type:'sawtooth'}); this.tone({freq:1600,slide:200,dur:.4,gain:.08,t:.3,type:'triangle'}); }
+  dewdrop()    { this.tone({freq:2400,slide:800,dur:.25,gain:.09}); }
+  flourish()   { this.tone({freq:392,t:0,dur:.12,gain:.13}); this.tone({freq:523.25,t:.1,dur:.12,gain:.13}); this.tone({freq:659.25,t:.2,dur:.12,gain:.13}); this.tone({freq:783.99,t:.3,dur:.12,gain:.13}); this.tone({freq:1046.5,t:.4,dur:.35,gain:.15}); }
+  click2()     { this.tone({freq:1800,dur:.02,gain:.22,type:'triangle'}); }
+  subBump()    { this.tone({freq:40,slide:20,dur:.4,gain:.3}); }
+  tension()    { this.tone({freq:233,dur:.8,gain:.09,type:'sawtooth'}); this.tone({freq:277,dur:.8,gain:.07,type:'square'}); }
+  resolve()    { this.tone({freq:277,slide:261.63,dur:.5,gain:.12}); this.tone({freq:349.23,dur:.6,gain:.08,t:.1}); }
+  shimmer2()   { [0,.04,.08,.12,.16,.2].forEach((t,i)=>this.tone({freq:3000+i*100,t,dur:.15,gain:.04})); }
+  sonar()      { this.tone({freq:1200,dur:.06,gain:.14}); this.tone({freq:900,t:.4,dur:.05,gain:.08}); this.tone({freq:700,t:.7,dur:.04,gain:.05}); }
+  warmth()     { [261.63,329.63,392].forEach((freq,i)=>this.tone({freq,t:i*.05,dur:1.0,gain:.07})); }
+  metallic()   { this.tone({freq:440,dur:.4,gain:.12,type:'square'}); this.tone({freq:554,dur:.35,gain:.08,type:'square'}); }
+  drift()      { this.tone({freq:220,slide:280,dur:1.2,gain:.1,type:'triangle'}); }
+  pluck()      { this.tone({freq:880,slide:440,dur:.2,gain:.16}); }
+  glassBreak() { [0,.02,.05,.08,.12].forEach((t,i)=>this.tone({freq:2000+i*400,t,dur:.04,gain:.08,type:'sawtooth'})); }
+  gong()       { this.tone({freq:98,dur:2.0,gain:.18}); this.tone({freq:196,t:.02,dur:1.6,gain:.08}); this.tone({freq:294,t:.04,dur:1.2,gain:.04}); }
+  hihat()      { this.tone({freq:8000,dur:.04,gain:.12,type:'square'}); }
+  celesta()    { this.tone({freq:1319,dur:.6,gain:.1,type:'triangle'}); this.tone({freq:1760,t:.03,dur:.5,gain:.07,type:'triangle'}); }
+  morse3()     { [0,.3,.5].forEach((t,i)=>this.tone({freq:700,t,dur:i===1?.2:.07,gain:.13})); }
+  whistle()    { this.tone({freq:2000,slide:2200,dur:.3,gain:.1,type:'sine'}); }
+  clink()      { this.tone({freq:3520,dur:.25,gain:.09,type:'triangle'}); }
+  zap2()       { this.tone({freq:3000,slide:200,dur:.12,gain:.16,type:'sawtooth'}); }
+  hover()      { this.tone({freq:180,slide:200,dur:1.0,gain:.07,type:'sine'}); this.tone({freq:182,slide:202,dur:1.0,gain:.06,type:'sine'}); }
+  glitch2()    { [0,.02,.04,.07].forEach((t,i)=>this.tone({freq:[450,380,510,290][i],t,dur:.03,gain:.13,type:'square'})); }
+  confirm()    { this.tone({freq:659.25,dur:.15,gain:.14}); this.tone({freq:987.77,t:.14,dur:.3,gain:.15}); }
+  warning2()   { this.tone({freq:880,dur:.1,gain:.16,type:'square'}); this.tone({freq:698,t:.15,dur:.1,gain:.14,type:'square'}); this.tone({freq:880,t:.3,dur:.15,gain:.16,type:'square'}); }
+
+  // ── Batch 3 ──
+  kickDrum()   { this.tone({freq:150,slide:40,dur:.35,gain:.3}); this.noise({dur:.04,gain:.06}); }
+  snare()      { this.tone({freq:200,slide:100,dur:.12,gain:.15}); this.noise({dur:.12,gain:.14}); }
+  rimshot()    { this.tone({freq:600,dur:.04,gain:.2,type:'square'}); this.noise({dur:.03,gain:.1}); }
+  woodblock()  { this.tone({freq:800,dur:.06,gain:.18,type:'triangle'}); this.tone({freq:1200,dur:.04,gain:.08,type:'triangle'}); }
+  cowbell()    { this.tone({freq:562,dur:.4,gain:.14,type:'square'}); this.tone({freq:845,dur:.35,gain:.08,type:'square'}); }
+  marimba()    { this.tone({freq:523.25,dur:.5,gain:.14,type:'triangle'}); this.tone({freq:1046.5,t:.01,dur:.3,gain:.06,type:'triangle'}); }
+  xylophone()  { this.tone({freq:1174,dur:.35,gain:.14,type:'triangle'}); this.tone({freq:2349,t:.015,dur:.2,gain:.05}); }
+  harp()       { [0,.06,.12,.18].forEach((t,i)=>this.tone({freq:[392,494,587,784][i],t,dur:.6,gain:.09,type:'triangle'})); }
+  organ()      { [261.63,523.25,783.99].forEach(f=>this.tone({freq:f,dur:.7,gain:.06,type:'square'})); }
+  bassNote()   { this.tone({freq:87.31,dur:.5,gain:.2,type:'triangle'}); this.tone({freq:174.61,dur:.4,gain:.06,type:'square'}); }
+  doubleBeep() { this.tone({freq:1047,dur:.08,gain:.15}); this.tone({freq:1047,t:.14,dur:.08,gain:.15}); }
+  tripleBlip() { [0,.1,.2].forEach(t=>this.tone({freq:1400,t,dur:.06,gain:.14,type:'square'})); }
+  riseBeep()   { this.tone({freq:880,slide:1760,dur:.25,gain:.14}); }
+  fallBeep()   { this.tone({freq:1760,slide:880,dur:.25,gain:.14}); }
+  sofClick()   { this.tone({freq:600,dur:.025,gain:.1,type:'triangle'}); }
+  windGust()   { this.noise({dur:.6,gain:.08}); this.tone({freq:200,slide:300,dur:.6,gain:.04,type:'triangle'}); }
+  thunder()    { this.noise({dur:.8,gain:.2}); this.tone({freq:60,slide:30,dur:.5,gain:.14,type:'sawtooth'}); }
+  static_()    { this.noise({dur:.15,gain:.18}); }
+  vinyl()      { this.noise({dur:1.2,gain:.04}); this.tone({freq:80,dur:1.2,gain:.03,type:'sine'}); }
+  deepSpace()  { this.tone({freq:55,slide:60,dur:2.0,gain:.08,type:'triangle'}); this.tone({freq:82,slide:77,dur:2.0,gain:.04,type:'sine'}); }
+  laserUp()    { this.tone({freq:300,slide:3000,dur:.2,gain:.16,type:'sawtooth'}); }
+  laserDown()  { this.tone({freq:3000,slide:300,dur:.2,gain:.16,type:'sawtooth'}); }
+  springUp()   { this.tone({freq:400,slide:1600,dur:.18,gain:.15,type:'triangle'}); this.tone({freq:800,slide:3200,dur:.14,gain:.08,t:.04,type:'triangle'}); }
+  springDown() { this.tone({freq:1600,slide:400,dur:.18,gain:.15,type:'triangle'}); this.tone({freq:3200,slide:800,dur:.14,gain:.08,t:.04,type:'triangle'}); }
+  warpGate()   { this.tone({freq:200,slide:2000,dur:.4,gain:.12,type:'sawtooth'}); this.tone({freq:2000,slide:200,dur:.4,gain:.08,t:.35,type:'sawtooth'}); }
+  jazzChord()  { [261.63,311.13,392,466.16].forEach((f,i)=>this.tone({freq:f,t:i*.03,dur:.7,gain:.07})); }
+  dimChord()   { [261.63,311.13,369.99,440].forEach(f=>this.tone({freq:f,dur:.6,gain:.07})); }
+  augChord()   { [261.63,329.63,415.3].forEach(f=>this.tone({freq:f,dur:.7,gain:.08})); }
+  fifths()     { this.tone({freq:196,dur:.9,gain:.1}); this.tone({freq:294,dur:.9,gain:.08}); }
+  octaves()    { this.tone({freq:261.63,dur:.7,gain:.1}); this.tone({freq:523.25,dur:.7,gain:.08}); this.tone({freq:1046.5,dur:.7,gain:.05}); }
+  gameOver()   { this.tone({freq:392,t:0,dur:.2,gain:.14,type:'square'}); this.tone({freq:349,t:.18,dur:.2,gain:.14,type:'square'}); this.tone({freq:330,t:.36,dur:.2,gain:.14,type:'square'}); this.tone({freq:262,t:.54,dur:.4,gain:.16,type:'square'}); }
+  extraLife()  { [0,.09,.18,.27].forEach((t,i)=>this.tone({freq:[659,784,988,1319][i],t,dur:.12,gain:.13,type:'square'})); }
+  itemGet()    { [0,.06,.12,.18,.24].forEach((t,i)=>this.tone({freq:[523,659,784,988,1319][i],t,dur:.1,gain:.12,type:'square'})); }
+  select()     { this.tone({freq:698,dur:.07,gain:.15,type:'square'}); this.tone({freq:880,t:.06,dur:.1,gain:.13,type:'square'}); }
+  deselect()   { this.tone({freq:880,dur:.07,gain:.13,type:'square'}); this.tone({freq:698,t:.06,dur:.1,gain:.12,type:'square'}); }
+  frog()       { this.tone({freq:180,slide:220,dur:.08,gain:.16,type:'triangle'}); this.tone({freq:220,slide:180,dur:.08,gain:.12,t:.09,type:'triangle'}); }
+  crickets()   { [0,.04,.08,.12,.16,.2].forEach(t=>this.tone({freq:4200,t,dur:.025,gain:.06,type:'square'})); }
+  waterDrop()  { this.tone({freq:1600,slide:400,dur:.3,gain:.11}); this.tone({freq:2400,slide:600,dur:.15,gain:.06,t:.05}); }
+  stream()     { this.noise({dur:1.0,gain:.05}); this.tone({freq:600,slide:650,dur:1.0,gain:.03,type:'triangle'}); }
+  thunder2()   { this.noise({dur:.3,gain:.22}); this.tone({freq:80,slide:40,dur:.4,gain:.12,type:'sawtooth'}); }
+  whooshDeep() { this.tone({freq:60,slide:600,dur:.5,gain:.16,type:'sawtooth'}); this.noise({t:.1,dur:.4,gain:.06}); }
+  riser()      { this.tone({freq:110,slide:880,dur:1.5,gain:.12,type:'sawtooth'}); this.tone({freq:110,slide:880,dur:1.5,gain:.06,type:'triangle'}); }
+  braaam()     { this.tone({freq:55,dur:1.0,gain:.2,type:'sawtooth'}); this.tone({freq:58,dur:1.0,gain:.12,type:'square'}); this.tone({freq:110,dur:1.0,gain:.06,type:'triangle'}); }
+  stab()       { this.tone({freq:220,dur:.08,gain:.2,type:'sawtooth'}); this.tone({freq:440,dur:.06,gain:.12,type:'square'}); }
+  heartStop()  { this.tone({freq:60,dur:.15,gain:.22}); this.tone({freq:50,t:.2,dur:.12,gain:.18}); }
+  doorClose()  { this.tone({freq:180,slide:80,dur:.2,gain:.16}); this.noise({t:.05,dur:.1,gain:.08}); }
+  doorOpen()   { this.tone({freq:80,slide:160,dur:.25,gain:.14}); this.noise({t:.1,dur:.12,gain:.06}); }
+  typeReturn() { this.tone({freq:400,dur:.04,gain:.14,type:'square'}); this.noise({t:.02,dur:.05,gain:.06}); }
+  notification2() { this.tone({freq:1047,dur:.1,gain:.14}); this.tone({freq:1319,t:.1,dur:.1,gain:.14}); this.tone({freq:1568,t:.2,dur:.2,gain:.13}); }
+  swipeLeft()  { this.tone({freq:800,slide:400,dur:.15,gain:.12,type:'triangle'}); }
+  swipeRight() { this.tone({freq:400,slide:800,dur:.15,gain:.12,type:'triangle'}); }
+  magnet()     { this.tone({freq:220,slide:440,dur:.3,gain:.12,type:'triangle'}); this.tone({freq:330,slide:660,dur:.25,gain:.07,t:.05}); }
+  teleport()   { this.tone({freq:600,slide:2400,dur:.15,gain:.12,type:'sawtooth'}); this.tone({freq:2400,slide:600,dur:.15,gain:.08,t:.12,type:'triangle'}); this.noise({t:.1,dur:.08,gain:.06}); }
+}
+
+// ═══════════════════════════════════════════════
+// CURATED ALTERNATES DATA
+// ═══════════════════════════════════════════════
+// DATA
+// ═══════════════════════════════════════════════
+const mainSounds = [
+  { key:'boot',       icon:'⏻',  label:'Boot',       slotLabel:'boot',       desc:'Rising identity emergence',   kbd:'1' },
+  { key:'ready',      icon:'🍎', label:'Ready',      slotLabel:'ready',      desc:'Single identity tone',        kbd:'2' },
+  { key:'record',     icon:'🔴', label:'Record',     slotLabel:'record',     desc:'Two-note attention ping',     kbd:'3' },
+  { key:'processing', icon:'⚙️',  label:'Processing', slotLabel:'processing', desc:'Cycling triangle build',      kbd:'4' },
+  { key:'photo',      icon:'📷', label:'Photo',      slotLabel:'photo',      desc:'High-freq chirp burst',       kbd:'5' },
+  { key:'save',       icon:'✅', label:'Save',       slotLabel:'save',       desc:'Apple-style chord confirm',   kbd:'6' },
+  { key:'notify',     icon:'🔔', label:'Notify',     slotLabel:'notify',     desc:'Precise activation tick',     kbd:'7' },
+  { key:'shutdown',   icon:'🌑', label:'Shutdown',   slotLabel:'shutdown',   desc:'Resolution collapse descent', kbd:'8' },
+];
+
+// Each slot tracks: current sound key + display label + slot role label (never changes)
+const slots = mainSounds.map(s => ({ ...s }));
+
+// Restore persisted slot assignments
+const savedSlots = loadSlotAssignments();
+if (savedSlots && Array.isArray(savedSlots) && savedSlots.length === slots.length) {
+  savedSlots.forEach((saved, i) => { Object.assign(slots[i], saved); });
+}
+
+// Extended library organised by use-case category
+const extraCategories = [
+  {
+    cat: 'Main Suite',
+    desc: 'Core system sounds',
+    sounds: [
+      { key:'boot',       icon:'⏻',  label:'Boot',       desc:'Rising identity emergence' },
+      { key:'ready',      icon:'🍎', label:'Ready',      desc:'Single identity tone' },
+      { key:'record',     icon:'🔴', label:'Record',     desc:'Two-note attention ping' },
+      { key:'processing', icon:'⚙️',  label:'Processing', desc:'Cycling triangle build' },
+      { key:'photo',      icon:'📷', label:'Photo',      desc:'High-freq chirp burst' },
+      { key:'save',       icon:'✅', label:'Save',       desc:'Apple-style chord confirm' },
+      { key:'notify',     icon:'🔔', label:'Notify',     desc:'Precise activation tick' },
+      { key:'shutdown',   icon:'🌑', label:'Shutdown',   desc:'Resolution collapse descent' },
+    ]
+  },
+  {
+    cat: 'UI Clicks & Taps',
+    desc: 'Micro interactions — button presses, selections, toggles',
+    sounds: [
+      { key:'click',        icon:'👆', label:'Click',        desc:'Micro sine blip' },
+      { key:'click2',       icon:'🖲️',  label:'Click 2',      desc:'Crisp triangle hit' },
+      { key:'sofClick',     icon:'🖱️',  label:'Soft Click',   desc:'Ultra-gentle tap' },
+      { key:'clack',        icon:'🖱️',  label:'Clack',        desc:'Ultra-sharp square hit' },
+      { key:'snap',         icon:'👌', label:'Snap',         desc:'Sharp triangle crack' },
+      { key:'pop',          icon:'🫧', label:'Pop',          desc:'Descending sine burst' },
+      { key:'tick',         icon:'⏱️',  label:'Tick',         desc:'Ultra-short 3kHz blip' },
+      { key:'blip',         icon:'🟢', label:'Blip',         desc:'Square wave tick' },
+      { key:'typeKey',      icon:'⌨️',  label:'Type Key',     desc:'Keyboard click' },
+      { key:'typeReturn',   icon:'↵',  label:'Return Key',   desc:'Square key + noise' },
+    ]
+  },
+  {
+    cat: 'Alerts & Notifications',
+    desc: 'Attention-grabbing signals — warnings, pings, alarms',
+    sounds: [
+      { key:'alarm',        icon:'🚨', label:'Alarm',        desc:'Triple pulse beep' },
+      { key:'warning2',     icon:'🔺', label:'Warning',      desc:'Three-stab alert' },
+      { key:'siren',        icon:'🚒', label:'Siren',        desc:'Oscillating pitch sweep' },
+      { key:'ping',         icon:'📶', label:'Ping',         desc:'High pure ring' },
+      { key:'doubleBeep',   icon:'📢', label:'Double Beep',  desc:'Two quick pings' },
+      { key:'tripleBlip',   icon:'💡', label:'Triple Blip',  desc:'Three square taps' },
+      { key:'pulse3',       icon:'💓', label:'Pulse ×3',     desc:'Triple mid-tone beep' },
+      { key:'morse',        icon:'📟', label:'Morse',        desc:'Triple dot beep' },
+      { key:'morse2',       icon:'🔤', label:'Morse ·−·',    desc:'Short long short' },
+      { key:'morse3',       icon:'📡', label:'Morse −·−',    desc:'Long short long' },
+      { key:'notification2',icon:'🔔', label:'Notif 2',      desc:'Three-note rising ping' },
+      { key:'vibe',         icon:'📳', label:'Vibe',         desc:'Low pulse burst' },
+    ]
+  },
+  {
+    cat: 'Confirmation & Success',
+    desc: 'Positive feedback — task done, saved, confirmed',
+    sounds: [
+      { key:'success',      icon:'✅', label:'Success',      desc:'Pentatonic rise' },
+      { key:'confirm',      icon:'☑️',  label:'Confirm',      desc:'Two-note clear affirm' },
+      { key:'fanfare',      icon:'🎺', label:'Fanfare',      desc:'Four-note ascent' },
+      { key:'flourish',     icon:'🎻', label:'Flourish',     desc:'Five-note ascending run' },
+      { key:'chime',        icon:'🔮', label:'Chime',        desc:'Harmonic overtone ring' },
+      { key:'clink',        icon:'🥂', label:'Clink',        desc:'High triangle chink' },
+      { key:'coin',         icon:'🪙', label:'Coin',         desc:'Retro two-tone blip' },
+      { key:'reveal',       icon:'✨', label:'Reveal',       desc:'Four-octave unfold' },
+      { key:'resolve',      icon:'😌', label:'Resolve',      desc:'Tension release chord' },
+      { key:'twinkle',      icon:'⭐', label:'Twinkle',      desc:'Four-note pentatonic' },
+    ]
+  },
+  {
+    cat: 'Errors & Warnings',
+    desc: 'Negative feedback — failures, locks, rejections',
+    sounds: [
+      { key:'error',        icon:'⚠️',  label:'Error',        desc:'Dissonant sawtooth thud' },
+      { key:'tension',      icon:'😬', label:'Tension',      desc:'Dissonant saw+square' },
+      { key:'glitch',       icon:'📡', label:'Glitch',       desc:'Sawtooth stutter' },
+      { key:'glitch2',      icon:'👾', label:'Glitch 2',     desc:'Random square stabs' },
+      { key:'stutter',      icon:'💬', label:'Stutter',      desc:'Rapid square stabs' },
+      { key:'rattle',       icon:'🪘', label:'Rattle',       desc:'Random sawtooth burst' },
+      { key:'crackle',      icon:'🔥', label:'Crackle',      desc:'Staggered saw bursts' },
+      { key:'womp',         icon:'📉', label:'Womp',         desc:'Descending sawtooth fall' },
+      { key:'undo',         icon:'↩️',  label:'Undo',         desc:'Descending two-step' },
+      { key:'disconnect',   icon:'🔌', label:'Disconnect',   desc:'Falling three-step' },
+    ]
+  },
+  {
+    cat: 'Navigation & Gestures',
+    desc: 'Directional feedback — swipes, selections, transitions',
+    sounds: [
+      { key:'select',       icon:'▶️',  label:'Select',       desc:'Two-note menu pick' },
+      { key:'deselect',     icon:'⏹️',  label:'Deselect',     desc:'Two-note menu cancel' },
+      { key:'swipeLeft',    icon:'👈', label:'Swipe Left',   desc:'Falling triangle sweep' },
+      { key:'swipeRight',   icon:'👉', label:'Swipe Right',  desc:'Rising triangle sweep' },
+      { key:'whoosh',       icon:'💨', label:'Whoosh',       desc:'Triangle sweep up' },
+      { key:'whorl',        icon:'🌪️',  label:'Whorl',        desc:'Dual triangle spiral' },
+      { key:'sweep',        icon:'🌈', label:'Sweep',        desc:'Full spectrum glide' },
+      { key:'glide',        icon:'🛷', label:'Glide',        desc:'Smooth triangle rise' },
+      { key:'bounce',       icon:'⬆️', label:'Bounce',       desc:'Double pitch hop' },
+      { key:'ricochet',     icon:'🎯', label:'Ricochet',     desc:'Double bounce pitch' },
+    ]
+  },
+  {
+    cat: 'System & Power',
+    desc: 'Device states — startup, lock, connect, shutdown',
+    sounds: [
+      { key:'powerUp',      icon:'🔋', label:'Power Up',     desc:'Ascending square steps' },
+      { key:'powerDown',    icon:'🪫', label:'Power Down',   desc:'Descending square steps' },
+      { key:'lock',         icon:'🔒', label:'Lock',         desc:'High-low close' },
+      { key:'unlock',       icon:'🔓', label:'Unlock',       desc:'Low-high confirm' },
+      { key:'connect2',     icon:'🔗', label:'Connect',      desc:'Rising three-step' },
+      { key:'doorbell',     icon:'🚪', label:'Doorbell',     desc:'Classic two-tone ding' },
+      { key:'doorOpen',     icon:'🏠', label:'Door Open',    desc:'Rising creak tone' },
+      { key:'doorClose',    icon:'🚪', label:'Door Close',   desc:'Low thud with noise' },
+      { key:'dial',         icon:'📞', label:'Dial',         desc:'Ascending square steps' },
+      { key:'knock',        icon:'✊', label:'Knock',        desc:'Two low knocks' },
+    ]
+  },
+  {
+    cat: 'Pitch Movements',
+    desc: 'Directional pitch sweeps — rises, falls, arcs',
+    sounds: [
+      { key:'ascend',       icon:'📈', label:'Ascend',       desc:'Five-step pitch climb' },
+      { key:'descend',      icon:'📊', label:'Descend',      desc:'Five-step pitch fall' },
+      { key:'riseBeep',     icon:'📶', label:'Rise Beep',    desc:'Ascending pitch beep' },
+      { key:'fallBeep',     icon:'📉', label:'Fall Beep',    desc:'Descending pitch beep' },
+      { key:'springUp',     icon:'🌱', label:'Spring Up',    desc:'Dual triangle bounce up' },
+      { key:'springDown',   icon:'🍂', label:'Spring Down',  desc:'Dual triangle bounce dn' },
+      { key:'laserUp',      icon:'🔫', label:'Laser Up',     desc:'Sawtooth pitch rise' },
+      { key:'laserDown',    icon:'🔻', label:'Laser Down',   desc:'Sawtooth pitch fall' },
+      { key:'warp',         icon:'🌀', label:'Warp',         desc:'Sawtooth freq warp' },
+      { key:'warpGate',     icon:'🌀', label:'Warp Gate',    desc:'Sawtooth up-then-down' },
+      { key:'whooshDeep',   icon:'🌊', label:'Whoosh Deep',  desc:'Sub sawtooth sweep' },
+      { key:'riser',        icon:'🚀', label:'Riser',        desc:'Saw + triangle build-up' },
+      { key:'dissolve',     icon:'🌫️',  label:'Dissolve',     desc:'Descending fade-out' },
+    ]
+  },
+  {
+    cat: 'Percussion & Hits',
+    desc: 'Rhythmic impacts — drums, strikes, physical blows',
+    sounds: [
+      { key:'kickDrum',     icon:'🥁', label:'Kick Drum',    desc:'Bass drum with noise' },
+      { key:'snare',        icon:'🪗', label:'Snare',        desc:'Snare hit with noise' },
+      { key:'rimshot',      icon:'🎵', label:'Rimshot',      desc:'Sharp rim + noise crack' },
+      { key:'hihat',        icon:'🎼', label:'Hi-Hat',       desc:'8kHz square click' },
+      { key:'woodblock',    icon:'🪵', label:'Woodblock',    desc:'Hollow triangle tap' },
+      { key:'cowbell',      icon:'🐄', label:'Cowbell',      desc:'Classic square-wave bell' },
+      { key:'thud',         icon:'🪨', label:'Thud',         desc:'Sub-bass impact' },
+      { key:'thump',        icon:'🥁', label:'Thump',        desc:'Bass + triangle punch' },
+      { key:'impact',       icon:'💥', label:'Impact',       desc:'Sub + saw punch' },
+      { key:'stab',         icon:'🗡️',  label:'Stab',         desc:'Sharp saw+square punch' },
+      { key:'subBump',      icon:'🔊', label:'Sub Bump',     desc:'Deep bass thud' },
+      { key:'gong',         icon:'🥢', label:'Gong',         desc:'Deep resonant strike' },
+    ]
+  },
+  {
+    cat: 'Melodic & Tonal',
+    desc: 'Pitched instruments — harps, chimes, bells, plucks',
+    sounds: [
+      { key:'harp',         icon:'🎼', label:'Harp',         desc:'Four-note arpeggio' },
+      { key:'marimba',      icon:'🎶', label:'Marimba',      desc:'Warm triangle pluck' },
+      { key:'xylophone',    icon:'🎹', label:'Xylophone',    desc:'Bright triangle tap' },
+      { key:'celesta',      icon:'🪄', label:'Celesta',      desc:'Bell-like triangle pair' },
+      { key:'plink',        icon:'🎐', label:'Plink',        desc:'Triangle tone ring' },
+      { key:'pluck',        icon:'🎸', label:'Pluck',        desc:'Descending string-like' },
+      { key:'crystal',      icon:'💎', label:'Crystal',      desc:'High sine shimmer' },
+      { key:'glimmer',      icon:'🌟', label:'Glimmer',      desc:'Sparkling high tones' },
+      { key:'sparkle',      icon:'🎇', label:'Sparkle',      desc:'Rising high shimmer' },
+      { key:'shimmer',      icon:'🪩', label:'Shimmer',      desc:'High stacked sines' },
+      { key:'shimmer2',     icon:'🌌', label:'Shimmer 2',    desc:'Ultra-high stacked sines' },
+      { key:'flutter',      icon:'🦋', label:'Flutter',      desc:'Rising tone flutter' },
+      { key:'chime',        icon:'🔮', label:'Chime',        desc:'Harmonic overtone ring' },
+      { key:'doorbell',     icon:'🔔', label:'Bell',         desc:'Classic two-tone ding' },
+    ]
+  },
+  {
+    cat: 'Chords & Harmony',
+    desc: 'Multi-note stacks — warm pads, tension, resolution',
+    sounds: [
+      { key:'warmth',       icon:'☀️',  label:'Warmth',       desc:'Soft major triad swell' },
+      { key:'minor',        icon:'🎶', label:'Minor',        desc:'Minor triad warmth' },
+      { key:'jazzChord',    icon:'🎷', label:'Jazz Chord',   desc:'Minor 7th stagger' },
+      { key:'dimChord',     icon:'🎭', label:'Dim Chord',    desc:'Diminished tense stack' },
+      { key:'augChord',     icon:'🎪', label:'Aug Chord',    desc:'Augmented dreamy stack' },
+      { key:'fifths',       icon:'🎻', label:'Fifths',       desc:'Open power fifth swell' },
+      { key:'octaves',      icon:'🔊', label:'Octaves',      desc:'Three-octave stack' },
+      { key:'organ',        icon:'🎹', label:'Organ',        desc:'Square-wave triad swell' },
+      { key:'hollow',       icon:'🫙', label:'Hollow',       desc:'Empty triangle ring' },
+      { key:'metallic',     icon:'🔩', label:'Metallic',     desc:'Square tone dissonance' },
+      { key:'tension',      icon:'😬', label:'Tension',      desc:'Dissonant saw+square' },
+      { key:'resolve',      icon:'😌', label:'Resolve',      desc:'Tension → release' },
+    ]
+  },
+  {
+    cat: 'Game & Retro',
+    desc: 'Video-game feedback — square-wave classics',
+    sounds: [
+      { key:'levelUp',      icon:'🆙', label:'Level Up',     desc:'Game square ascent' },
+      { key:'gameOver',     icon:'💀', label:'Game Over',    desc:'Descending square elegy' },
+      { key:'extraLife',    icon:'❤️',  label:'Extra Life',   desc:'Four-note victory blip' },
+      { key:'itemGet',      icon:'🎁', label:'Item Get',     desc:'Five-note collect chime' },
+      { key:'select',       icon:'▶️',  label:'Select',       desc:'Two-note menu pick' },
+      { key:'coin',         icon:'🪙', label:'Coin',         desc:'Retro two-tone blip' },
+      { key:'powerUp',      icon:'🔋', label:'Power Up',     desc:'Ascending square steps' },
+      { key:'powerDown',    icon:'🪫', label:'Power Down',   desc:'Descending square steps' },
+    ]
+  },
+  {
+    cat: 'Sci-Fi & Electronic',
+    desc: 'Futuristic, synthetic, and glitchy textures',
+    sounds: [
+      { key:'scifi',        icon:'🛸', label:'Sci-Fi',       desc:'Saw rise + triangle fall' },
+      { key:'zap',          icon:'⚡', label:'Zap',          desc:'Sawtooth discharge' },
+      { key:'zap2',         icon:'🌩️',  label:'Zap 2',        desc:'Sawtooth discharge fall' },
+      { key:'laserUp',      icon:'🔫', label:'Laser Up',     desc:'Sawtooth pitch rise' },
+      { key:'laserDown',    icon:'🔻', label:'Laser Down',   desc:'Sawtooth pitch fall' },
+      { key:'teleport',     icon:'🌀', label:'Teleport',     desc:'Saw rise-fall + noise' },
+      { key:'magnet',       icon:'🧲', label:'Magnet',       desc:'Dual rising triangle pull' },
+      { key:'sonar',        icon:'🐬', label:'Sonar',        desc:'Three-ping echo decay' },
+      { key:'hover',        icon:'🚁', label:'Hover',        desc:'Beating-tone drone' },
+      { key:'deepSpace',    icon:'🌌', label:'Deep Space',   desc:'Slow sine drift pair' },
+      { key:'warp',         icon:'🌀', label:'Warp',         desc:'Sawtooth freq warp' },
+      { key:'static_',      icon:'📺', label:'Static',       desc:'Short noise burst' },
+      { key:'glitch',       icon:'📡', label:'Glitch',       desc:'Sawtooth stutter' },
+    ]
+  },
+  {
+    cat: 'Ambient & Texture',
+    desc: 'Background tones — drones, pads, environmental sounds',
+    sounds: [
+      { key:'drift',        icon:'🍃', label:'Drift',        desc:'Slow triangle wander' },
+      { key:'breath',       icon:'💨', label:'Breath',       desc:'Slow inhale-exhale' },
+      { key:'inhale',       icon:'🫁', label:'Inhale',       desc:'Rising breath tone' },
+      { key:'exhale',       icon:'😮‍💨', label:'Exhale',       desc:'Falling breath tone' },
+      { key:'warmth',       icon:'☀️',  label:'Warmth',       desc:'Soft major triad swell' },
+      { key:'vinyl',        icon:'💿', label:'Vinyl',        desc:'Warm crackling noise' },
+      { key:'heartbeat',    icon:'🫀', label:'Heartbeat',    desc:'Two low thumps' },
+      { key:'growl',        icon:'🐺', label:'Growl',        desc:'Low sawtooth rumble' },
+      { key:'bassNote',     icon:'🎸', label:'Bass Note',    desc:'Deep guitar-like note' },
+    ]
+  },
+  {
+    cat: 'Nature & Environment',
+    desc: 'Organic sounds — water, weather, creatures',
+    sounds: [
+      { key:'crickets',     icon:'🦗', label:'Crickets',     desc:'High-freq chirp burst' },
+      { key:'frog',         icon:'🐸', label:'Frog',         desc:'Triangle croak pair' },
+      { key:'chirp',        icon:'🐦', label:'Chirp',        desc:'Rising bird-like blip' },
+      { key:'waterDrop',    icon:'💦', label:'Water Drop',   desc:'Dual falling sine drop' },
+      { key:'drip',         icon:'💧', label:'Drip',         desc:'Falling water drop' },
+      { key:'droplet',      icon:'🫗', label:'Droplet',      desc:'Falling sine drop' },
+      { key:'dewdrop',      icon:'🌿', label:'Dewdrop',      desc:'Delicate high sine drop' },
+      { key:'stream',       icon:'🏞️',  label:'Stream',       desc:'Noise + gentle tone' },
+      { key:'windGust',     icon:'🌬️',  label:'Wind Gust',    desc:'Noise + low triangle' },
+      { key:'thunder',      icon:'⛈️',  label:'Thunder',      desc:'Noise burst + sub bass' },
+      { key:'thunder2',     icon:'⚡', label:'Thunder 2',    desc:'Heavy noise + sub' },
+    ]
+  },
+  {
+    cat: 'Cinematic & Drama',
+    desc: 'High-impact moments — hits, risers, tension builders',
+    sounds: [
+      { key:'braaam',       icon:'🎬', label:'Braaam',       desc:'Cinematic low blast' },
+      { key:'riser',        icon:'🚀', label:'Riser',        desc:'Saw + triangle build-up' },
+      { key:'stab',         icon:'🗡️',  label:'Stab',         desc:'Sharp saw+square punch' },
+      { key:'impact',       icon:'💥', label:'Impact',       desc:'Sub + saw punch' },
+      { key:'glassBreak',   icon:'🔪', label:'Glass Break',  desc:'High sawtooth shard' },
+      { key:'heartStop',    icon:'💔', label:'Heart Stop',   desc:'Slowing low thumps' },
+      { key:'sparks',       icon:'🌠', label:'Sparks',       desc:'High sawtooth burst' },
+      { key:'sweep',        icon:'🌈', label:'Sweep',        desc:'Full spectrum glide' },
+      { key:'tickTock',     icon:'🕰️',  label:'Tick Tock',    desc:'Clock dual tick' },
+      { key:'whistle',      icon:'🫦', label:'Whistle',      desc:'Breathy rising sine' },
+    ]
+  },
+];
+
+// Flat list used for search + favorites lookup
+const extras = extraCategories.flatMap(c => c.sounds);
+
+// ═══════════════════════════════════════════════
+// STATE
+// ═══════════════════════════════════════════════
+const engine = new UISoundEngine();
+
+// ── Persist favorites in localStorage ──
+const LS_FAV = 'soundengine_favorites';
+const LS_OVERRIDES = 'soundengine_overrides';
+const LS_SLOTS = 'soundengine_slots';
+
+function loadFavorites() {
+  try { return new Set(JSON.parse(localStorage.getItem(LS_FAV) || '[]')); }
+  catch { return new Set(); }
+}
+function saveFavorites() {
+  localStorage.setItem(LS_FAV, JSON.stringify([...favorites]));
+}
+
+// ── Persist custom sound overrides ──
+// overrides[key] = { freq, slide, dur, gain, type }
+function loadOverrides() {
+  try { return JSON.parse(localStorage.getItem(LS_OVERRIDES) || '{}'); }
+  catch { return {}; }
+}
+function saveOverrides() {
+  localStorage.setItem(LS_OVERRIDES, JSON.stringify(soundOverrides));
+}
+
+// ── Persist slot assignments ──
+function loadSlotAssignments() {
+  try { return JSON.parse(localStorage.getItem(LS_SLOTS) || 'null'); }
+  catch { return null; }
+}
+function saveSlotAssignments() {
+  localStorage.setItem(LS_SLOTS, JSON.stringify(slots));
+}
+
+const favorites = loadFavorites();
+const soundOverrides = loadOverrides();
+let pendingAssignKey = null;
+let searchQuery = '';
+let audioReady = false;
+let editorTargetKey = null;
+
+async function ensureAudio() {
+  if (!audioReady) {
+    await engine.init();
+    audioReady = true;
+  }
+}
+
+// ═══════════════════════════════════════════════
+// THEME
+// ═══════════════════════════════════════════════
+const themeToggle = document.getElementById('theme-toggle');
+let isDark = true;
+themeToggle.addEventListener('click', () => {
+  isDark = !isDark;
+  document.body.classList.toggle('light', !isDark);
+  themeToggle.querySelector('.toggle-icon').textContent = isDark ? '☀️' : '🌙';
+  themeToggle.querySelector('.toggle-label').textContent = isDark ? 'Light' : 'Dark';
+});
+
+// Set sticky-panel top to match top-bar height
+function setStickyTop() {
+  const tb = document.querySelector('.top-bar');
+  const sp = document.querySelector('.sticky-panel');
+  if (tb && sp) sp.style.top = tb.offsetHeight + 'px';
+}
+setStickyTop();
+window.addEventListener('resize', setStickyTop);
+
+// ═══════════════════════════════════════════════
+// HELPERS
+// ═══════════════════════════════════════════════
+function ripple(btn, e) {
+  const r = document.createElement('div'); r.className = 'ring';
+  r.style.left = (e.offsetX - 10) + 'px'; r.style.top = (e.offsetY - 10) + 'px';
+  btn.appendChild(r); r.addEventListener('animationend', () => r.remove());
+}
+function flash(btn) { btn.classList.remove('playing'); void btn.offsetWidth; btn.classList.add('playing'); }
+
+// Play a sound, applying any stored override for its first tone
+function playWithOverride(key) {
+  const ov = soundOverrides[key];
+  if (ov) {
+    const origTone = engine.tone.bind(engine);
+    const origNoise = engine.noise.bind(engine);
+    let firstCall = true;
+    const defaultParams = getDefaultParams(key);
+    const scale = ov.dur ? ov.dur / defaultParams.dur : 1;
+    engine.tone = function(params) {
+      const scaledParams = { ...params, t: (params.t || 0) * scale, dur: params.dur * scale };
+      if (firstCall) {
+        firstCall = false;
+        origTone({
+          ...scaledParams,
+          freq: ov.freq !== undefined ? ov.freq : scaledParams.freq,
+          gain: ov.gain !== undefined ? ov.gain : scaledParams.gain,
+          type: ov.type || scaledParams.type,
+          slide: ov.slide !== undefined ? ov.slide : scaledParams.slide,
+        });
+      } else {
+        origTone(scaledParams);
+      }
+    };
+    engine.noise = function(params) {
+      origNoise({ ...params, t: (params.t || 0) * scale, dur: params.dur * scale });
+    };
+    engine[key]();
+    engine.tone = origTone;
+    engine.noise = origNoise;
+  } else {
+    engine[key]();
+  }
+}
+
+async function play(key, btn, e) {
+  await ensureAudio();
+  playWithOverride(key);
+  flash(btn);
+  if (e) ripple(btn, e);
+}
+
+// ═══════════════════════════════════════════════
+// MAIN SUITE
+// ═══════════════════════════════════════════════
+const gridMain = document.getElementById('grid-main');
+
+function renderMain() {
+  gridMain.innerHTML = '';
+  slots.forEach((slot, idx) => {
+    const btn = document.createElement('button');
+    btn.className = 'sound-btn';
+    btn.dataset.slot = idx;
+    btn.innerHTML = `
+      <div class="glow-layer"></div>
+      <span class="kbd-badge">${slot.slotLabel}</span>
+      <span class="icon">${slot.icon}</span>
+      <span class="label">${slot.label}</span>
+      <span class="desc">${slot.desc}</span>
+    `;
+    btn.addEventListener('click', e => play(slot.key, btn, e));
+    gridMain.appendChild(btn);
+  });
+}
+renderMain();
+
+// ═══════════════════════════════════════════════
+// ASSIGN MODAL
+// ═══════════════════════════════════════════════
+const modal = document.getElementById('modal');
+const slotGrid = document.getElementById('slot-grid');
+const modalTitle = document.getElementById('modal-title');
+
+function openAssignModal(soundDef) {
+  pendingAssignKey = soundDef.key;
+  modalTitle.textContent = `Assign "${soundDef.label}" to main slot`;
+  slotGrid.innerHTML = '';
+  slots.forEach((slot, idx) => {
+    const btn = document.createElement('button');
+    btn.className = 'slot-pick';
+    // Show slot role label, not current sound key
+    btn.innerHTML = `${slot.icon} ${slot.label}<span>${slot.slotLabel}</span>`;
+    btn.addEventListener('click', () => {
+      // Preserve the slot's role label and keyboard shortcut
+      slots[idx] = {
+        ...soundDef,
+        kbd: slot.kbd,
+        slotLabel: slot.slotLabel,
+      };
+      saveSlotAssignments();
+      // Update timeline to reflect new slot key/icon
+      const oldKey = slot.key;
+      tlEnabled.delete(oldKey);
+      tlEnabled.add(soundDef.key);
+      saveTlEnabled();
+      renderMain();
+      renderTimeline();
+      closeModal();
+    });
+    slotGrid.appendChild(btn);
+  });
+  modal.classList.add('open');
+}
+
+function closeModal() { modal.classList.remove('open'); pendingAssignKey = null; }
+document.getElementById('modal-cancel').addEventListener('click', closeModal);
+modal.addEventListener('click', e => { if (e.target === modal) closeModal(); });
+
+// ═══════════════════════════════════════════════
+// FAVORITES
+// ═══════════════════════════════════════════════
+const gridFav = document.getElementById('grid-fav');
+
+// All sounds that can be favorited (extras + curated alts)
+function allFavSounds() {
+  const allAlts = curatedAlts.flatMap(g => g.alts);
+  return [...extras, ...allAlts];
+}
+
+function renderFavorites() {
+  const favSection = document.getElementById('fav-section');
+  gridFav.innerHTML = '';
+  if (favorites.size === 0) {
+    favSection.style.display = 'none';
+    return;
+  }
+  favSection.style.display = '';
+  [...favorites].forEach(key => {
+    const def = allFavSounds().find(x => x.key === key);
+    if (!def) return;
+    const btn = document.createElement('button');
+    btn.className = 'compact-btn';
+    btn.dataset.fn = def.key;
+    const hasOv = !!soundOverrides[def.key];
+    btn.innerHTML = `
+      <div class="glow-layer"></div>
+      <span class="icon">${def.icon}</span>
+      <span class="label">${def.label}${hasOv ? '<span class="customized-badge">custom</span>' : ''}</span>
+      <span class="desc">${def.desc}</span>
+      <div class="actions">
+        <button class="act-btn assign-btn">Assign</button>
+        <button class="act-btn edit-btn">Edit</button>
+        <button class="act-btn fav-active unfav-btn">♥ Unfav</button>
+      </div>
+    `;
+    btn.addEventListener('click', e => {
+      if (e.target.classList.contains('assign-btn')) { openAssignModal(def); return; }
+      if (e.target.classList.contains('edit-btn')) { openEditorModal(def); return; }
+      if (e.target.classList.contains('unfav-btn')) { favorites.delete(def.key); saveFavorites(); renderFavorites(); updateFavBtn(def.key); return; }
+      play(def.key, btn, e);
+    });
+    gridFav.appendChild(btn);
+  });
+}
+
+// ═══════════════════════════════════════════════
+// CURATED SECTION
+// ═══════════════════════════════════════════════
+// EXTRAS GRID
+// ═══════════════════════════════════════════════
+const gridExtras = document.getElementById('grid-extras');
+
+function updateFavBtn(key) {
+  [gridExtras].forEach(container => {
+    const btn = container.querySelector(`[data-fn="${key}"] .fav-btn`);
+    if (!btn) return;
+    const isFav = favorites.has(key);
+    btn.textContent = isFav ? '♥' : '♡';
+    btn.classList.toggle('fav-active', isFav);
+  });
+}
+
+function makeCompactBtn(def) {
+  const btn = document.createElement('button');
+  btn.className = 'compact-btn';
+  btn.dataset.fn = def.key;
+  const isFav = favorites.has(def.key);
+  const hasOv = !!soundOverrides[def.key];
+  btn.innerHTML = `
+    <div class="glow-layer"></div>
+    <span class="icon">${def.icon}</span>
+    <span class="label">${def.label}${hasOv ? '<span class="customized-badge">custom</span>' : ''}</span>
+    <span class="desc">${def.desc}</span>
+    <div class="actions">
+      <button class="act-btn fav-btn${isFav ? ' fav-active' : ''}">${isFav ? '♥' : '♡'}</button>
+      <button class="act-btn assign-btn">Assign</button>
+      <button class="act-btn edit-btn">Edit</button>
+    </div>
+  `;
+  btn.addEventListener('click', e => {
+    if (e.target.classList.contains('fav-btn')) {
+      if (favorites.has(def.key)) { favorites.delete(def.key); } else { favorites.add(def.key); }
+      saveFavorites();
+      e.target.textContent = favorites.has(def.key) ? '♥' : '♡';
+      e.target.classList.toggle('fav-active', favorites.has(def.key));
+      renderFavorites();
+      return;
+    }
+    if (e.target.classList.contains('assign-btn')) { openAssignModal(def); return; }
+    if (e.target.classList.contains('edit-btn')) { openEditorModal(def); return; }
+    play(def.key, btn, e);
+  });
+  return btn;
+}
+
+function renderExtras() {
+  gridExtras.innerHTML = '';
+  const q = searchQuery.toLowerCase();
+
+  if (q) {
+    // Search mode: flat filtered grid
+    const filtered = extras.filter(d =>
+      d.label.toLowerCase().includes(q) ||
+      d.desc.toLowerCase().includes(q) ||
+      d.key.toLowerCase().includes(q)
+    );
+    if (filtered.length === 0) {
+      gridExtras.innerHTML = '<div class="no-results" style="padding:1.2rem;color:var(--muted);font-size:.68rem;text-align:center;">No sounds match your search</div>';
+      return;
+    }
+    const grid = document.createElement('div');
+    grid.className = 'grid-compact';
+    filtered.forEach(def => grid.appendChild(makeCompactBtn(def)));
+    gridExtras.appendChild(grid);
+  } else {
+    // Category mode
+    extraCategories.forEach(cat => {
+      const label = document.createElement('div');
+      label.className = 'cat-label';
+      label.innerHTML = `<strong>${cat.cat}</strong><span>${cat.desc}</span>`;
+      gridExtras.appendChild(label);
+
+      const grid = document.createElement('div');
+      grid.className = 'grid-compact';
+      cat.sounds.forEach(def => grid.appendChild(makeCompactBtn(def)));
+      gridExtras.appendChild(grid);
+    });
+  }
+}
+
+renderExtras();
+renderFavorites();
+
+// ═══════════════════════════════════════════════
+// SOUND EDITOR MODAL
+// ═══════════════════════════════════════════════
+const editorModal = document.getElementById('editor-modal');
+
+// Extract first-tone params from a sound's engine method source
+function getDefaultParams(key) {
+  // Check if there's a stored override; return it if so
+  if (soundOverrides[key]) return { ...soundOverrides[key] };
+  // Otherwise introspect from engine by capturing tone() call
+  let captured = null;
+  const origTone = engine.tone.bind(engine);
+  engine.tone = function(params) {
+    if (!captured) captured = { ...params };
+    // don't actually play during introspection
+  };
+  try { engine[key](); } catch(e) {}
+  engine.tone = origTone;
+  return captured || { freq: 440, dur: 0.3, gain: 0.15, type: 'sine', slide: null };
+}
+
+function openEditorModal(def) {
+  editorTargetKey = def.key;
+  document.getElementById('editor-title').textContent = `Edit: ${def.label}`;
+  document.getElementById('editor-key-label').textContent = def.key;
+
+  const p = getDefaultParams(def.key);
+
+  const epFreq = document.getElementById('ep-freq');
+  const epSlide = document.getElementById('ep-slide');
+  const epDur = document.getElementById('ep-dur');
+  const epGain = document.getElementById('ep-gain');
+  const epType = document.getElementById('ep-type');
+
+  epFreq.value = p.freq || 440;
+  epSlide.value = p.slide || 0;
+  epDur.value = p.dur || 0.3;
+  epGain.value = p.gain || 0.15;
+  epType.value = p.type || 'sine';
+
+  updateEditorVals();
+  editorModal.classList.add('open');
+}
+
+function updateEditorVals() {
+  const slideVal = parseFloat(document.getElementById('ep-slide').value);
+  document.getElementById('ev-freq').textContent = Math.round(document.getElementById('ep-freq').value) + ' Hz';
+  document.getElementById('ev-slide').textContent = slideVal === 0 ? '—' : Math.round(slideVal) + ' Hz';
+  document.getElementById('ev-dur').textContent = parseFloat(document.getElementById('ep-dur').value).toFixed(2) + ' s';
+  document.getElementById('ev-gain').textContent = parseFloat(document.getElementById('ep-gain').value).toFixed(3);
+}
+
+['ep-freq','ep-slide','ep-dur','ep-gain'].forEach(id => {
+  document.getElementById(id).addEventListener('input', updateEditorVals);
+});
+
+document.getElementById('btn-preview').addEventListener('click', async () => {
+  await ensureAudio();
+  const ov = currentEditorOverride();
+  const origTone = engine.tone.bind(engine);
+  let first = true;
+  engine.tone = function(params) {
+    engine.tone = origTone;
+    if (first) {
+      first = false;
+      origTone({ ...params, freq: ov.freq, dur: ov.dur, gain: ov.gain, type: ov.type, slide: ov.slide || null });
+    } else { origTone(params); }
+  };
+  engine[editorTargetKey]();
+  engine.tone = origTone; // always restore
+});
+
+function currentEditorOverride() {
+  return {
+    freq: parseFloat(document.getElementById('ep-freq').value),
+    slide: parseFloat(document.getElementById('ep-slide').value) || null,
+    dur: parseFloat(document.getElementById('ep-dur').value),
+    gain: parseFloat(document.getElementById('ep-gain').value),
+    type: document.getElementById('ep-type').value,
+  };
+}
+
+document.getElementById('btn-save').addEventListener('click', () => {
+  soundOverrides[editorTargetKey] = currentEditorOverride();
+  saveOverrides();
+  closeEditorModal();
+  // Re-render grids to show "custom" badge
+  renderExtras();
+  renderFavorites();
+});
+
+document.getElementById('btn-reset').addEventListener('click', () => {
+  delete soundOverrides[editorTargetKey];
+  saveOverrides();
+  // Reload defaults into form
+  const p = getDefaultParams(editorTargetKey);
+  document.getElementById('ep-freq').value = p.freq || 440;
+  document.getElementById('ep-slide').value = p.slide || 0;
+  document.getElementById('ep-dur').value = p.dur || 0.3;
+  document.getElementById('ep-gain').value = p.gain || 0.15;
+  document.getElementById('ep-type').value = p.type || 'sine';
+  updateEditorVals();
+  renderExtras(); renderFavorites();
+});
+
+function closeEditorModal() { editorModal.classList.remove('open'); editorTargetKey = null; }
+document.getElementById('editor-cancel').addEventListener('click', closeEditorModal);
+editorModal.addEventListener('click', e => { if (e.target === editorModal) closeEditorModal(); });
+
+// ── Search ──
+document.getElementById('search').addEventListener('input', e => {
+  searchQuery = e.target.value;
+  renderExtras();
+});
+
+// ═══════════════════════════════════════════════
+// KEYBOARD 1–8
+// ═══════════════════════════════════════════════
+document.addEventListener('keydown', e => {
+  if (e.target.tagName === 'INPUT' || e.target.tagName === 'BUTTON') return;
+  const slot = slots.find(s => s.kbd === e.key);
+  if (slot) {
+    ensureAudio().then(() => playWithOverride(slot.key));
+    const btns = [...gridMain.querySelectorAll('.sound-btn')];
+    const idx = slots.indexOf(slot);
+    if (btns[idx]) flash(btns[idx]);
+  }
+});
+
+// ═══════════════════════════════════════════════
+// TIMELINE PREVIEW
+// ═══════════════════════════════════════════════
+
+// Measure actual duration of a sound by capturing all tone() calls
+function getSoundDuration(key) {
+  const ov = soundOverrides[key];
+  let maxEnd = 0;
+  const origTone = engine.tone.bind(engine);
+  const origNoise = engine.noise.bind(engine);
+  const defaultParams = getDefaultParams(key);
+  const scale = ov && ov.dur ? ov.dur / defaultParams.dur : 1;
+  engine.tone = function(p) {
+    let dur = p.dur || 0.3;
+    let t = p.t || 0;
+    dur *= scale;
+    t *= scale;
+    maxEnd = Math.max(maxEnd, t + dur);
+  };
+  engine.noise = function(p) {
+    let dur = p.dur || 0.1;
+    let t = p.t || 0;
+    dur *= scale;
+    t *= scale;
+    maxEnd = Math.max(maxEnd, t + dur);
+  };
+  try { engine[key](); } catch(e) {}
+  engine.tone = origTone;
+  engine.noise = origNoise;
+  return Math.max(maxEnd, 0.05);
+}
+
+// Timeline state
+const LS_TL_ENABLED = 'soundengine_tl_enabled';
+function loadTlEnabled() {
+  try { return new Set(JSON.parse(localStorage.getItem(LS_TL_ENABLED) || 'null') || slots.map(s => s.key)); }
+  catch { return new Set(slots.map(s => s.key)); }
+}
+function saveTlEnabled() { localStorage.setItem(LS_TL_ENABLED, JSON.stringify([...tlEnabled])); }
+
+let tlEnabled = loadTlEnabled();
+let tlPlaying = false;
+let tlStopRequested = false;
+let tlCurrentIdx = -1;
+
+const tlTrack = document.getElementById('timeline-track');
+const tlPlayBtn = document.getElementById('tl-play-btn');
+const tlGapSlider = document.getElementById('tl-gap');
+const tlGapVal = document.getElementById('tl-gap-val');
+
+tlGapSlider.addEventListener('input', () => {
+  tlGapVal.textContent = parseFloat(tlGapSlider.value).toFixed(1) + 's';
+});
+
+function renderTimeline() {
+  tlTrack.innerHTML = '';
+  slots.forEach((slot, idx) => {
+    const cell = document.createElement('div');
+    cell.className = 'tl-cell' + (tlEnabled.has(slot.key) ? ' tl-enabled' : '');
+    cell.dataset.idx = idx;
+    cell.innerHTML = `
+      <span class="tl-cell-icon">${slot.icon}</span>
+      <span class="tl-cell-label">${slot.label}</span>
+      <span class="tl-cell-check">✓</span>
+    `;
+    cell.addEventListener('click', () => {
+      if (tlPlaying) return;
+      if (tlEnabled.has(slot.key)) { tlEnabled.delete(slot.key); }
+      else { tlEnabled.add(slot.key); }
+      saveTlEnabled();
+      cell.classList.toggle('tl-enabled', tlEnabled.has(slot.key));
+    });
+    tlTrack.appendChild(cell);
+  });
+}
+
+function getTlCells() { return [...tlTrack.querySelectorAll('.tl-cell')]; }
+
+async function runTimeline() {
+  if (tlPlaying) { tlStopRequested = true; return; }
+  await ensureAudio();
+  tlPlaying = true;
+  tlStopRequested = false;
+  tlPlayBtn.textContent = '■';
+  tlPlayBtn.classList.add('playing');
+
+  const queue = slots.map((slot, idx) => ({ slot, idx })).filter(({ slot }) => tlEnabled.has(slot.key));
+  const gap = parseFloat(tlGapSlider.value) * 1000;
+  const cells = getTlCells();
+
+  for (let i = 0; i < queue.length; i++) {
+    if (tlStopRequested) break;
+    const { slot, idx } = queue[i];
+    const cell = cells[idx];
+
+    // Highlight active cell
+    cells.forEach(c => c.classList.remove('tl-active'));
+    cell.classList.add('tl-active');
+
+    // Measure duration for animation
+    const dur = getSoundDuration(slot.key);
+
+    // Set animation duration on ::after pseudo via CSS var
+    cell.style.setProperty('--tl-dur', dur + 's');
+    // Force reflow then set animation
+    const after = cell;
+    after.style.animation = 'none';
+    void after.offsetWidth;
+    // We animate via a real child div instead of ::after since JS can't set pseudo style duration dynamically
+    let bar = cell.querySelector('.tl-progress-bar');
+    if (!bar) {
+      bar = document.createElement('div');
+      bar.className = 'tl-progress-bar';
+      bar.style.cssText = 'position:absolute;bottom:0;left:0;height:2px;background:var(--accent);transform:scaleX(0);transform-origin:left;';
+      cell.appendChild(bar);
+    }
+    bar.style.transition = 'none';
+    bar.style.transform = 'scaleX(0)';
+    void bar.offsetWidth;
+    bar.style.transition = `transform ${dur}s linear`;
+    bar.style.transform = 'scaleX(1)';
+
+    // Also flash the main grid button
+    const mainBtns = [...gridMain.querySelectorAll('.sound-btn')];
+    if (mainBtns[idx]) flash(mainBtns[idx]);
+
+    playWithOverride(slot.key);
+
+    // Wait for sound to finish + gap
+    await new Promise(res => setTimeout(res, (dur * 1000) + gap));
+
+    // Reset bar
+    bar.style.transition = 'none';
+    bar.style.transform = 'scaleX(0)';
+    cell.classList.remove('tl-active');
+  }
+
+  cells.forEach(c => c.classList.remove('tl-active'));
+  tlPlaying = false;
+  tlStopRequested = false;
+  tlPlayBtn.textContent = '▶';
+  tlPlayBtn.classList.remove('playing');
+}
+
+tlPlayBtn.addEventListener('click', runTimeline);
+renderTimeline();
+// Recalculate sticky offsets after timeline is rendered (it has content now)
+setTimeout(setStickyTop, 0);
+
+// ═══════════════════════════════════════════════
+// INIT + VISUALIZER
+// ═══════════════════════════════════════════════
+// Init audio on first user interaction (not just page load)
+document.addEventListener('click', () => ensureAudio(), { once: true });
+
+const canvas = document.getElementById('canvas');
+const ctx2 = canvas.getContext('2d');
+function resize() { canvas.width = canvas.offsetWidth * devicePixelRatio; canvas.height = canvas.offsetHeight * devicePixelRatio; }
+resize(); window.addEventListener('resize', resize);
+
+function getVisRGB() {
+  const s = getComputedStyle(document.body);
+  const r = s.getPropertyValue('--vis-r').trim() || '200';
+  const g = s.getPropertyValue('--vis-g').trim() || '240';
+  const b = s.getPropertyValue('--vis-b').trim() || '160';
+  return { r, g, b };
+}
+
+const bufLen = engine.analyser.frequencyBinCount;
+const dataArr = new Uint8Array(bufLen);
+function draw() {
+  requestAnimationFrame(draw);
+  engine.analyser.getByteFrequencyData(dataArr);
+  const W = canvas.width, H = canvas.height;
+  ctx2.clearRect(0, 0, W, H);
+  const bw = W / bufLen * 1.8;
+  const { r, g, b } = getVisRGB();
+  for (let i = 0; i < bufLen; i++) {
+    const v = dataArr[i] / 255;
+    ctx2.fillStyle = `rgba(${r},${g},${b},${0.4 + v * 0.6})`;
+    ctx2.fillRect(i * bw, H - v * H, bw - 1, v * H);
+  }
+}
+draw();
+</script>
+
+</body>
+</html>
