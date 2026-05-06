@@ -3,283 +3,397 @@
 <html lang="en">
 <head>
 <meta charset="UTF-8">
-<meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>Sound Edit</title>
+<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0">
+<title>Sound Editor</title>
 <link href="https://fonts.googleapis.com/css2?family=DM+Mono:wght@300;400;500&family=Syne:wght@400;700;800&display=swap" rel="stylesheet">
 <style>
 *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+/* ── DARK THEME (default) ── */
 :root {
-  --bg: #0a0a0f; --surface: #12121a; --surface2: #0e0e16; --surface3: #16161f;
-  --border: #1e1e2e; --border2: #2a2a3e;
-  --text: #e8e8f0; --muted: #5a5a7a; --muted2: #3a3a5a;
-  --accent: #c8f0a0; --accent2: #f0c8a0; --accent3: #a0c8f0;
-  --danger: #f08080; --success: #a0f0c0;
-  --glow: rgba(200,240,160,0.12);
+–bg: #0a0a0f; –surface: #12121a; –surface2: #0e0e16; –surface3: #16161f;
+–border: #1e1e2e; –border2: #2a2a3e;
+–text: #e8e8f0; –muted: #5a5a7a; –muted2: #3a3a5a;
+–accent: #c8f0a0; –accent2: #f0c8a0; –accent3: #a0c8f0;
+–danger: #f08080; –success: #a0f0c0;
+–glow: rgba(200,240,160,0.12);
+–thumb-sz: 22px; –track-h: 5px;
 }
+
+/* ── LIGHT THEME ── */
+body.light {
+–bg: #f4f4ef; –surface: #ffffff; –surface2: #eeeee8; –surface3: #e4e4dc;
+–border: #d0d0c4; –border2: #bebeb0;
+–text: #1a1a12; –muted: #7a7a62; –muted2: #b0b099;
+–accent: #3a7a10; –accent2: #a05a10; –accent3: #1a5a8a;
+–danger: #c02020; –success: #1a7a3a;
+–glow: rgba(58,122,16,0.08);
+}
+
 html { scroll-behavior: smooth; }
 body {
-  background: var(--bg); color: var(--text);
-  font-family: 'DM Mono', monospace;
-  min-height: 100vh;
-  padding-bottom: 60px;
+background: var(–bg); color: var(–text);
+font-family: ‘DM Mono’, monospace;
+min-height: 100vh; padding-bottom: 60px;
+transition: background .2s, color .2s;
 }
 
 /* ── TOP BAR ── */
 .top-bar {
 position: sticky; top: 0; z-index: 50;
 display: flex; align-items: center; justify-content: space-between;
-padding: .6rem 1.4rem;
-background: var(–bg);
-border-bottom: 1px solid var(–border);
-gap: 1rem;
+padding: .55rem 1.1rem;
+background: var(–bg); border-bottom: 1px solid var(–border);
+gap: .65rem; transition: background .2s, border-color .2s;
 }
 .top-bar h1 {
-font-family: ‘Syne’, sans-serif; font-size: 1rem; font-weight: 800;
+font-family: ‘Syne’, sans-serif; font-size: .92rem; font-weight: 800;
 letter-spacing: -.02em;
 }
 .top-bar h1 span { color: var(–accent); }
-.top-bar-sub { font-size: .58rem; color: var(–muted); letter-spacing: .1em; text-transform: uppercase; }
-.top-actions { display: flex; gap: .5rem; align-items: center; }
+.top-actions { display: flex; gap: .4rem; align-items: center; flex-shrink: 0; }
+
+.theme-toggle {
+background: var(–surface); border: 1px solid var(–border);
+border-radius: 20px; padding: .26rem .7rem;
+cursor: pointer; font-family: ‘DM Mono’, monospace;
+font-size: .6rem; color: var(–muted); letter-spacing: .05em;
+transition: all .15s; white-space: nowrap;
+}
+.theme-toggle:hover { border-color: var(–accent); color: var(–accent); }
+
 .btn-export-all {
 background: var(–accent); color: var(–bg); border: none;
-border-radius: 3px; padding: .38rem .9rem;
-font-family: ‘DM Mono’, monospace; font-size: .68rem; font-weight: 500;
-cursor: pointer; letter-spacing: .04em; transition: opacity .15s;
-white-space: nowrap;
+border-radius: 3px; padding: .36rem .8rem;
+font-family: ‘DM Mono’, monospace; font-size: .64rem; font-weight: 500;
+cursor: pointer; letter-spacing: .04em; transition: opacity .15s; white-space: nowrap;
 }
 .btn-export-all:hover { opacity: .82; }
 .btn-export-all:disabled { opacity: .4; cursor: not-allowed; }
 
 /* ── MAIN LAYOUT ── */
-.page { padding: 1.2rem 1.4rem; display: flex; flex-direction: column; gap: .7rem; }
+.page { padding: .95rem 1.1rem; display: flex; flex-direction: column; gap: .6rem; }
 
 /* ── SOUND CARD ── */
 .sound-card {
-background: var(–surface);
-border: 1px solid var(–border);
-border-radius: 5px;
-overflow: hidden;
-transition: border-color .2s;
+background: var(–surface); border: 1px solid var(–border);
+border-radius: 5px; overflow: hidden; transition: border-color .2s, background .2s;
 }
 .sound-card.modified { border-color: var(–accent2); }
 .sound-card.saved { border-color: var(–accent); }
 
 .card-header {
-display: flex; align-items: center; gap: .8rem;
-padding: .65rem 1rem;
-cursor: pointer;
-user-select: none;
-background: var(–surface2);
-border-bottom: 1px solid transparent;
+display: flex; align-items: center; gap: .7rem;
+padding: .58rem .9rem; cursor: pointer; user-select: none;
+background: var(–surface2); border-bottom: 1px solid transparent;
 transition: background .15s, border-color .2s;
 }
 .card-header:hover { background: var(–surface3); }
 .card-header.open { border-bottom-color: var(–border); }
 
-.card-icon { font-size: 1.2rem; flex-shrink: 0; }
-.card-meta { flex: 1; }
+.card-icon { font-size: 1.1rem; flex-shrink: 0; }
+.card-meta { flex: 1; min-width: 0; }
 .card-label {
-font-family: ‘Syne’, sans-serif; font-weight: 700; font-size: .85rem;
-letter-spacing: -.01em; display: flex; align-items: center; gap: .5rem;
+font-family: ‘Syne’, sans-serif; font-weight: 700; font-size: .8rem;
+letter-spacing: -.01em; display: flex; align-items: center; gap: .4rem; flex-wrap: wrap;
 }
-.card-desc { font-size: .58rem; color: var(–muted); letter-spacing: .04em; margin-top: .1rem; }
+.card-desc { font-size: .55rem; color: var(–muted); letter-spacing: .04em; margin-top: .08rem; }
 .badge {
-font-size: .45rem; padding: .06rem .28rem; border-radius: 2px;
-letter-spacing: .06em; text-transform: uppercase; border: 1px solid;
-vertical-align: middle;
+font-size: .43rem; padding: .05rem .25rem; border-radius: 2px;
+letter-spacing: .06em; text-transform: uppercase; border: 1px solid; flex-shrink: 0;
 }
 .badge-modified { color: var(–accent2); border-color: var(–accent2); }
 .badge-saved { color: var(–accent); border-color: var(–accent); }
 .badge-custom { color: var(–accent3); border-color: var(–accent3); }
 
-.card-actions { display: flex; gap: .4rem; align-items: center; flex-shrink: 0; }
-.card-chevron {
-color: var(–muted); font-size: .7rem; transition: transform .2s;
-flex-shrink: 0; margin-left: .2rem;
-}
+.card-actions { display: flex; gap: .35rem; align-items: center; flex-shrink: 0; }
+.card-chevron { color: var(–muted); font-size: .65rem; transition: transform .2s; flex-shrink: 0; margin-left: .1rem; }
 .card-header.open .card-chevron { transform: rotate(180deg); }
 
-/* ── ACTION BUTTONS ── */
+/* ── BUTTONS ── */
 .btn {
 border: 1px solid var(–border); border-radius: 3px;
-font-family: ‘DM Mono’, monospace; font-size: .62rem;
-padding: .28rem .65rem; cursor: pointer; transition: all .15s;
-white-space: nowrap; letter-spacing: .03em;
+font-family: ‘DM Mono’, monospace; font-size: .61rem;
+padding: .32rem .65rem; cursor: pointer; transition: all .15s;
+white-space: nowrap; letter-spacing: .03em; background: var(–surface2); color: var(–text);
 }
-.btn-ghost { background: none; color: var(–muted); }
-.btn-ghost:hover { border-color: var(–muted); color: var(–text); }
-.btn-play { background: var(–surface2); color: var(–text); }
+.btn-play { }
 .btn-play:hover { border-color: var(–accent); color: var(–accent); }
-.btn-play.playing { border-color: var(–accent); color: var(–accent); animation: pulse-border .6s ease-in-out infinite alternate; }
+.btn-play.playing { border-color: var(–accent); color: var(–accent); animation: pulseBtn .6s ease-in-out infinite alternate; }
 .btn-save-card { background: var(–accent); color: var(–bg); border-color: var(–accent); font-weight: 700; }
 .btn-save-card:hover { opacity: .82; }
-.btn-export-card { background: var(–surface2); color: var(–accent3); border-color: var(–accent3); }
+.btn-export-card { color: var(–accent3); border-color: var(–accent3); }
 .btn-export-card:hover { background: var(–accent3); color: var(–bg); }
 .btn-reset { background: none; color: var(–muted); }
 .btn-reset:hover { border-color: var(–danger); color: var(–danger); }
-.btn-add-layer { background: none; color: var(–accent); border-color: var(–accent2); border-style: dashed; }
+.btn-add-layer { background: none; color: var(–accent); border-color: var(–accent2); border-style: dashed; flex: 1; }
 .btn-add-layer:hover { background: var(–glow); }
 
-@keyframes pulse-border { from { box-shadow: 0 0 0 0 rgba(200,240,160,0); } to { box-shadow: 0 0 0 3px rgba(200,240,160,0.2); } }
+.btn-layer-play {
+background: none; border: 1px solid var(–border); border-radius: 3px;
+color: var(–muted); font-size: .54rem; padding: .2rem .42rem;
+cursor: pointer; transition: all .15s; font-family: ‘DM Mono’, monospace; flex-shrink: 0;
+min-width: 28px; text-align: center;
+}
+.btn-layer-play:hover { border-color: var(–accent); color: var(–accent); }
+.btn-layer-play.playing { border-color: var(–accent); color: var(–accent); }
+
+@keyframes pulseBtn {
+from { box-shadow: 0 0 0 0 rgba(200,240,160,0); }
+to   { box-shadow: 0 0 0 3px rgba(200,240,160,0.18); }
+}
 
 /* ── EDITOR BODY ── */
-.card-body { display: none; padding: 1rem; flex-direction: column; gap: 1rem; }
+.card-body { display: none; padding: .85rem; flex-direction: column; gap: .8rem; }
 .card-body.open { display: flex; }
 
-/* ── REPEAT CONTROL ── */
-.repeat-row {
-display: flex; align-items: center; gap: .8rem;
-padding: .55rem .8rem; background: var(–surface2);
-border: 1px solid var(–border); border-radius: 4px;
-}
-.repeat-label { font-size: .6rem; color: var(–muted); letter-spacing: .1em; text-transform: uppercase; flex-shrink: 0; }
-.repeat-counter { display: flex; align-items: center; gap: .5rem; }
-.rep-btn {
-width: 22px; height: 22px; border-radius: 50%;
-background: var(–surface); border: 1px solid var(–border);
-color: var(–text); font-size: .8rem; cursor: pointer;
-display: flex; align-items: center; justify-content: center;
-transition: all .15s; line-height: 1;
-}
-.rep-btn:hover { border-color: var(–accent); color: var(–accent); }
-.rep-count { font-size: .85rem; color: var(–accent); min-width: 1.5rem; text-align: center; font-weight: 500; }
-.repeat-note { font-size: .55rem; color: var(–muted); margin-left: auto; }
-
-/* ── GLOBAL CONTROLS ── */
-.global-section {
-background: var(–surface2); border: 1px solid var(–border2);
-border-radius: 4px; padding: .7rem .9rem;
-}
+/* ── SECTION TITLE ── */
 .section-title {
-font-size: .58rem; color: var(–muted); letter-spacing: .12em;
-text-transform: uppercase; margin-bottom: .65rem;
-display: flex; align-items: center; gap: .6rem;
+font-size: .54rem; color: var(–muted); letter-spacing: .12em; text-transform: uppercase;
+margin-bottom: .55rem; display: flex; align-items: center; gap: .55rem;
 }
 .section-title::after { content: ‘’; flex: 1; height: 1px; background: var(–border); }
 
-.global-grid { display: grid; grid-template-columns: repeat(3, 1fr); gap: .6rem; }
-.global-ctrl { display: flex; flex-direction: column; gap: .3rem; }
-.global-ctrl label { font-size: .55rem; color: var(–muted); letter-spacing: .08em; text-transform: uppercase; }
-.global-ctrl .ctrl-row { display: flex; align-items: center; gap: .5rem; }
-.ctrl-val { font-size: .65rem; color: var(–accent); min-width: 2.5rem; text-align: right; font-family: ‘DM Mono’, monospace; }
+/* ── REPEAT + GAP ── */
+.repeat-section {
+background: var(–surface2); border: 1px solid var(–border);
+border-radius: 4px; padding: .6rem .8rem; display: flex; flex-direction: column; gap: .5rem;
+}
+.repeat-top { display: flex; align-items: center; gap: .7rem; flex-wrap: wrap; }
+.repeat-label { font-size: .56rem; color: var(–muted); letter-spacing: .1em; text-transform: uppercase; flex-shrink: 0; }
+.repeat-counter { display: flex; align-items: center; gap: .5rem; }
+.rep-btn {
+width: 30px; height: 30px; border-radius: 50%;
+background: var(–surface); border: 1px solid var(–border);
+color: var(–text); font-size: .95rem; cursor: pointer;
+display: flex; align-items: center; justify-content: center;
+transition: all .15s; flex-shrink: 0; user-select: none;
+}
+.rep-btn:hover { border-color: var(–accent); color: var(–accent); }
+.rep-btn:active { transform: scale(.92); }
+.rep-count { font-size: .95rem; color: var(–accent); min-width: 2rem; text-align: center; font-weight: 500; }
+.repeat-note { font-size: .5rem; color: var(–muted); margin-left: auto; }
 
-/* ── LAYER LIST ── */
-.layers-section { display: flex; flex-direction: column; gap: .5rem; }
+.gap-row { display: flex; align-items: center; gap: .6rem; }
+.gap-label { font-size: .54rem; color: var(–muted); letter-spacing: .07em; text-transform: uppercase; flex-shrink: 0; min-width: 60px; }
+
+/* ── GLOBAL SECTION ── */
+.global-section {
+background: var(–surface2); border: 1px solid var(–border);
+border-radius: 4px; padding: .65rem .8rem;
+}
+.global-grid { display: flex; flex-direction: column; gap: .58rem; }
+.global-ctrl { display: flex; flex-direction: column; gap: .26rem; }
+.global-ctrl > label { font-size: .52rem; color: var(–muted); letter-spacing: .07em; text-transform: uppercase; }
+
+/* ── SLIDER SYSTEM ── */
+.slider-wrap { display: flex; align-items: center; gap: .5rem; }
+.slider-wrap input[type=range] { flex: 1; min-width: 0; }
+
+/* The tappable value display */
+.val-tap {
+font-size: .64rem; color: var(–accent); font-family: ‘DM Mono’, monospace;
+min-width: 3.2rem; text-align: right; flex-shrink: 0;
+cursor: pointer; border-bottom: 1px dashed var(–muted2);
+padding-bottom: 1px; transition: color .15s, border-color .15s;
+user-select: none;
+}
+.val-tap:hover { color: var(–accent2); border-color: var(–accent); }
+.val-tap.is-global { color: var(–accent2); }
+body.light .val-tap.is-global { color: var(–accent2); }
+
+/* ── RANGE INPUTS — big for mobile ── */
+input[type=range] {
+-webkit-appearance: none; appearance: none;
+width: 100%; height: var(–track-h);
+background: var(–border); border-radius: 3px;
+outline: none; cursor: pointer;
+transition: background .15s;
+}
+input[type=range]::-webkit-slider-thumb {
+-webkit-appearance: none;
+width: var(–thumb-sz); height: var(–thumb-sz);
+border-radius: 50%; background: var(–accent);
+cursor: pointer; border: 2px solid var(–bg);
+box-shadow: 0 1px 5px rgba(0,0,0,.3);
+transition: transform .1s;
+}
+input[type=range]:active::-webkit-slider-thumb { transform: scale(1.22); }
+input[type=range].global-rng::-webkit-slider-thumb { background: var(–accent2); }
+input[type=range].global-rng { background: var(–border2); }
+
+/* ── LAYERS ── */
+.layers-section { display: flex; flex-direction: column; gap: .42rem; }
 .layer-card {
 background: var(–surface2); border: 1px solid var(–border);
 border-radius: 4px; overflow: hidden;
 }
 .layer-header {
-display: flex; align-items: center; gap: .6rem;
-padding: .45rem .7rem; cursor: pointer;
-user-select: none; transition: background .15s;
+display: flex; align-items: center; gap: .5rem;
+padding: .5rem .7rem; cursor: pointer; user-select: none; transition: background .15s;
 }
 .layer-header:hover { background: var(–surface3); }
 .layer-num {
-width: 18px; height: 18px; border-radius: 50%;
+width: 20px; height: 20px; border-radius: 50%;
 background: var(–border); color: var(–muted);
-font-size: .55rem; display: flex; align-items: center; justify-content: center;
-flex-shrink: 0;
+font-size: .52rem; display: flex; align-items: center; justify-content: center; flex-shrink: 0;
 }
 .layer-type-badge {
-font-size: .55rem; padding: .04rem .25rem; border-radius: 2px;
+font-size: .5rem; padding: .04rem .22rem; border-radius: 2px;
 background: var(–border); color: var(–muted2);
-letter-spacing: .04em; text-transform: uppercase;
+letter-spacing: .04em; text-transform: uppercase; flex-shrink: 0;
 }
-.layer-summary { font-size: .6rem; color: var(–muted); flex: 1; letter-spacing: .02em; }
+.layer-summary {
+font-size: .56rem; color: var(–muted); flex: 1;
+overflow: hidden; text-overflow: ellipsis; white-space: nowrap; min-width: 0;
+}
+.layer-actions { display: flex; align-items: center; gap: .28rem; flex-shrink: 0; }
 .layer-delete {
 background: none; border: none; color: var(–muted2); cursor: pointer;
-font-size: .75rem; padding: .1rem .3rem; border-radius: 2px;
-transition: all .15s; line-height: 1;
+font-size: .72rem; padding: .15rem .35rem; border-radius: 2px; transition: all .15s;
 }
 .layer-delete:hover { color: var(–danger); background: rgba(240,128,128,.1); }
-.layer-chevron { color: var(–muted2); font-size: .6rem; transition: transform .2s; flex-shrink: 0; }
+.layer-chevron { color: var(–muted2); font-size: .58rem; transition: transform .2s; flex-shrink: 0; }
 .layer-header.open .layer-chevron { transform: rotate(180deg); }
 
-.layer-params { display: none; padding: .6rem .8rem; border-top: 1px solid var(–border); }
+.layer-params { display: none; padding: .6rem .75rem; border-top: 1px solid var(–border); }
 .layer-params.open { display: block; }
 
-.param-grid { display: grid; grid-template-columns: repeat(2, 1fr); gap: .55rem 1rem; }
-.param-item { display: flex; flex-direction: column; gap: .25rem; }
-.param-item label { font-size: .55rem; color: var(–muted); letter-spacing: .07em; text-transform: uppercase; }
-.param-item .p-row { display: flex; align-items: center; gap: .5rem; }
-.param-item .p-val { font-size: .62rem; color: var(–accent); min-width: 2.8rem; text-align: right; }
+.param-grid { display: flex; flex-direction: column; gap: .55rem; }
+.param-item { display: flex; flex-direction: column; gap: .24rem; }
+.param-item > label { font-size: .52rem; color: var(–muted); letter-spacing: .07em; text-transform: uppercase; }
 .param-item select {
 width: 100%; background: var(–surface); border: 1px solid var(–border);
-border-radius: 3px; padding: .3rem .5rem; color: var(–text);
-font-family: ‘DM Mono’, monospace; font-size: .65rem; outline: none; cursor: pointer;
+border-radius: 3px; padding: .42rem .5rem; color: var(–text);
+font-family: ‘DM Mono’, monospace; font-size: .68rem; outline: none; cursor: pointer;
+-webkit-appearance: none; appearance: none;
 }
 .param-item select:focus { border-color: var(–accent); }
 
-/* ── RANGE SLIDERS ── */
-input[type=range] {
--webkit-appearance: none; appearance: none;
-width: 100%; height: 3px; background: var(–border); border-radius: 2px;
-outline: none; cursor: pointer;
-}
-input[type=range]::-webkit-slider-thumb {
--webkit-appearance: none; width: 12px; height: 12px;
-border-radius: 50%; background: var(–accent); cursor: pointer;
-}
-input[type=range].global-range::-webkit-slider-thumb { background: var(–accent2); }
-input[type=range].global-range { background: var(–border2); }
-
 /* ── CARD FOOTER ── */
 .card-footer {
-display: flex; gap: .5rem; padding: .7rem 1rem;
+display: flex; gap: .42rem; padding: .6rem .9rem;
 background: var(–surface2); border-top: 1px solid var(–border);
 flex-wrap: wrap; align-items: center;
 }
 .footer-spacer { flex: 1; }
 
-/* ── NOISE LAYER ── */
-.noise-grid { display: grid; grid-template-columns: repeat(3, 1fr); gap: .55rem 1rem; }
-
-/* ── PROGRESS / STATUS ── */
 .export-status {
-font-size: .6rem; color: var(–muted); letter-spacing: .04em;
-padding: .3rem .5rem; background: var(–surface2);
-border: 1px solid var(–border); border-radius: 3px;
-display: none;
+font-size: .56rem; color: var(–muted); letter-spacing: .04em;
+padding: .26rem .5rem; background: var(–surface2);
+border: 1px solid var(–border); border-radius: 3px; display: none;
 }
 .export-status.visible { display: block; }
 .export-status.ok { color: var(–success); border-color: var(–success); }
 .export-status.err { color: var(–danger); border-color: var(–danger); }
 
-/* ── SCROLLBAR ── */
-::-webkit-scrollbar { width: 5px; }
-::-webkit-scrollbar-track { background: var(–bg); }
-::-webkit-scrollbar-thumb { background: var(–border2); border-radius: 3px; }
+/* ── NUMBER INPUT MODAL ── */
+.num-overlay {
+position: fixed; inset: 0; background: rgba(0,0,0,.52);
+display: flex; align-items: flex-end; justify-content: center;
+z-index: 300; opacity: 0; pointer-events: none; transition: opacity .2s;
+}
+body.light .num-overlay { background: rgba(0,0,0,.28); }
+.num-overlay.open { opacity: 1; pointer-events: all; }
+.num-sheet {
+background: var(–surface); border: 1px solid var(–border);
+border-radius: 12px 12px 0 0; padding: 1.3rem 1.3rem 2rem;
+width: 100%; max-width: 440px;
+display: flex; flex-direction: column; gap: .8rem;
+transform: translateY(24px); transition: transform .22s;
+}
+.num-overlay.open .num-sheet { transform: translateY(0); }
+.num-sheet-title { font-family: ‘Syne’, sans-serif; font-size: .95rem; font-weight: 700; }
+.num-sheet-sub { font-size: .58rem; color: var(–muted); letter-spacing: .04em; }
+.num-sheet input[type=number] {
+width: 100%; background: var(–surface2); border: 1px solid var(–border);
+border-radius: 4px; padding: .8rem 1rem; color: var(–text);
+font-family: ‘DM Mono’, monospace; font-size: 1.5rem; font-weight: 500;
+outline: none; text-align: center;
+-moz-appearance: textfield;
+}
+.num-sheet input[type=number]::-webkit-inner-spin-button,
+.num-sheet input[type=number]::-webkit-outer-spin-button { -webkit-appearance: none; }
+.num-sheet input[type=number]:focus { border-color: var(–accent); }
+.num-range-hint { font-size: .56rem; color: var(–muted); text-align: center; }
+.num-actions { display: flex; gap: .5rem; }
+.num-actions button {
+flex: 1; padding: .68rem; border-radius: 4px;
+font-family: ‘DM Mono’, monospace; font-size: .75rem;
+cursor: pointer; border: 1px solid var(–border); transition: all .15s;
+}
+.num-ok { background: var(–accent); color: var(–bg); border-color: var(–accent); font-weight: 700; }
+.num-ok:hover { opacity: .85; }
+.num-cancel { background: none; color: var(–muted); }
+.num-cancel:hover { border-color: var(–muted); color: var(–text); }
 
 /* ── TOAST ── */
 .toast {
-position: fixed; bottom: 1.5rem; left: 50%; transform: translateX(-50%) translateY(20px);
+position: fixed; bottom: 1.4rem; left: 50%;
+transform: translateX(-50%) translateY(18px);
 background: var(–surface); border: 1px solid var(–accent);
-color: var(–accent); padding: .5rem 1.2rem;
-border-radius: 4px; font-size: .7rem; letter-spacing: .05em;
-opacity: 0; transition: all .25s; z-index: 999; white-space: nowrap;
-pointer-events: none;
+color: var(–accent); padding: .48rem 1.1rem;
+border-radius: 4px; font-size: .68rem; letter-spacing: .05em;
+opacity: 0; transition: all .22s; z-index: 999; white-space: nowrap; pointer-events: none;
 }
 .toast.show { opacity: 1; transform: translateX(-50%) translateY(0); }
+
+::-webkit-scrollbar { width: 4px; }
+::-webkit-scrollbar-track { background: var(–bg); }
+::-webkit-scrollbar-thumb { background: var(–border2); border-radius: 3px; }
+
+@media (max-width: 480px) {
+.top-bar { padding: .48rem .85rem; }
+.page { padding: .7rem .85rem; }
+.card-header { padding: .52rem .82rem; }
+.card-body { padding: .7rem .82rem; }
+.card-footer { padding: .52rem .82rem; }
+}
 </style>
 
 </head>
 <body>
 
 <div class="top-bar">
-  <div>
-    <h1>Sound <span>Editor</span></h1>
-    <div class="top-bar-sub">8 slots · WAV export</div>
-  </div>
+  <h1>⚙ <span>Sounds</span></h1>
   <div class="top-actions">
-    <button class="btn-export-all" id="exportAllBtn" onclick="exportAll()">⬇ Export All (ZIP)</button>
+    <button class="theme-toggle" id="themeBtn" onclick="toggleTheme()">☀ Light</button>
+    <button class="btn-export-all" id="exportAllBtn" onclick="exportAll()">⬇ ZIP</button>
   </div>
 </div>
 
 <div class="page" id="cardsContainer"></div>
+
+<!-- Number input bottom sheet -->
+
+<div class="num-overlay" id="numOverlay" onclick="closeNum(event)">
+  <div class="num-sheet">
+    <div>
+      <div class="num-sheet-title" id="numTitle">Set Value</div>
+      <div class="num-sheet-sub" id="numSub"></div>
+    </div>
+    <input type="number" id="numInput" inputmode="decimal">
+    <div class="num-range-hint" id="numHint"></div>
+    <div class="num-actions">
+      <button class="num-cancel" onclick="closeNum()">Cancel</button>
+      <button class="num-ok" onclick="confirmNum()">Apply</button>
+    </div>
+  </div>
+</div>
+
 <div class="toast" id="toast"></div>
 
 <script>
+// ═══════════════════════════════════════════════════════
+// THEME
+// ═══════════════════════════════════════════════════════
+let isLight = false;
+function toggleTheme() {
+  isLight = !isLight;
+  document.body.classList.toggle('light', isLight);
+  document.getElementById('themeBtn').textContent = isLight ? '☽ Dark' : '☀ Light';
+}
+
 // ═══════════════════════════════════════════════════════
 // AUDIO ENGINE
 // ═══════════════════════════════════════════════════════
@@ -289,36 +403,19 @@ async function ensureAudio() {
   if (audioCtx.state === 'suspended') await audioCtx.resume();
 }
 
-function playLayers(layers, repeat = 1, ctx = null, dest = null, startOffset = 0) {
-  const c = ctx || audioCtx;
-  const d = dest || c.destination;
-  const totalDur = getTotalDuration(layers);
-  const gap = 0.05;
-  for (let r = 0; r < repeat; r++) {
-    const rOff = startOffset + r * (totalDur + gap);
-    layers.forEach(layer => {
-      if (layer.type === 'noise') {
-        playNoise(c, d, layer, rOff);
-      } else {
-        playTone(c, d, layer, rOff);
-      }
-    });
-  }
-  return totalDur * repeat + gap * (repeat - 1);
-}
-
 function playTone(c, d, p, off = 0) {
   const s = c.currentTime + (p.t || 0) + off;
   const osc = c.createOscillator();
   const amp = c.createGain();
   osc.type = p.waveType || 'sine';
   osc.frequency.setValueAtTime(p.freq, s);
-  if (p.slide && p.slide !== p.freq) osc.frequency.exponentialRampToValueAtTime(p.slide, s + p.dur);
+  if (p.slide && p.slide !== p.freq)
+    osc.frequency.exponentialRampToValueAtTime(Math.max(p.slide, 1), s + p.dur);
   amp.gain.setValueAtTime(0, s);
   amp.gain.linearRampToValueAtTime(p.gain, s + 0.02);
   amp.gain.exponentialRampToValueAtTime(0.0001, s + p.dur);
   osc.connect(amp); amp.connect(d);
-  osc.start(s); osc.stop(s + p.dur + 0.05);
+  osc.start(s); osc.stop(s + p.dur + 0.06);
 }
 
 function playNoise(c, d, p, off = 0) {
@@ -327,13 +424,12 @@ function playNoise(c, d, p, off = 0) {
   const buf = c.createBuffer(1, bufSize, c.sampleRate);
   const data = buf.getChannelData(0);
   for (let i = 0; i < bufSize; i++) data[i] = Math.random() * 2 - 1;
-  const src = c.createBufferSource();
-  src.buffer = buf;
+  const src = c.createBufferSource(); src.buffer = buf;
   const amp = c.createGain();
   amp.gain.setValueAtTime(p.gain, s);
   amp.gain.exponentialRampToValueAtTime(0.0001, s + p.dur);
   src.connect(amp); amp.connect(d);
-  src.start(s); src.stop(s + p.dur + 0.05);
+  src.start(s); src.stop(s + p.dur + 0.06);
 }
 
 function getTotalDuration(layers) {
@@ -342,79 +438,101 @@ function getTotalDuration(layers) {
   return max;
 }
 
+// Play all layers with repeat + gap, returns total duration in seconds
+function playLayers(c, d, layers, repeat, gapSec, startOff = 0) {
+  const soundDur = getTotalDuration(layers);
+  for (let r = 0; r < repeat; r++) {
+    const rOff = startOff + r * (soundDur + gapSec);
+    layers.forEach(layer => {
+      if (layer.type === 'noise') playNoise(c, d, layer, rOff);
+      else playTone(c, d, layer, rOff);
+    });
+  }
+  return soundDur * repeat + gapSec * Math.max(0, repeat - 1);
+}
+
+// Preview a single layer (plays it immediately, ignoring its t offset)
+async function previewLayer(key, idx) {
+  await ensureAudio();
+  const layer = { ...getEffectiveLayers(key)[idx], t: 0 };
+  const btnEl = document.getElementById(`lplaybtn-${key}-${idx}`);
+  if (btnEl) { btnEl.classList.add('playing'); btnEl.textContent = '…'; }
+  if (layer.type === 'noise') playNoise(audioCtx, audioCtx.destination, layer, 0);
+  else playTone(audioCtx, audioCtx.destination, layer, 0);
+  const durMs = layer.dur * 1000 + 200;
+  setTimeout(() => {
+    if (btnEl) { btnEl.classList.remove('playing'); btnEl.textContent = '▶'; }
+  }, durMs);
+}
+
 // ═══════════════════════════════════════════════════════
-// SOUND DEFINITIONS — original 8 slots
+// SOUND DEFINITIONS
 // ═══════════════════════════════════════════════════════
 const DEFAULTS = {
   boot: {
-    icon: '⏻', label: 'Boot', desc: 'Rising identity emergence',
-    layers: [
-      { type:'tone', freq:196, slide:392, t:0, dur:1.4, gain:.18, waveType:'sine' },
-      { type:'tone', freq:392, slide:null, t:.6, dur:.8, gain:.08, waveType:'sine' }
+    icon:'⏻', label:'Boot', desc:'Rising identity emergence',
+    layers:[
+      {type:'tone',freq:196,slide:392,t:0,dur:1.4,gain:.18,waveType:'sine'},
+      {type:'tone',freq:392,slide:null,t:.6,dur:.8,gain:.08,waveType:'sine'}
     ]
   },
   ready: {
-    icon: '🍎', label: 'Ready', desc: 'Single identity tone',
-    layers: [
-      { type:'tone', freq:523.25, slide:null, t:0, dur:.9, gain:.16, waveType:'sine' }
-    ]
+    icon:'🍎', label:'Ready', desc:'Single identity tone',
+    layers:[{type:'tone',freq:523.25,slide:null,t:0,dur:.9,gain:.16,waveType:'sine'}]
   },
   record: {
-    icon: '🔴', label: 'Record', desc: 'Two-note attention ping',
-    layers: [
-      { type:'tone', freq:880, slide:null, t:0, dur:.12, gain:.14, waveType:'sine' },
-      { type:'tone', freq:1108, slide:null, t:.1, dur:.2, gain:.12, waveType:'sine' }
+    icon:'🔴', label:'Record', desc:'Two-note attention ping',
+    layers:[
+      {type:'tone',freq:880,slide:null,t:0,dur:.12,gain:.14,waveType:'sine'},
+      {type:'tone',freq:1108,slide:null,t:.1,dur:.2,gain:.12,waveType:'sine'}
     ]
   },
   processing: {
-    icon: '⚙️', label: 'Processing', desc: 'Ascend — five-step pitch climb',
-    isCustom: true,
-    layers: [
-      { type:'tone', freq:220, slide:null, t:0, dur:.18, gain:.11, waveType:'sine' },
-      { type:'tone', freq:247, slide:null, t:.12, dur:.18, gain:.11, waveType:'sine' },
-      { type:'tone', freq:277, slide:null, t:.24, dur:.18, gain:.11, waveType:'sine' },
-      { type:'tone', freq:311, slide:null, t:.36, dur:.18, gain:.11, waveType:'sine' },
-      { type:'tone', freq:349, slide:null, t:.48, dur:.18, gain:.11, waveType:'sine' }
+    icon:'⚙️', label:'Processing', desc:'Ascend — five-step pitch climb', isCustom:true,
+    layers:[
+      {type:'tone',freq:220,slide:null,t:0,   dur:.18,gain:.11,waveType:'sine'},
+      {type:'tone',freq:247,slide:null,t:.12,  dur:.18,gain:.11,waveType:'sine'},
+      {type:'tone',freq:277,slide:null,t:.24,  dur:.18,gain:.11,waveType:'sine'},
+      {type:'tone',freq:311,slide:null,t:.36,  dur:.18,gain:.11,waveType:'sine'},
+      {type:'tone',freq:349,slide:null,t:.48,  dur:.18,gain:.11,waveType:'sine'}
     ]
   },
   photo: {
-    icon: '📷', label: 'Photo', desc: 'High-freq chirp burst',
-    layers: [
-      { type:'tone', freq:4200, slide:null, t:0,   dur:.025, gain:.06, waveType:'square' },
-      { type:'tone', freq:4200, slide:null, t:.04,  dur:.025, gain:.06, waveType:'square' },
-      { type:'tone', freq:4200, slide:null, t:.08,  dur:.025, gain:.06, waveType:'square' },
-      { type:'tone', freq:4200, slide:null, t:.12,  dur:.025, gain:.06, waveType:'square' },
-      { type:'tone', freq:4200, slide:null, t:.16,  dur:.025, gain:.06, waveType:'square' },
-      { type:'tone', freq:4200, slide:null, t:.2,   dur:.025, gain:.06, waveType:'square' }
+    icon:'📷', label:'Photo', desc:'High-freq chirp burst',
+    layers:[
+      {type:'tone',freq:4200,slide:null,t:0,   dur:.025,gain:.06,waveType:'square'},
+      {type:'tone',freq:4200,slide:null,t:.04,  dur:.025,gain:.06,waveType:'square'},
+      {type:'tone',freq:4200,slide:null,t:.08,  dur:.025,gain:.06,waveType:'square'},
+      {type:'tone',freq:4200,slide:null,t:.12,  dur:.025,gain:.06,waveType:'square'},
+      {type:'tone',freq:4200,slide:null,t:.16,  dur:.025,gain:.06,waveType:'square'},
+      {type:'tone',freq:4200,slide:null,t:.2,   dur:.025,gain:.06,waveType:'square'}
     ]
   },
   save: {
-    icon: '✅', label: 'Save', desc: 'Apple-style chord confirm',
-    layers: [
-      { type:'tone', freq:523.25, slide:null, t:0,   dur:.25, gain:.12, waveType:'sine' },
-      { type:'tone', freq:659.25, slide:null, t:.08,  dur:.3,  gain:.14, waveType:'sine' },
-      { type:'tone', freq:783.99, slide:null, t:.16,  dur:.5,  gain:.16, waveType:'sine' }
+    icon:'✅', label:'Save', desc:'Apple-style chord confirm',
+    layers:[
+      {type:'tone',freq:523.25,slide:null,t:0,   dur:.25,gain:.12,waveType:'sine'},
+      {type:'tone',freq:659.25,slide:null,t:.08,  dur:.3, gain:.14,waveType:'sine'},
+      {type:'tone',freq:783.99,slide:null,t:.16,  dur:.5, gain:.16,waveType:'sine'}
     ]
   },
   notify: {
-    icon: '🔔', label: 'Notify', desc: 'Shimmer — high stacked sines',
-    isCustom: true,
-    layers: [
-      { type:'tone', freq:2200, slide:null, t:0,    dur:.25, gain:.05, waveType:'sine' },
-      { type:'tone', freq:2350, slide:null, t:.06,   dur:.25, gain:.05, waveType:'sine' },
-      { type:'tone', freq:2500, slide:null, t:.12,   dur:.25, gain:.05, waveType:'sine' },
-      { type:'tone', freq:2650, slide:null, t:.18,   dur:.25, gain:.05, waveType:'sine' }
+    icon:'🔔', label:'Notify', desc:'Shimmer — high stacked sines', isCustom:true,
+    layers:[
+      {type:'tone',freq:2200,slide:null,t:0,    dur:.25,gain:.05,waveType:'sine'},
+      {type:'tone',freq:2350,slide:null,t:.06,   dur:.25,gain:.05,waveType:'sine'},
+      {type:'tone',freq:2500,slide:null,t:.12,   dur:.25,gain:.05,waveType:'sine'},
+      {type:'tone',freq:2650,slide:null,t:.18,   dur:.25,gain:.05,waveType:'sine'}
     ]
   },
   shutdown: {
-    icon: '🌑', label: 'Shutdown', desc: 'Resolution collapse descent',
-    layers: [
-      { type:'tone', freq:392, slide:196, t:0,  dur:1.2, gain:.16, waveType:'sine' },
-      { type:'tone', freq:196, slide:null, t:1.1, dur:.25, gain:.06, waveType:'sine' }
+    icon:'🌑', label:'Shutdown', desc:'Resolution collapse descent',
+    layers:[
+      {type:'tone',freq:392,slide:196,t:0,   dur:1.2,gain:.16,waveType:'sine'},
+      {type:'tone',freq:196,slide:null,t:1.1, dur:.25,gain:.06,waveType:'sine'}
     ]
   }
 };
-
 const SLOT_ORDER = ['boot','ready','record','processing','photo','save','notify','shutdown'];
 
 // ═══════════════════════════════════════════════════════
@@ -426,34 +544,106 @@ SLOT_ORDER.forEach(key => {
     layers: JSON.parse(JSON.stringify(DEFAULTS[key].layers)),
     savedLayers: null,
     repeat: 1,
-    globalPitch: 0,    // semitones
-    globalSpeed: 1,    // multiplier
-    globalVolume: 1,   // multiplier
+    gapSec: 0,
+    globalPitch: 0,
+    globalSpeed: 1,
+    globalVolume: 1,
     modified: false,
     saved: false
   };
 });
 
-// Apply global transforms to get effective layers
 function getEffectiveLayers(key) {
   const s = state[key];
-  const base = s.savedLayers || s.layers;
+  const base = s.savedLayers
+    ? JSON.parse(JSON.stringify(s.savedLayers))
+    : JSON.parse(JSON.stringify(s.layers));
+  const pitchMult = Math.pow(2, s.globalPitch / 12);
   return base.map(l => {
     const layer = { ...l };
     if (layer.type === 'tone') {
-      const pitchMult = Math.pow(2, s.globalPitch / 12);
       layer.freq = layer.freq * pitchMult;
       if (layer.slide) layer.slide = layer.slide * pitchMult;
-      layer.t = (layer.t || 0) / s.globalSpeed;
-      layer.dur = layer.dur / s.globalSpeed;
-      layer.gain = layer.gain * s.globalVolume;
-    } else {
-      layer.t = (layer.t || 0) / s.globalSpeed;
-      layer.dur = layer.dur / s.globalSpeed;
-      layer.gain = layer.gain * s.globalVolume;
     }
+    layer.t = (layer.t || 0) / s.globalSpeed;
+    layer.dur = layer.dur / s.globalSpeed;
+    layer.gain = layer.gain * s.globalVolume;
     return layer;
   });
+}
+
+// ═══════════════════════════════════════════════════════
+// NUMBER MODAL
+// ═══════════════════════════════════════════════════════
+let _numCb = null, _numMeta = {};
+function openNum(title, sub, cur, min, max, step, cb) {
+  _numCb = cb; _numMeta = { min, max, step };
+  document.getElementById('numTitle').textContent = title;
+  document.getElementById('numSub').textContent = sub;
+  document.getElementById('numHint').textContent = `Range: ${min} → ${max}  ·  step ${step}`;
+  const inp = document.getElementById('numInput');
+  inp.min = min; inp.max = max; inp.step = step; inp.value = cur;
+  document.getElementById('numOverlay').classList.add('open');
+  setTimeout(() => { inp.focus(); inp.select(); }, 160);
+}
+function closeNum(e) {
+  if (e && e.target !== document.getElementById('numOverlay')) return;
+  document.getElementById('numOverlay').classList.remove('open');
+  _numCb = null;
+}
+function confirmNum() {
+  const inp = document.getElementById('numInput');
+  let v = parseFloat(inp.value);
+  v = Math.max(_numMeta.min, Math.min(_numMeta.max, isNaN(v) ? _numMeta.min : v));
+  if (_numCb) _numCb(v);
+  document.getElementById('numOverlay').classList.remove('open');
+  _numCb = null;
+}
+document.getElementById('numInput').addEventListener('keydown', e => {
+  if (e.key === 'Enter') confirmNum();
+  if (e.key === 'Escape') { document.getElementById('numOverlay').classList.remove('open'); _numCb = null; }
+});
+
+// Helper: build slider+tap-value HTML
+// cb is a string expression evaluated when slider moves, 'v' = new numeric value
+function mkSlider({ rid, vid, min, max, step, val, dispText, cls, tapTitle, tapSub, cbStr }) {
+  return `
+    <div class="slider-wrap">
+      <input type="range" id="${rid}" class="${cls||''}" min="${min}" max="${max}" step="${step}" value="${val}"
+        oninput="onSlider('${rid}','${vid}',${min},${max},${step},'${cbStr}',+this.value)">
+      <span class="val-tap${cls ? ' is-global' : ''}" id="${vid}"
+        onclick="tapSlider('${rid}','${vid}','${tapTitle}','${tapSub}',${min},${max},${step},'${cbStr}')"
+        title="Tap to type">${dispText}</span>
+    </div>`;
+}
+
+function onSlider(rid, vid, min, max, step, cbStr, v) {
+  applySliderVal(rid, vid, cbStr, v);
+}
+
+function tapSlider(rid, vid, title, sub, min, max, step, cbStr) {
+  const cur = parseFloat(document.getElementById(rid).value);
+  openNum(title, sub, cur, min, max, step, (v) => {
+    document.getElementById(rid).value = v;
+    applySliderVal(rid, vid, cbStr, v);
+  });
+}
+
+// cbStr is one of: updateLayer|onGlobal|onGap — with args encoded
+function applySliderVal(rid, vid, cbStr, v) {
+  // Parse the callback string: "fn:arg1:arg2:..."
+  const parts = cbStr.split(':');
+  const fn = parts[0];
+  if (fn === 'upd') {
+    // upd:key:i:param
+    updateLayer(parts[1], parseInt(parts[2]), parts[3], v);
+  } else if (fn === 'glob') {
+    // glob:key:type
+    onGlobal(parts[1], parts[2], v);
+  } else if (fn === 'gap') {
+    // gap:key
+    onGap(parts[1], v);
+  }
 }
 
 // ═══════════════════════════════════════════════════════
@@ -467,10 +657,14 @@ function buildCards() {
 
 function renderCard(key, container) {
   const def = DEFAULTS[key];
-  const s = state[key];
   const card = document.createElement('div');
-  card.className = 'sound-card';
-  card.id = `card-${key}`;
+  card.className = 'sound-card'; card.id = `card-${key}`;
+
+  const gPitchSlider = mkSlider({ rid:`gpitch-${key}`, vid:`gpitch-val-${key}`, cls:'global-rng', min:-24, max:24, step:1, val:0, dispText:'0 st', tapTitle:'Pitch Shift', tapSub:'Semitones (±24). Shifts all frequencies.', cbStr:`glob:${key}:pitch` });
+  const gSpeedSlider = mkSlider({ rid:`gspeed-${key}`, vid:`gspeed-val-${key}`, cls:'global-rng', min:.25, max:3, step:.05, val:1, dispText:'×1.00', tapTitle:'Speed', tapSub:'Multiplier 0.25–3. Compresses or stretches all timings.', cbStr:`glob:${key}:speed` });
+  const gVolSlider   = mkSlider({ rid:`gvol-${key}`,   vid:`gvol-val-${key}`,   cls:'global-rng', min:.1,  max:3, step:.05, val:1, dispText:'×1.00', tapTitle:'Volume', tapSub:'Multiplier 0.1–3. Scales all gain values.', cbStr:`glob:${key}:vol` });
+  const gGapSlider   = mkSlider({ rid:`ggap-${key}`,   vid:`ggap-val-${key}`,   min:0, max:3, step:.05, val:0, dispText:'0.0s', tapTitle:'Gap Between Repeats', tapSub:'Silence inserted between each repeat (0–3 seconds).', cbStr:`gap:${key}` });
+
   card.innerHTML = `
     <div class="card-header" id="hdr-${key}" onclick="toggleCard('${key}')">
       <span class="card-icon">${def.icon}</span>
@@ -488,60 +682,53 @@ function renderCard(key, container) {
       </div>
       <span class="card-chevron">▾</span>
     </div>
+
     <div class="card-body" id="body-${key}">
-      <!-- Repeat -->
-      <div class="repeat-row">
-        <span class="repeat-label">Repeat</span>
-        <div class="repeat-counter">
-          <button class="rep-btn" onclick="changeRepeat('${key}',-1)">−</button>
-          <span class="rep-count" id="rep-${key}">×1</span>
-          <button class="rep-btn" onclick="changeRepeat('${key}',1)">+</button>
+
+      <!-- Repeat + Gap -->
+      <div class="repeat-section">
+        <div class="section-title">Playback</div>
+        <div class="repeat-top">
+          <span class="repeat-label">Repeat</span>
+          <div class="repeat-counter">
+            <button class="rep-btn" onclick="changeRepeat('${key}',-1)">−</button>
+            <span class="rep-count" id="rep-${key}">×1</span>
+            <button class="rep-btn" onclick="changeRepeat('${key}',1)">+</button>
+          </div>
+          <span class="repeat-note">affects preview + export</span>
         </div>
-        <span class="repeat-note">affects preview + export</span>
+        <div class="gap-row" id="gap-row-${key}" style="display:none">
+          <span class="gap-label">Gap</span>
+          ${gGapSlider}
+        </div>
       </div>
 
-      <!-- Global controls -->
+      <!-- Global -->
       <div class="global-section">
         <div class="section-title">Global Adjustments</div>
         <div class="global-grid">
-          <div class="global-ctrl">
-            <label>Pitch Shift</label>
-            <div class="ctrl-row">
-              <input type="range" class="global-range" min="-24" max="24" step="1" value="0"
-                id="gpitch-${key}" oninput="onGlobal('${key}','pitch',this.value)">
-              <span class="ctrl-val" id="gpitch-val-${key}">0 st</span>
-            </div>
-          </div>
-          <div class="global-ctrl">
-            <label>Speed</label>
-            <div class="ctrl-row">
-              <input type="range" class="global-range" min="0.25" max="3" step="0.05" value="1"
-                id="gspeed-${key}" oninput="onGlobal('${key}','speed',this.value)">
-              <span class="ctrl-val" id="gspeed-val-${key}">×1.00</span>
-            </div>
-          </div>
-          <div class="global-ctrl">
-            <label>Volume</label>
-            <div class="ctrl-row">
-              <input type="range" class="global-range" min="0.1" max="3" step="0.05" value="1"
-                id="gvol-${key}" oninput="onGlobal('${key}','vol',this.value)">
-              <span class="ctrl-val" id="gvol-val-${key}">×1.00</span>
-            </div>
-          </div>
+          <div class="global-ctrl"><label>Pitch Shift (semitones)</label>${gPitchSlider}</div>
+          <div class="global-ctrl"><label>Speed multiplier</label>${gSpeedSlider}</div>
+          <div class="global-ctrl"><label>Volume multiplier</label>${gVolSlider}</div>
         </div>
       </div>
 
       <!-- Layers -->
-      <div class="layers-section" id="layers-${key}"></div>
-      <button class="btn btn-add-layer" onclick="addLayer('${key}','tone')">+ Add Tone Layer</button>
-      <button class="btn btn-add-layer" onclick="addLayer('${key}','noise')" style="margin-top:-.3rem">+ Add Noise Layer</button>
+      <div>
+        <div class="section-title">Tone Layers</div>
+        <div class="layers-section" id="layers-${key}"></div>
+        <div style="display:flex;gap:.4rem;margin-top:.5rem">
+          <button class="btn btn-add-layer" onclick="addLayer('${key}','tone')">+ Tone</button>
+          <button class="btn btn-add-layer" onclick="addLayer('${key}','noise')">+ Noise</button>
+        </div>
+      </div>
 
       <!-- Footer -->
       <div class="card-footer">
         <button class="btn btn-reset" onclick="resetSound('${key}')">↺ Reset</button>
         <div class="footer-spacer"></div>
         <span class="export-status" id="estatus-${key}"></span>
-        <button class="btn btn-export-card" onclick="exportSingle('${key}')">⬇ Export WAV</button>
+        <button class="btn btn-export-card" onclick="exportSingle('${key}')">⬇ WAV</button>
         <button class="btn btn-save-card" onclick="saveSound('${key}')">✓ Save</button>
       </div>
     </div>
@@ -556,111 +743,70 @@ function renderLayers(key) {
   container.innerHTML = '';
   s.layers.forEach((layer, i) => {
     const div = document.createElement('div');
-    div.className = 'layer-card';
-    div.id = `layer-${key}-${i}`;
+    div.className = 'layer-card'; div.id = `layer-${key}-${i}`;
     const summary = layer.type === 'noise'
       ? `noise · dur ${layer.dur.toFixed(3)}s · gain ${layer.gain.toFixed(3)}`
-      : `${layer.waveType} · ${layer.freq.toFixed(1)}Hz${layer.slide ? '→'+layer.slide.toFixed(1)+'Hz' : ''} · dur ${layer.dur.toFixed(3)}s`;
+      : `${layer.waveType} · ${layer.freq.toFixed(1)}Hz${layer.slide ? '→'+layer.slide.toFixed(1)+'Hz' : ''} · t${(layer.t||0).toFixed(2)}s`;
     div.innerHTML = `
       <div class="layer-header" id="lhdr-${key}-${i}" onclick="toggleLayer('${key}',${i})">
         <span class="layer-num">${i+1}</span>
         <span class="layer-type-badge">${layer.type}</span>
         <span class="layer-summary">${summary}</span>
-        <button class="layer-delete" onclick="event.stopPropagation();deleteLayer('${key}',${i})" title="Delete layer">✕</button>
+        <div class="layer-actions" onclick="event.stopPropagation()">
+          <button class="btn-layer-play" id="lplaybtn-${key}-${i}" onclick="previewLayer('${key}',${i})">▶</button>
+          <button class="layer-delete" onclick="deleteLayer('${key}',${i})" title="Delete">✕</button>
+        </div>
         <span class="layer-chevron">▾</span>
       </div>
       <div class="layer-params" id="lparams-${key}-${i}">
-        ${layer.type === 'noise' ? renderNoiseParams(key,i,layer) : renderToneParams(key,i,layer)}
+        ${layer.type === 'noise' ? buildNoiseParams(key,i,layer) : buildToneParams(key,i,layer)}
       </div>
     `;
     container.appendChild(div);
   });
 }
 
-function renderToneParams(key, i, layer) {
-  return `
-    <div class="param-grid">
-      <div class="param-item">
-        <label>Frequency (Hz)</label>
-        <div class="p-row">
-          <input type="range" min="20" max="8000" step="1" value="${layer.freq}"
-            oninput="updateLayer('${key}',${i},'freq',+this.value)">
-          <span class="p-val" id="pv-${key}-${i}-freq">${layer.freq.toFixed(1)}</span>
-        </div>
-      </div>
-      <div class="param-item">
-        <label>Slide To (Hz, 0=off)</label>
-        <div class="p-row">
-          <input type="range" min="0" max="8000" step="1" value="${layer.slide || 0}"
-            oninput="updateLayer('${key}',${i},'slide',+this.value)">
-          <span class="p-val" id="pv-${key}-${i}-slide">${layer.slide ? layer.slide.toFixed(1) : 'off'}</span>
-        </div>
-      </div>
-      <div class="param-item">
-        <label>Start Time (s)</label>
-        <div class="p-row">
-          <input type="range" min="0" max="3" step="0.01" value="${layer.t||0}"
-            oninput="updateLayer('${key}',${i},'t',+this.value)">
-          <span class="p-val" id="pv-${key}-${i}-t">${(layer.t||0).toFixed(2)}</span>
-        </div>
-      </div>
-      <div class="param-item">
-        <label>Duration (s)</label>
-        <div class="p-row">
-          <input type="range" min="0.01" max="3" step="0.01" value="${layer.dur}"
-            oninput="updateLayer('${key}',${i},'dur',+this.value)">
-          <span class="p-val" id="pv-${key}-${i}-dur">${layer.dur.toFixed(3)}</span>
-        </div>
-      </div>
-      <div class="param-item">
-        <label>Gain (volume)</label>
-        <div class="p-row">
-          <input type="range" min="0.01" max="0.5" step="0.005" value="${layer.gain}"
-            oninput="updateLayer('${key}',${i},'gain',+this.value)">
-          <span class="p-val" id="pv-${key}-${i}-gain">${layer.gain.toFixed(3)}</span>
-        </div>
-      </div>
-      <div class="param-item">
-        <label>Wave Type</label>
-        <select onchange="updateLayer('${key}',${i},'waveType',this.value)">
-          ${['sine','square','triangle','sawtooth'].map(w =>
-            `<option value="${w}" ${layer.waveType===w?'selected':''}>${w}</option>`
-          ).join('')}
-        </select>
-      </div>
+function buildToneParams(key, i, layer) {
+  const R = (p) => `pr-${key}-${i}-${p}`;
+  const V = (p) => `pv-${key}-${i}-${p}`;
+  return `<div class="param-grid">
+    <div class="param-item"><label>Frequency (Hz)</label>
+      ${mkSlider({ rid:R('freq'), vid:V('freq'), min:20, max:8000, step:1, val:layer.freq, dispText:layer.freq.toFixed(1), tapTitle:'Frequency', tapSub:'Tone pitch in Hz (20–8000)', cbStr:`upd:${key}:${i}:freq` })}
     </div>
-  `;
+    <div class="param-item"><label>Slide To (Hz) — 0 = off</label>
+      ${mkSlider({ rid:R('slide'), vid:V('slide'), min:0, max:8000, step:1, val:layer.slide||0, dispText:layer.slide ? layer.slide.toFixed(1) : 'off', tapTitle:'Slide To', tapSub:'Frequency to slide toward over the duration. 0 = no slide.', cbStr:`upd:${key}:${i}:slide` })}
+    </div>
+    <div class="param-item"><label>Start Time (s)</label>
+      ${mkSlider({ rid:R('t'), vid:V('t'), min:0, max:3, step:.01, val:layer.t||0, dispText:(layer.t||0).toFixed(2), tapTitle:'Start Time', tapSub:'When this layer begins in seconds from sound start', cbStr:`upd:${key}:${i}:t` })}
+    </div>
+    <div class="param-item"><label>Duration (s)</label>
+      ${mkSlider({ rid:R('dur'), vid:V('dur'), min:.01, max:3, step:.01, val:layer.dur, dispText:layer.dur.toFixed(3), tapTitle:'Duration', tapSub:'How long this tone plays in seconds', cbStr:`upd:${key}:${i}:dur` })}
+    </div>
+    <div class="param-item"><label>Gain (volume)</label>
+      ${mkSlider({ rid:R('gain'), vid:V('gain'), min:.005, max:.5, step:.005, val:layer.gain, dispText:layer.gain.toFixed(3), tapTitle:'Gain', tapSub:'Volume of this layer (0.005–0.5)', cbStr:`upd:${key}:${i}:gain` })}
+    </div>
+    <div class="param-item"><label>Wave Type</label>
+      <select onchange="updateLayer('${key}',${i},'waveType',this.value)">
+        ${['sine','square','triangle','sawtooth'].map(w=>`<option value="${w}" ${layer.waveType===w?'selected':''}>${w}</option>`).join('')}
+      </select>
+    </div>
+  </div>`;
 }
 
-function renderNoiseParams(key, i, layer) {
-  return `
-    <div class="noise-grid">
-      <div class="param-item">
-        <label>Start Time (s)</label>
-        <div class="p-row">
-          <input type="range" min="0" max="3" step="0.01" value="${layer.t||0}"
-            oninput="updateLayer('${key}',${i},'t',+this.value)">
-          <span class="p-val" id="pv-${key}-${i}-t">${(layer.t||0).toFixed(2)}</span>
-        </div>
-      </div>
-      <div class="param-item">
-        <label>Duration (s)</label>
-        <div class="p-row">
-          <input type="range" min="0.01" max="2" step="0.01" value="${layer.dur}"
-            oninput="updateLayer('${key}',${i},'dur',+this.value)">
-          <span class="p-val" id="pv-${key}-${i}-dur">${layer.dur.toFixed(3)}</span>
-        </div>
-      </div>
-      <div class="param-item">
-        <label>Gain (volume)</label>
-        <div class="p-row">
-          <input type="range" min="0.01" max="0.5" step="0.005" value="${layer.gain}"
-            oninput="updateLayer('${key}',${i},'gain',+this.value)">
-          <span class="p-val" id="pv-${key}-${i}-gain">${layer.gain.toFixed(3)}</span>
-        </div>
-      </div>
+function buildNoiseParams(key, i, layer) {
+  const R = (p) => `pr-${key}-${i}-${p}`;
+  const V = (p) => `pv-${key}-${i}-${p}`;
+  return `<div class="param-grid">
+    <div class="param-item"><label>Start Time (s)</label>
+      ${mkSlider({ rid:R('t'), vid:V('t'), min:0, max:3, step:.01, val:layer.t||0, dispText:(layer.t||0).toFixed(2), tapTitle:'Start Time', tapSub:'When noise begins (seconds from sound start)', cbStr:`upd:${key}:${i}:t` })}
     </div>
-  `;
+    <div class="param-item"><label>Duration (s)</label>
+      ${mkSlider({ rid:R('dur'), vid:V('dur'), min:.01, max:2, step:.01, val:layer.dur, dispText:layer.dur.toFixed(3), tapTitle:'Duration', tapSub:'How long the noise plays in seconds', cbStr:`upd:${key}:${i}:dur` })}
+    </div>
+    <div class="param-item"><label>Gain (volume)</label>
+      ${mkSlider({ rid:R('gain'), vid:V('gain'), min:.005, max:.5, step:.005, val:layer.gain, dispText:layer.gain.toFixed(3), tapTitle:'Gain', tapSub:'Volume of noise layer (0.005–0.5)', cbStr:`upd:${key}:${i}:gain` })}
+    </div>
+  </div>`;
 }
 
 // ═══════════════════════════════════════════════════════
@@ -669,58 +815,77 @@ function renderNoiseParams(key, i, layer) {
 function toggleCard(key) {
   const hdr = document.getElementById(`hdr-${key}`);
   const body = document.getElementById(`body-${key}`);
-  const isOpen = body.classList.contains('open');
-  hdr.classList.toggle('open', !isOpen);
-  body.classList.toggle('open', !isOpen);
+  const open = body.classList.contains('open');
+  hdr.classList.toggle('open', !open);
+  body.classList.toggle('open', !open);
 }
 
 function toggleLayer(key, i) {
-  const hdr = document.getElementById(`lhdr-${key}-${i}`);
-  const params = document.getElementById(`lparams-${key}-${i}`);
-  hdr.classList.toggle('open');
-  params.classList.toggle('open');
+  document.getElementById(`lhdr-${key}-${i}`).classList.toggle('open');
+  document.getElementById(`lparams-${key}-${i}`).classList.toggle('open');
 }
 
 function changeRepeat(key, delta) {
   const s = state[key];
   s.repeat = Math.max(1, Math.min(8, s.repeat + delta));
   document.getElementById(`rep-${key}`).textContent = '×' + s.repeat;
+  document.getElementById(`gap-row-${key}`).style.display = s.repeat > 1 ? 'flex' : 'none';
+}
+
+function onGap(key, val) {
+  state[key].gapSec = +val;
+  const el = document.getElementById(`ggap-val-${key}`);
+  if (el) el.textContent = (+val).toFixed(1) + 's';
+  const rng = document.getElementById(`ggap-${key}`);
+  if (rng) rng.value = val;
 }
 
 function onGlobal(key, type, val) {
   const s = state[key];
   if (type === 'pitch') {
     s.globalPitch = +val;
-    document.getElementById(`gpitch-val-${key}`).textContent = (val >= 0 ? '+' : '') + val + ' st';
+    const el = document.getElementById(`gpitch-val-${key}`);
+    if (el) el.textContent = (+val >= 0 ? '+' : '') + (+val) + ' st';
+    const rng = document.getElementById(`gpitch-${key}`);
+    if (rng) rng.value = val;
   } else if (type === 'speed') {
     s.globalSpeed = +val;
-    document.getElementById(`gspeed-val-${key}`).textContent = '×' + (+val).toFixed(2);
+    const el = document.getElementById(`gspeed-val-${key}`);
+    if (el) el.textContent = '×' + (+val).toFixed(2);
+    const rng = document.getElementById(`gspeed-${key}`);
+    if (rng) rng.value = val;
   } else if (type === 'vol') {
     s.globalVolume = +val;
-    document.getElementById(`gvol-val-${key}`).textContent = '×' + (+val).toFixed(2);
+    const el = document.getElementById(`gvol-val-${key}`);
+    if (el) el.textContent = '×' + (+val).toFixed(2);
+    const rng = document.getElementById(`gvol-${key}`);
+    if (rng) rng.value = val;
   }
   markModified(key);
 }
 
 function updateLayer(key, i, param, val) {
   const layer = state[key].layers[i];
-  if (param === 'slide') { layer.slide = val === 0 ? null : val; }
-  else { layer[param] = val; }
+  if (param === 'slide') layer.slide = val === 0 ? null : +val;
+  else layer[param] = (param === 'waveType') ? val : +val;
 
-  // Update display value
-  const el = document.getElementById(`pv-${key}-${i}-${param}`);
-  if (el) {
-    if (param === 'slide') el.textContent = val === 0 ? 'off' : val.toFixed(1);
-    else if (param === 'freq') el.textContent = val.toFixed(1);
-    else if (param === 'gain') el.textContent = val.toFixed(3);
-    else if (param === 't' || param === 'dur') el.textContent = val.toFixed(3);
-    else el.textContent = val;
+  // Update display text
+  const vEl = document.getElementById(`pv-${key}-${i}-${param}`);
+  if (vEl) {
+    if (param === 'slide') vEl.textContent = +val === 0 ? 'off' : (+val).toFixed(1);
+    else if (param === 'freq') vEl.textContent = (+val).toFixed(1);
+    else if (param === 'gain') vEl.textContent = (+val).toFixed(3);
+    else if (param === 't' || param === 'dur') vEl.textContent = (+val).toFixed(3);
+    else vEl.textContent = val;
   }
+  // Sync slider position if update came from modal
+  const rEl = document.getElementById(`pr-${key}-${i}-${param}`);
+  if (rEl && param !== 'waveType') rEl.value = val;
 
-  // Update layer summary
+  // Refresh summary line
   const summary = layer.type === 'noise'
     ? `noise · dur ${layer.dur.toFixed(3)}s · gain ${layer.gain.toFixed(3)}`
-    : `${layer.waveType} · ${layer.freq.toFixed(1)}Hz${layer.slide ? '→'+layer.slide.toFixed(1)+'Hz' : ''} · dur ${layer.dur.toFixed(3)}s`;
+    : `${layer.waveType} · ${layer.freq.toFixed(1)}Hz${layer.slide ? '→'+layer.slide.toFixed(1)+'Hz' : ''} · t${(layer.t||0).toFixed(2)}s`;
   const sumEl = document.querySelector(`#layer-${key}-${i} .layer-summary`);
   if (sumEl) sumEl.textContent = summary;
 
@@ -734,9 +899,7 @@ function addLayer(key, type) {
   state[key].layers.push(newLayer);
   renderLayers(key);
   markModified(key);
-  // Open the new layer
-  const i = state[key].layers.length - 1;
-  setTimeout(() => toggleLayer(key, i), 50);
+  setTimeout(() => toggleLayer(key, state[key].layers.length - 1), 50);
 }
 
 function deleteLayer(key, i) {
@@ -747,8 +910,7 @@ function deleteLayer(key, i) {
 }
 
 function markModified(key) {
-  state[key].modified = true;
-  state[key].saved = false;
+  state[key].modified = true; state[key].saved = false;
   document.getElementById(`card-${key}`).className = 'sound-card modified';
   document.getElementById(`badge-mod-${key}`).style.display = '';
   document.getElementById(`badge-saved-${key}`).style.display = 'none';
@@ -756,45 +918,35 @@ function markModified(key) {
 
 function saveSound(key) {
   const s = state[key];
-  // Bake globals into layers
-  const baked = getEffectiveLayers(key).map(l => ({ ...l }));
-  s.savedLayers = baked;
+  const baked = getEffectiveLayers(key);
+  s.savedLayers = JSON.parse(JSON.stringify(baked));
   s.layers = JSON.parse(JSON.stringify(baked));
   s.globalPitch = 0; s.globalSpeed = 1; s.globalVolume = 1;
   s.modified = false; s.saved = true;
-  // Reset global sliders
-  document.getElementById(`gpitch-${key}`).value = 0;
-  document.getElementById(`gspeed-${key}`).value = 1;
-  document.getElementById(`gvol-${key}`).value = 1;
-  document.getElementById(`gpitch-val-${key}`).textContent = '0 st';
-  document.getElementById(`gspeed-val-${key}`).textContent = '×1.00';
-  document.getElementById(`gvol-val-${key}`).textContent = '×1.00';
+  onGlobal(key,'pitch',0); onGlobal(key,'speed',1); onGlobal(key,'vol',1);
   document.getElementById(`card-${key}`).className = 'sound-card saved';
   document.getElementById(`badge-mod-${key}`).style.display = 'none';
   document.getElementById(`badge-saved-${key}`).style.display = '';
   renderLayers(key);
-  showToast(`${DEFAULTS[key].label} saved`);
+  showToast(`${DEFAULTS[key].label} saved ✓`);
 }
 
 function resetSound(key) {
   const s = state[key];
   s.layers = JSON.parse(JSON.stringify(DEFAULTS[key].layers));
-  s.savedLayers = null;
-  s.repeat = 1;
+  s.savedLayers = null; s.repeat = 1; s.gapSec = 0;
   s.globalPitch = 0; s.globalSpeed = 1; s.globalVolume = 1;
   s.modified = false; s.saved = false;
-  document.getElementById(`gpitch-${key}`).value = 0;
-  document.getElementById(`gspeed-${key}`).value = 1;
-  document.getElementById(`gvol-${key}`).value = 1;
-  document.getElementById(`gpitch-val-${key}`).textContent = '0 st';
-  document.getElementById(`gspeed-val-${key}`).textContent = '×1.00';
-  document.getElementById(`gvol-val-${key}`).textContent = '×1.00';
   document.getElementById(`rep-${key}`).textContent = '×1';
+  document.getElementById(`gap-row-${key}`).style.display = 'none';
+  onGlobal(key,'pitch',0); onGlobal(key,'speed',1); onGlobal(key,'vol',1);
+  const gg = document.getElementById(`ggap-${key}`); if (gg) gg.value = 0;
+  const gv = document.getElementById(`ggap-val-${key}`); if (gv) gv.textContent = '0.0s';
   document.getElementById(`card-${key}`).className = 'sound-card';
   document.getElementById(`badge-mod-${key}`).style.display = 'none';
   document.getElementById(`badge-saved-${key}`).style.display = 'none';
   renderLayers(key);
-  showToast(`${DEFAULTS[key].label} reset to default`);
+  showToast(`${DEFAULTS[key].label} reset`);
 }
 
 // ═══════════════════════════════════════════════════════
@@ -803,13 +955,11 @@ function resetSound(key) {
 async function previewSound(key) {
   await ensureAudio();
   const btn = document.getElementById(`playbtn-${key}`);
-  btn.classList.add('playing');
-  btn.textContent = '▶ Playing…';
-  const layers = getEffectiveLayers(key);
+  btn.classList.add('playing'); btn.textContent = '▶ …';
   const s = state[key];
-  playLayers(layers, s.repeat);
-  const totalMs = (getTotalDuration(layers) * s.repeat + 0.05 * (s.repeat-1)) * 1000 + 200;
-  setTimeout(() => { btn.classList.remove('playing'); btn.textContent = '▶ Preview'; }, totalMs);
+  const layers = getEffectiveLayers(key);
+  const totalDur = playLayers(audioCtx, audioCtx.destination, layers, s.repeat, s.gapSec);
+  setTimeout(() => { btn.classList.remove('playing'); btn.textContent = '▶ Preview'; }, totalDur * 1000 + 280);
 }
 
 // ═══════════════════════════════════════════════════════
@@ -818,197 +968,105 @@ async function previewSound(key) {
 async function renderToWav(key) {
   const s = state[key];
   const layers = getEffectiveLayers(key);
-  const sampleRate = 44100;
-  const totalDur = getTotalDuration(layers);
-  const gap = 0.05;
-  const totalSecs = totalDur * s.repeat + gap * Math.max(0, s.repeat - 1) + 0.3;
-  const offlineCtx = new OfflineAudioContext(1, Math.ceil(totalSecs * sampleRate), sampleRate);
-
-  for (let r = 0; r < s.repeat; r++) {
-    const offset = r * (totalDur + gap);
-    layers.forEach(layer => {
-      if (layer.type === 'noise') {
-        playNoise(offlineCtx, offlineCtx.destination, layer, offset);
-      } else {
-        playTone(offlineCtx, offlineCtx.destination, layer, offset);
-      }
-    });
-  }
-
-  const rendered = await offlineCtx.startRendering();
+  const sr = 44100;
+  const soundDur = getTotalDuration(layers);
+  const totalSecs = soundDur * s.repeat + s.gapSec * Math.max(0, s.repeat - 1) + 0.35;
+  const offCtx = new OfflineAudioContext(1, Math.ceil(totalSecs * sr), sr);
+  playLayers(offCtx, offCtx.destination, layers, s.repeat, s.gapSec);
+  const rendered = await offCtx.startRendering();
   return audioBufferToWav(rendered);
 }
 
-function audioBufferToWav(buffer) {
-  const numCh = buffer.numberOfChannels;
-  const sampleRate = buffer.sampleRate;
-  const numSamples = buffer.length;
-  const bytesPerSample = 2;
-  const blockAlign = numCh * bytesPerSample;
-  const byteRate = sampleRate * blockAlign;
-  const dataSize = numSamples * blockAlign;
-  const wavBuf = new ArrayBuffer(44 + dataSize);
-  const view = new DataView(wavBuf);
-  const writeStr = (off, str) => { for (let i=0;i<str.length;i++) view.setUint8(off+i, str.charCodeAt(i)); };
-  writeStr(0, 'RIFF');
-  view.setUint32(4, 36 + dataSize, true);
-  writeStr(8, 'WAVE');
-  writeStr(12, 'fmt ');
-  view.setUint32(16, 16, true);
-  view.setUint16(20, 1, true);
-  view.setUint16(22, numCh, true);
-  view.setUint32(24, sampleRate, true);
-  view.setUint32(28, byteRate, true);
-  view.setUint16(32, blockAlign, true);
-  view.setUint16(34, bytesPerSample * 8, true);
-  writeStr(36, 'data');
-  view.setUint32(40, dataSize, true);
-  const ch = buffer.getChannelData(0);
-  let off = 44;
-  for (let i = 0; i < numSamples; i++) {
-    const s = Math.max(-1, Math.min(1, ch[i]));
-    view.setInt16(off, s < 0 ? s * 0x8000 : s * 0x7FFF, true);
-    off += 2;
+function audioBufferToWav(buf) {
+  const sr = buf.sampleRate, n = buf.length;
+  const ab = new ArrayBuffer(44 + n * 2);
+  const v = new DataView(ab);
+  const ws = (o, s) => { for (let i=0;i<s.length;i++) v.setUint8(o+i, s.charCodeAt(i)); };
+  ws(0,'RIFF'); v.setUint32(4,36+n*2,true); ws(8,'WAVE'); ws(12,'fmt ');
+  v.setUint32(16,16,true); v.setUint16(20,1,true); v.setUint16(22,1,true);
+  v.setUint32(24,sr,true); v.setUint32(28,sr*2,true); v.setUint16(32,2,true); v.setUint16(34,16,true);
+  ws(36,'data'); v.setUint32(40,n*2,true);
+  const ch = buf.getChannelData(0);
+  for (let i=0,o=44;i<n;i++,o+=2) {
+    const s = Math.max(-1,Math.min(1,ch[i]));
+    v.setInt16(o, s<0?s*0x8000:s*0x7FFF, true);
   }
-  return new Blob([wavBuf], { type: 'audio/wav' });
+  return new Blob([ab], { type:'audio/wav' });
 }
 
-function downloadBlob(blob, filename) {
+function downloadBlob(blob, name) {
   const url = URL.createObjectURL(blob);
   const a = document.createElement('a');
-  a.href = url; a.download = filename; a.click();
+  a.href = url; a.download = name; a.click();
   setTimeout(() => URL.revokeObjectURL(url), 2000);
 }
 
 async function exportSingle(key) {
-  const statusEl = document.getElementById(`estatus-${key}`);
-  statusEl.className = 'export-status visible';
-  statusEl.textContent = 'Rendering…';
+  const st = document.getElementById(`estatus-${key}`);
+  st.className = 'export-status visible'; st.textContent = 'Rendering…';
   try {
     const wav = await renderToWav(key);
-    const label = DEFAULTS[key].label.toLowerCase().replace(/\s/g,'_');
-    const s = state[key];
-    const suffix = s.saved ? '_edited' : '';
-    downloadBlob(wav, `${label}${suffix}.wav`);
-    statusEl.className = 'export-status visible ok';
-    statusEl.textContent = '✓ Downloaded';
-    setTimeout(() => { statusEl.className = 'export-status'; }, 3000);
+    const lbl = DEFAULTS[key].label.toLowerCase().replace(/\s/g,'_');
+    downloadBlob(wav, `${lbl}${state[key].saved ? '_edited' : ''}.wav`);
+    st.className = 'export-status visible ok'; st.textContent = '✓ Downloaded';
+    setTimeout(() => { st.className = 'export-status'; }, 3000);
   } catch(e) {
-    statusEl.className = 'export-status visible err';
-    statusEl.textContent = '✗ Error: ' + e.message;
+    st.className = 'export-status visible err'; st.textContent = '✗ ' + e.message;
   }
 }
 
 async function exportAll() {
   const btn = document.getElementById('exportAllBtn');
-  btn.disabled = true;
-  btn.textContent = 'Rendering…';
-
+  btn.disabled = true; btn.textContent = 'Rendering…';
   try {
-    // Render all WAVs
     const files = [];
     for (const key of SLOT_ORDER) {
       const wav = await renderToWav(key);
-      const label = DEFAULTS[key].label.toLowerCase().replace(/\s/g,'_');
-      const s = state[key];
-      const suffix = s.saved ? '_edited' : '';
-      files.push({ name: `${label}${suffix}.wav`, blob: wav });
+      const lbl = DEFAULTS[key].label.toLowerCase().replace(/\s/g,'_');
+      files.push({ name:`${lbl}${state[key].saved?'_edited':''}.wav`, blob:wav });
     }
-
-    // Build ZIP using pure JS
-    const zip = await buildZip(files);
-    downloadBlob(zip, 'sounds.zip');
+    downloadBlob(await buildZip(files), 'sounds.zip');
     showToast('All 8 sounds exported');
-  } catch(e) {
-    showToast('Export failed: ' + e.message);
-  }
-  btn.disabled = false;
-  btn.textContent = '⬇ Export All (ZIP)';
+  } catch(e) { showToast('Export failed: '+e.message); }
+  btn.disabled = false; btn.textContent = '⬇ ZIP';
 }
 
-// ── Minimal ZIP builder ──
+// ── Minimal ZIP ──
 async function buildZip(files) {
-  const entries = [];
-  let offset = 0;
-  const centralDir = [];
-
+  const ents=[], cds=[];
+  let off=0;
   for (const f of files) {
-    const nameBytes = new TextEncoder().encode(f.name);
-    const data = new Uint8Array(await f.blob.arrayBuffer());
-    const crc = crc32(data);
-    const localHeader = localFileHeader(nameBytes, data.length, crc);
-    entries.push({ localHeader, data, nameBytes, crc, offset });
-    centralDir.push(centralDirEntry(nameBytes, data.length, crc, offset));
-    offset += localHeader.length + data.length;
+    const nm=new TextEncoder().encode(f.name);
+    const dt=new Uint8Array(await f.blob.arrayBuffer());
+    const crc=crc32(dt);
+    const lh=lfh(nm,dt.length,crc);
+    ents.push({lh,dt}); cds.push(cde(nm,dt.length,crc,off));
+    off+=lh.length+dt.length;
   }
-
-  const cdSize = centralDir.reduce((a,b) => a+b.length, 0);
-  const eocd = endOfCentralDir(files.length, cdSize, offset);
-  const parts = [...entries.flatMap(e => [e.localHeader, e.data]), ...centralDir, eocd];
-  const total = parts.reduce((a,b) => a+b.length, 0);
-  const out = new Uint8Array(total);
-  let pos = 0;
-  parts.forEach(p => { out.set(p, pos); pos += p.length; });
-  return new Blob([out], { type: 'application/zip' });
+  const cdSz=cds.reduce((a,b)=>a+b.length,0);
+  const parts=[...ents.flatMap(e=>[e.lh,e.dt]),...cds,eocd(files.length,cdSz,off)];
+  const tot=parts.reduce((a,b)=>a+b.length,0);
+  const out=new Uint8Array(tot);
+  let p=0; parts.forEach(x=>{out.set(x,p);p+=x.length;});
+  return new Blob([out],{type:'application/zip'});
 }
-
-function localFileHeader(name, size, crc) {
-  const h = new Uint8Array(30 + name.length);
-  const v = new DataView(h.buffer);
-  v.setUint32(0, 0x04034b50, true); v.setUint16(4, 20, true); v.setUint16(6, 0, true);
-  v.setUint16(8, 0, true); v.setUint16(10, 0, true); v.setUint16(12, 0, true);
-  v.setUint32(14, crc, true); v.setUint32(18, size, true); v.setUint32(22, size, true);
-  v.setUint16(26, name.length, true); v.setUint16(28, 0, true);
-  h.set(name, 30);
-  return h;
-}
-
-function centralDirEntry(name, size, crc, offset) {
-  const h = new Uint8Array(46 + name.length);
-  const v = new DataView(h.buffer);
-  v.setUint32(0, 0x02014b50, true); v.setUint16(4, 20, true); v.setUint16(6, 20, true);
-  v.setUint16(8, 0, true); v.setUint16(10, 0, true); v.setUint16(12, 0, true); v.setUint16(14, 0, true);
-  v.setUint32(16, crc, true); v.setUint32(20, size, true); v.setUint32(24, size, true);
-  v.setUint16(28, name.length, true); v.setUint16(30, 0, true); v.setUint16(32, 0, true);
-  v.setUint16(34, 0, true); v.setUint16(36, 0, true); v.setUint32(38, 0, true);
-  v.setUint32(42, offset, true);
-  h.set(name, 46);
-  return h;
-}
-
-function endOfCentralDir(count, cdSize, cdOffset) {
-  const h = new Uint8Array(22);
-  const v = new DataView(h.buffer);
-  v.setUint32(0, 0x06054b50, true); v.setUint16(4, 0, true); v.setUint16(6, 0, true);
-  v.setUint16(8, count, true); v.setUint16(10, count, true);
-  v.setUint32(12, cdSize, true); v.setUint32(16, cdOffset, true); v.setUint16(20, 0, true);
-  return h;
-}
-
-function crc32(data) {
-  let crc = 0xFFFFFFFF;
-  const table = crc32.table || (crc32.table = (() => {
-    const t = new Uint32Array(256);
-    for (let i=0;i<256;i++){let c=i;for(let j=0;j<8;j++)c=c&1?(0xEDB88320^(c>>>1)):(c>>>1);t[i]=c;}
-    return t;
-  })());
-  for (let i = 0; i < data.length; i++) crc = table[(crc ^ data[i]) & 0xFF] ^ (crc >>> 8);
-  return (crc ^ 0xFFFFFFFF) >>> 0;
-}
+function lfh(n,sz,crc){const h=new Uint8Array(30+n.length),v=new DataView(h.buffer);v.setUint32(0,0x04034b50,true);v.setUint16(4,20,true);v.setUint32(14,crc,true);v.setUint32(18,sz,true);v.setUint32(22,sz,true);v.setUint16(26,n.length,true);h.set(n,30);return h;}
+function cde(n,sz,crc,off){const h=new Uint8Array(46+n.length),v=new DataView(h.buffer);v.setUint32(0,0x02014b50,true);v.setUint16(4,20,true);v.setUint16(6,20,true);v.setUint32(16,crc,true);v.setUint32(20,sz,true);v.setUint32(24,sz,true);v.setUint16(28,n.length,true);v.setUint32(42,off,true);h.set(n,46);return h;}
+function eocd(cnt,cdSz,cdOff){const h=new Uint8Array(22),v=new DataView(h.buffer);v.setUint32(0,0x06054b50,true);v.setUint16(8,cnt,true);v.setUint16(10,cnt,true);v.setUint32(12,cdSz,true);v.setUint32(16,cdOff,true);return h;}
+function crc32(data){let c=0xFFFFFFFF;const t=crc32.t||(crc32.t=(()=>{const t=new Uint32Array(256);for(let i=0;i<256;i++){let x=i;for(let j=0;j<8;j++)x=x&1?(0xEDB88320^(x>>>1)):(x>>>1);t[i]=x;}return t;})());for(let i=0;i<data.length;i++)c=t[(c^data[i])&0xFF]^(c>>>8);return(c^0xFFFFFFFF)>>>0;}
 
 // ═══════════════════════════════════════════════════════
 // UTILS
 // ═══════════════════════════════════════════════════════
 function showToast(msg) {
-  const t = document.getElementById('toast');
-  t.textContent = msg;
-  t.classList.add('show');
-  setTimeout(() => t.classList.remove('show'), 2200);
+  const t=document.getElementById('toast');
+  t.textContent=msg; t.classList.add('show');
+  setTimeout(()=>t.classList.remove('show'), 2200);
 }
 
-// ── INIT ──
+// INIT
 buildCards();
-document.addEventListener('click', () => ensureAudio(), { once: true });
+document.addEventListener('click', ()=>ensureAudio(), {once:true});
 </script>
 
 </body>
