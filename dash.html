@@ -1,0 +1,210 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover,user-scalable=no">
+<meta name="theme-color" content="#050505">
+<title>Digital Dash Studio</title>
+<style>
+:root{--bg:#020203;--panel:#0b0b0d;--panel2:#151518;--text:#f4f4f5;--muted:#85858b;--line:#28282d;--accent:#ededed;--danger:#ff453a}
+*{box-sizing:border-box;-webkit-tap-highlight-color:transparent}
+html,body{margin:0;width:100%;height:100%;background:#000;color:var(--text);font-family:-apple-system,BlinkMacSystemFont,"SF Pro Display","Helvetica Neue",sans-serif;overflow:hidden;overscroll-behavior:none}
+body{touch-action:none}
+button,input,select{font:inherit;color:inherit}
+button{border:0}
+#app{width:100%;height:100dvh;min-height:100dvh;display:block}
+header{position:fixed;z-index:100;top:env(safe-area-inset-top);left:0;right:0;height:48px;padding:6px 10px;display:flex;align-items:center;justify-content:space-between;background:linear-gradient(#050506e8,#05050600);pointer-events:none;border:0}
+header>*{pointer-events:auto}
+.brand{font-size:12px;font-weight:800;letter-spacing:.7px;text-shadow:0 2px 10px #000}.brand span{color:#777}
+.actions{display:flex;gap:6px}
+.btn{min-height:38px;padding:8px 12px;background:#151518dd;border:1px solid #343439;border-radius:11px;font-size:12px;backdrop-filter:blur(12px);-webkit-backdrop-filter:blur(12px)}
+.btn.primary{background:#eee;color:#090909;border-color:#eee}
+#stageWrap{position:fixed;inset:0;width:100%;height:100%;overflow:hidden;background:#000}
+#dash{position:absolute;inset:0;overflow:hidden;background:radial-gradient(ellipse at 50% 48%,#19191d 0%,#08080a 48%,#010102 100%);padding:max(4px,env(safe-area-inset-top)) max(4px,env(safe-area-inset-right)) max(4px,env(safe-area-inset-bottom)) max(4px,env(safe-area-inset-left))}
+.grid{position:absolute;inset:0;background-image:linear-gradient(#fff5 1px,transparent 1px),linear-gradient(90deg,#fff5 1px,transparent 1px);background-size:28px 28px;opacity:.12;pointer-events:none}
+.widget{position:absolute;min-width:70px;min-height:55px;touch-action:none;user-select:none;-webkit-user-select:none;cursor:grab}
+.widget.selected{outline:1px solid #fff;outline-offset:2px;border-radius:8px}
+.widget .handle{display:none;position:absolute;width:22px;height:22px;right:-11px;bottom:-11px;border:2px solid #fff;background:#101012;border-radius:50%;z-index:5}
+.widget.selected .handle{display:block}
+.gauge{width:100%;height:100%;position:relative;display:grid;place-items:center}
+.gauge svg{width:100%;height:100%;overflow:visible}
+.gauge .value{position:absolute;font-size:clamp(26px,7vw,72px);font-weight:750;letter-spacing:-2px;font-variant-numeric:tabular-nums}
+.gauge .unit{position:absolute;margin-top:clamp(48px,10vw,82px);color:#8c8c92;font-size:10px;letter-spacing:1.6px;text-transform:uppercase}
+.tacho .value{font-size:clamp(23px,5.8vw,60px)}
+.digital{width:100%;height:100%;display:flex;flex-direction:column;align-items:center;justify-content:center}
+.digital .num{font-size:clamp(28px,8vw,66px);font-weight:800;font-variant-numeric:tabular-nums}
+.digital .small{color:#85858b;font-size:10px;letter-spacing:1.5px;text-transform:uppercase}
+.bar{width:100%;height:100%;display:flex;flex-direction:column;justify-content:center;gap:7px}
+.bar .label{color:#888;font-size:9px;text-transform:uppercase;letter-spacing:1px}.track{height:7px;background:#29292d;border-radius:99px;overflow:hidden}.fill{height:100%;background:#eee;border-radius:99px}
+.indicators{display:flex;justify-content:center;align-items:center;gap:clamp(10px,3vw,24px);font-size:clamp(15px,3vw,24px)}.turn{opacity:.2}.turn.on{opacity:1}.warn{color:#ffb020}
+#sim{position:fixed;z-index:90;left:50%;bottom:max(10px,env(safe-area-inset-bottom));transform:translateX(-50%);display:flex;gap:5px;padding:6px;background:#0b0b0de8;border:1px solid #2b2b30;border-radius:14px;backdrop-filter:blur(14px);-webkit-backdrop-filter:blur(14px)}
+#sim button{min-width:44px;min-height:40px;padding:7px 9px;background:#19191c;border:1px solid #303036;border-radius:10px;font-size:11px}
+#sim .live{min-width:88px}
+#editor{position:fixed;z-index:120;left:0;right:0;bottom:0;width:100%;height:min(68dvh,470px);background:#0a0a0cf5;border-top:1px solid #303035;border-radius:20px 20px 0 0;padding:16px 14px max(14px,env(safe-area-inset-bottom));overflow:auto;transform:translateY(105%);transition:transform .22s ease;box-shadow:0 -20px 50px #0009;backdrop-filter:blur(18px);-webkit-backdrop-filter:blur(18px)}
+#editor.open{transform:translateY(0)}
+#editor:before{content:"";display:block;width:42px;height:4px;background:#444;border-radius:99px;margin:-7px auto 14px}
+.section{padding-bottom:14px;margin-bottom:14px;border-bottom:1px solid #242428}.section h3{font-size:10px;text-transform:uppercase;letter-spacing:1.2px;color:#85858b;margin:0 0 9px}
+.row{display:flex;gap:7px}.row>*{flex:1}
+label{font-size:10px;color:#929297;display:block;margin:7px 0 4px}
+select,input[type=range]{width:100%;background:#17171a;color:#eee;border:1px solid #2b2b30;border-radius:10px;padding:9px;min-height:38px}
+.toggle{display:flex;align-items:center;justify-content:space-between;background:#151518;padding:10px;border-radius:10px;margin:6px 0;font-size:12px}.toggle input{width:20px;height:20px;accent-color:#fff}
+.theme-grid{display:grid;grid-template-columns:repeat(4,1fr);gap:6px}.theme{min-height:42px;border:1px solid #29292d;border-radius:9px;background:#141416;font-size:11px}.theme.active{border-color:#fff}
+#noneSelected{font-size:11px!important}
+body.fullscreen header{display:none}
+body.fullscreen #sim{opacity:.05;transition:opacity .2s}
+body.fullscreen #sim:active,body.fullscreen #sim:hover{opacity:1}
+body.fullscreen #stageWrap{inset:0}
+@media (orientation:portrait){
+ #dash:after{content:"ROTATE IPHONE";position:absolute;inset:0;z-index:200;display:flex;align-items:center;justify-content:center;text-align:center;font-size:16px;font-weight:750;letter-spacing:2px;background:#020203;color:#777}
+ #dash:before{content:"Turn your phone sideways to use the digital dash";position:absolute;inset:50% 20px auto;z-index:201;text-align:center;font-size:12px;color:#aaa;transform:translateY(30px)}
+}
+@media (min-width:700px){
+ header{height:58px;padding:8px 16px}.brand{font-size:14px}
+ #editor{left:auto;right:0;top:0;bottom:0;width:320px;height:100%;border-top:0;border-left:1px solid #242428;border-radius:0;transform:translateX(105%);padding-top:70px}
+ #editor.open{transform:translateX(0)}
+ #editor:before{display:none}
+}
+</style>
+</head>
+<body>
+<div id="app">
+<header>
+  <div class="brand">DIGITAL DASH <span>STUDIO</span></div>
+  <div class="actions">
+    <button class="btn hideMobile" id="driveBtn">Drive Mode</button>
+    <button class="btn" id="editBtn">Customize</button>
+    <button class="btn primary" id="fullBtn">Fullscreen</button>
+  </div>
+</header>
+<main>
+<section id="stageWrap">
+ <div id="dash"><div class="grid"></div></div>
+ <div id="sim">
+   <button id="brake">Brake</button><button id="gas">Accelerate</button>
+   <button id="shiftDown">− Gear</button><button id="shiftUp">+ Gear</button>
+   <button class="live" id="simState">SIMULATED</button>
+ </div>
+</section>
+<aside id="editor">
+ <div class="section"><h3>Theme</h3><div class="theme-grid">
+   <button class="theme active" data-theme="oem">OEM</button><button class="theme" data-theme="sport">Sport</button>
+   <button class="theme" data-theme="future">Future</button><button class="theme" data-theme="retro">Retro</button>
+ </div></div>
+ <div class="section"><h3>Layout</h3>
+   <div class="row"><button class="btn" id="addSpeed">+ Speed</button><button class="btn" id="addTacho">+ RPM</button></div>
+   <div class="row" style="margin-top:7px"><button class="btn" id="addDigital">+ Digital</button><button class="btn" id="addBar">+ Bar</button></div>
+   <button class="btn" id="reset" style="width:100%;margin-top:7px">Reset Layout</button>
+ </div>
+ <div class="section"><h3>Selected Component</h3>
+   <div id="noneSelected" style="color:#777;font-size:12px">Select a component on the dash.</div>
+   <div id="controls" style="display:none">
+    <label>Type</label><select id="type"><option value="speed">Speedometer</option><option value="tacho">Tachometer</option><option value="digital">Digital</option><option value="bar">Bar</option><option value="indicators">Indicators</option></select>
+    <label>Size</label><input id="size" type="range" min="60" max="500">
+    <label>Rotation</label><input id="rotation" type="range" min="-180" max="180">
+    <div class="toggle">Inverted tach <input id="invert" type="checkbox"></div>
+    <div class="toggle">Show grid <input id="gridToggle" type="checkbox" checked></div>
+    <button class="btn" id="delete" style="width:100%;margin-top:8px">Delete Component</button>
+   </div>
+ </div>
+ <div class="section"><h3>Simulation</h3>
+   <div class="toggle">Auto drive <input id="auto" type="checkbox" checked></div>
+   <label>Simulation intensity</label><input id="intensity" type="range" min="0" max="100" value="55">
+   <div style="font-size:11px;color:#777;margin-top:8px">The vehicle-data layer is isolated from the UI so a future OBD-II adapter can replace simulated values.</div>
+ </div>
+</aside>
+</main>
+</div>
+<script>
+const dash=document.getElementById('dash'), editor=document.getElementById('editor');
+let selected=null, nextId=1, theme='oem', data={speed:72,rpm:3100,gear:3,fuel:68,temp:88,oil:96,odo:125127,trip:42.7};
+const layouts={
+ oem:[['speed',8,8,38,84,0],['tacho',54,8,38,84,0],['digital',42,39,16,22,0],['indicators',42,10,16,8,0]],
+ sport:[['tacho',5,7,55,86,0],['speed',65,23,29,50,0],['digital',42,80,16,12,0],['indicators',42,7,16,8,0]],
+ future:[['speed',4,12,34,70,0],['tacho',62,12,34,70,0],['digital',39,42,22,18,0],['bar',36,78,28,10,0]],
+ retro:[['speed',12,18,32,64,0],['tacho',56,18,32,64,0],['digital',40,78,20,12,0],['indicators',42,8,16,8,0]]
+};
+function svgGauge(type){
+ let inv=selected?.invert;
+ let start=inv?210:-30, end=inv?-30:210, max=type==='speed'?160:8000, val=type==='speed'?data.speed:data.rpm;
+ let frac=Math.max(0,Math.min(1,val/max)), angle=start+(end-start)*frac;
+ let ticks='';
+ for(let i=0;i<=10;i++){let a=(start+(end-start)*i/10)*Math.PI/180,x1=50+39*Math.cos(a),y1=50+39*Math.sin(a),x2=50+34*Math.cos(a),y2=50+34*Math.sin(a);ticks+=`<line x1="${x1}" y1="${y1}" x2="${x2}" y2="${y2}" stroke="currentColor" stroke-width="${i%5===0?1.7:1}"/>`}
+ let nums='';
+ for(let i=0;i<=8;i++){let n=type==='speed'?i*20:i*1000, a=(start+(end-start)*i/8)*Math.PI/180,x=50+29*Math.cos(a),y=50+29*Math.sin(a)+3;nums+=`<text x="${x}" y="${y}" text-anchor="middle" font-size="5" fill="currentColor">${n}</text>`}
+ let na=angle*Math.PI/180,nx=50+29*Math.cos(na),ny=50+29*Math.sin(na);
+ return `<svg viewBox="0 0 100 100"><path d="M 11 50 A 39 39 0 1 1 89 50" fill="none" stroke="#28282c" stroke-width="2"/><g>${ticks}</g><g>${nums}</g><line x1="50" y1="50" x2="${nx}" y2="${ny}" stroke="currentColor" stroke-width="1.5" stroke-linecap="round"/><circle cx="50" cy="50" r="2.8" fill="currentColor"/></svg><div class="value">${Math.round(val)}</div><div class="unit">${type==='speed'?'MPH':'RPM'}</div>`;
+}
+function renderWidget(w){
+ let el=document.getElementById(w.id); if(!el)return;
+ el.style.left=w.x+'%';el.style.top=w.y+'%';el.style.width=w.w+'%';el.style.height=w.h+'%';el.style.transform=`rotate(${w.r}deg)`;
+ el.className='widget '+w.type+(selected===w?' selected':''); el.innerHTML='';
+ if(w.type==='speed'||w.type==='tacho'){let d=document.createElement('div');d.className='gauge';d.innerHTML=svgGauge(w.type);el.appendChild(d)}
+ else if(w.type==='digital'){el.innerHTML=`<div class="digital"><div class="num">${data.gear}</div><div class="small">Gear</div></div>`}
+ else if(w.type==='bar'){el.innerHTML=`<div class="bar"><div class="label">Fuel ${Math.round(data.fuel)}%</div><div class="track"><div class="fill" style="width:${data.fuel}%"></div></div><div class="label">Coolant ${Math.round(data.temp)}°</div><div class="track"><div class="fill" style="width:${Math.min(100,data.temp)}%"></div></div></div>`}
+ else if(w.type==='indicators'){el.innerHTML=`<div class="indicators"><span class="turn ${Math.sin(Date.now()/450)>0.75?'on':''}">◀</span><span class="warn">●</span><span class="turn ${Math.sin(Date.now()/450)<-0.75?'on':''}">▶</span></div>`}
+ let h=document.createElement('div');h.className='handle';el.appendChild(h);
+}
+function addWidget(type,x=10,y=10,w=25,h=25,r=0){
+ let o={id:'w'+nextId++,type,x,y,w,h,r,invert:false};let el=Object.assign(document.createElement('div'),{id:o.id}); el._obj=o; dash.appendChild(el);
+ dash.lastElementChild.addEventListener('pointerdown',startDrag);renderWidget(o);return o;
+}
+function loadTheme(name){
+ theme=name;dash.querySelectorAll('.widget').forEach(x=>x.remove());selected=null;
+ layouts[name].forEach(a=>{let w=addWidget(a[0],a[1],a[2],a[3],a[4],a[5]);});
+ document.querySelectorAll('.theme').forEach(b=>b.classList.toggle('active',b.dataset.theme===name));syncControls();
+}
+function allWidgets(){return [...dash.querySelectorAll('.widget')].map(el=>{let o=el._obj;return o}).filter(Boolean)}
+function bindObj(el,o){el._obj=o}
+function startDrag(e){
+ if(document.body.classList.contains('fullscreen'))return;
+ let el=e.currentTarget,w=el._obj;if(!w)return;
+ selected=w;syncControls();el.setPointerCapture(e.pointerId);
+ let sx=e.clientX,sy=e.clientY,ox=w.x,oy=w.y;
+ function move(ev){let r=dash.getBoundingClientRect();w.x=Math.max(0,Math.min(100-w.w,ox+(ev.clientX-sx)/r.width*100));w.y=Math.max(0,Math.min(100-w.h,oy+(ev.clientY-sy)/r.height*100));renderWidget(w)}
+ function up(){el.removeEventListener('pointermove',move);el.removeEventListener('pointerup',up)}
+ el.addEventListener('pointermove',move);el.addEventListener('pointerup',up);
+}
+const oldAdd=addWidget; addWidget=function(type,x,y,w,h,r){let o=oldAdd(type,x,y,w,h,r);let el=document.getElementById(o.id);bindObj(el,o);return o};
+function syncControls(){
+ let has=!!selected;document.getElementById('controls').style.display=has?'block':'none';document.getElementById('noneSelected').style.display=has?'none':'block';
+ if(!has)return;document.getElementById('type').value=selected.type;document.getElementById('size').value=Math.round((selected.w+selected.h)*2);document.getElementById('rotation').value=selected.r;document.getElementById('invert').checked=selected.invert;
+}
+document.getElementById('type').onchange=e=>{selected.type=e.target.value;renderWidget(selected)}
+document.getElementById('size').oninput=e=>{let s=+e.target.value/2;selected.w=Math.min(80,s);selected.h=Math.min(80,s);renderWidget(selected)}
+document.getElementById('rotation').oninput=e=>{selected.r=+e.target.value;renderWidget(selected)}
+document.getElementById('invert').onchange=e=>{selected.invert=e.target.checked;renderWidget(selected)}
+document.getElementById('gridToggle').onchange=e=>dash.querySelector('.grid').style.display=e.target.checked?'block':'none';
+document.getElementById('delete').onclick=()=>{if(selected){document.getElementById(selected.id).remove();selected=null;syncControls()}}
+document.querySelectorAll('.theme').forEach(b=>b.onclick=()=>loadTheme(b.dataset.theme));
+document.getElementById('reset').onclick=()=>loadTheme(theme);
+document.getElementById('addSpeed').onclick=()=>{selected=addWidget('speed',35,35,25,35);syncControls()};
+document.getElementById('addTacho').onclick=()=>{selected=addWidget('tacho',35,35,25,35);syncControls()};
+document.getElementById('addDigital').onclick=()=>{selected=addWidget('digital',35,35,18,15);syncControls()};
+document.getElementById('addBar').onclick=()=>{selected=addWidget('bar',35,35,30,15);syncControls()};
+document.getElementById('editBtn').onclick=()=>editor.classList.toggle('open');
+document.getElementById('driveBtn').onclick=()=>{document.body.classList.toggle('fullscreen');editor.classList.remove('open')};
+document.getElementById('fullBtn').onclick=()=>{document.body.classList.toggle('fullscreen');editor.classList.remove('open')};
+let gas=false,brake=false;
+document.getElementById('gas').onpointerdown=()=>gas=true;document.getElementById('gas').onpointerup=()=>gas=false;
+document.getElementById('brake').onpointerdown=()=>brake=true;document.getElementById('brake').onpointerup=()=>brake=false;
+document.getElementById('shiftUp').onclick=()=>data.gear=Math.min(6,data.gear+1);
+document.getElementById('shiftDown').onclick=()=>data.gear=Math.max(1,data.gear-1);
+document.getElementById('simState').onclick=()=>document.getElementById('auto').click();
+let last=performance.now();
+function loop(t){
+ let dt=Math.min(.05,(t-last)/1000);last=t;
+ if(document.getElementById('auto').checked||gas||brake){
+  let target=gas?Math.min(160,data.speed+70*dt):brake?Math.max(0,data.speed-110*dt):data.speed+Math.sin(t/2500)*.8*dt;
+  data.speed+=(target-data.speed)*Math.min(1,dt*1.7);
+  let targetR=gas?Math.min(8000,1300+data.speed*48):Math.max(900,900+data.speed*42);
+  data.rpm+=(targetR-data.rpm)*Math.min(1,dt*3);
+  data.temp+=((88+data.speed*.02)-data.temp)*dt*.15;
+  data.oil+=((96+data.rpm/1000)-data.oil)*dt*.1;
+  data.fuel=Math.max(0,data.fuel-data.speed*0.000003);
+ }
+ allWidgets().forEach(renderWidget);requestAnimationFrame(loop)
+}
+loadTheme('oem');requestAnimationFrame(loop);
+</script>
+</body>
+</html>
