@@ -22,7 +22,8 @@ header>*{pointer-events:auto}
 #exitFull{position:fixed;z-index:150;top:max(8px,env(safe-area-inset-top));right:8px;display:none;opacity:.32;transition:opacity .2s}
 #exitFull:active,#exitFull:hover{opacity:1}
 body.fullscreen #exitFull{display:block}
-#stageWrap{position:fixed;inset:0;width:100%;height:100%;overflow:hidden;background:#000}
+#stageWrap{position:fixed;inset:0;overflow:hidden;background:#000;transition:right .22s ease,bottom .22s ease}
+body.editor-open #stageWrap{bottom:min(72dvh,540px)}
 #dash{position:absolute;inset:0;overflow:hidden;background:radial-gradient(ellipse at 50% 48%,#19191d 0%,#08080a 48%,#010102 100%);padding:max(4px,env(safe-area-inset-top)) max(4px,env(safe-area-inset-right)) max(4px,env(safe-area-inset-bottom)) max(4px,env(safe-area-inset-left))}
 .grid{position:absolute;inset:0;background-image:linear-gradient(#fff5 1px,transparent 1px),linear-gradient(90deg,#fff5 1px,transparent 1px);background-size:28px 28px;opacity:.12;pointer-events:none}
 #ambientGlow{position:absolute;inset:0;pointer-events:none;box-shadow:inset 0 0 70px 0 var(--ambient);opacity:0;transition:opacity .5s}
@@ -39,16 +40,30 @@ body.fullscreen #exitFull{display:block}
 .shiftdot{position:absolute;width:8px;height:8px;border-radius:50%;background:#ff453a;top:10%;left:50%;transform:translateX(-50%);animation:pulse .4s infinite alternate;box-shadow:0 0 8px #ff453a}
 @keyframes pulse{from{opacity:1}to{opacity:.25}}
 .digital{width:100%;height:100%;display:flex;flex-direction:column;align-items:center;justify-content:center}
+.digital.card{border:1px solid #2b2b30;border-radius:14px;background:#101012b3;padding:6px}
 .digital .num{font-size:clamp(28px,8vw,66px);font-weight:800;font-variant-numeric:tabular-nums;color:inherit}
 .digital .small{color:#85858b;font-size:10px;letter-spacing:1.5px;text-transform:uppercase}
 .bar{width:100%;height:100%;display:flex;flex-direction:column;justify-content:center;gap:7px}
 .bar .label{color:#888;font-size:9px;text-transform:uppercase;letter-spacing:1px}.track{height:7px;background:#29292d;border-radius:99px;overflow:hidden}.fill{height:100%;background:currentColor;border-radius:99px}
+.segrow{display:flex;gap:2px;height:10px}.segbit{flex:1;background:#29292d;border-radius:2px}.segbit.on{background:currentColor}
 .indicators{display:flex;justify-content:center;align-items:center;gap:clamp(10px,3vw,24px);font-size:clamp(15px,3vw,24px)}.turn{opacity:.2}.turn.on{opacity:1}.warn{color:#ffb020}
+.turn.dash{display:inline-block;width:clamp(20px,5vw,34px);height:7px;border-radius:4px;background:#34c759}
 .rangeTag{position:absolute;bottom:6%;left:0;right:0;text-align:center;font-size:10px;color:#8c8c92;letter-spacing:1px}
 .tiregrid{display:grid;grid-template-columns:1fr 1fr;grid-template-rows:1fr 1fr;gap:4px;width:100%;height:100%;place-items:center}
 .tiregrid .tv{font-size:clamp(13px,2.8vw,20px);font-weight:700;font-variant-numeric:tabular-nums;color:inherit}
 .tiregrid .tl{font-size:8px;color:#85858b;letter-spacing:1px}
-#sim{position:fixed;z-index:90;left:50%;bottom:max(10px,env(safe-area-inset-bottom));transform:translateX(-50%);display:flex;gap:5px;padding:6px;background:#0b0b0de8;border:1px solid #2b2b30;border-radius:14px;backdrop-filter:blur(14px);-webkit-backdrop-filter:blur(14px)}
+.tirebars{display:flex;gap:6px;align-items:flex-end;width:100%;height:100%;padding:2px 0}
+.tirebar{position:relative;flex:1;height:100%;background:#1a1a1d;border-radius:5px;overflow:hidden;display:flex;align-items:flex-end;justify-content:center}
+.tirebarfill{position:absolute;left:0;right:0;bottom:0;background:currentColor;opacity:.5}
+.tirebar .tv{position:relative;z-index:1;font-size:9px;font-weight:700;color:#fff;padding-bottom:3px}
+.battcell{width:100%;height:100%;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:8px}
+.cellbody{position:relative;width:38%;height:56%;border:3px solid currentColor;border-radius:8px;overflow:hidden}
+.celltip{position:absolute;top:-8px;left:50%;transform:translateX(-50%);width:30%;height:6px;background:currentColor;border-radius:2px 2px 0 0}
+.cellfill{position:absolute;left:2px;right:2px;bottom:2px;background:currentColor;opacity:.75;border-radius:3px;transition:height .3s}
+.dmpill{width:100%;height:100%;display:flex;align-items:center;justify-content:center;gap:7px;border:2px solid;border-radius:999px;font-size:clamp(11px,2.6vw,15px);font-weight:800;letter-spacing:1px}
+.dmdot{width:8px;height:8px;border-radius:50%;flex:none}
+#sim{position:fixed;z-index:90;left:50%;bottom:max(10px,env(safe-area-inset-bottom));transform:translateX(-50%);display:flex;gap:5px;padding:6px;background:#0b0b0de8;border:1px solid #2b2b30;border-radius:14px;backdrop-filter:blur(14px);-webkit-backdrop-filter:blur(14px);transition:bottom .22s ease}
+body.editor-open #sim{bottom:calc(min(72dvh,540px) + 10px)}
 #sim button{min-width:44px;min-height:40px;padding:7px 9px;background:#19191c;border:1px solid #303036;border-radius:10px;font-size:11px}
 #sim .live{min-width:88px}
 body.fullscreen #sim{opacity:.05;transition:opacity .2s}
@@ -82,6 +97,8 @@ body.fullscreen #stageWrap{inset:0}
  #editor{left:auto;right:0;top:0;bottom:0;width:340px;height:100%;border-top:0;border-left:1px solid #242428;border-radius:0;transform:translateX(105%);padding-top:70px}
  #editor.open{transform:translateX(0)}
  #editor:before{display:none}
+ body.editor-open #stageWrap{bottom:0;right:340px}
+ body.editor-open #sim{bottom:max(10px,env(safe-area-inset-bottom));left:calc(50% - 170px)}
 }
 </style>
 </head>
@@ -141,10 +158,7 @@ body.fullscreen #stageWrap{inset:0}
      <option value="gforce">G-Force</option><option value="battery">Battery</option>
      <option value="tirepressure">Tire Pressure</option><option value="drivemode">Drive Mode</option>
     </select>
-    <div id="styleRow"><label>Gauge Style</label><select id="gstyle">
-     <option value="analog">Analog</option><option value="minimal">Minimal</option>
-     <option value="digital">Digital Arc</option><option value="led">LED Bar</option>
-    </select></div>
+    <div id="styleRow"><label>Style</label><select id="gstyle"></select></div>
     <div id="metricRow"><label>Metric</label><select id="metric"></select></div>
     <div id="invertRow"><div class="toggle">Inverted sweep <input id="invert" type="checkbox"></div></div>
     <label>Size</label><input id="size" type="range" min="40" max="500">
@@ -183,6 +197,20 @@ const STORAGE_KEY='digitalDashState_v2';
 const PALETTE=['#ededed','#00e5ff','#ff3b30','#ff9f0a','#34c759','#af52de','#ffd60a','#c9a869'];
 const themeAccents={oem:'#ededed',sport:'#ff3b30',future:'#00e5ff',retro:'#ffb020',luxury:'#c9a869',track:'#ff2d55',ev:'#34c759'};
 const DRIVE_MODES={Eco:{accel:.6,brake:1,color:'#34c759'},Comfort:{accel:1,brake:1,color:'#ededed'},Sport:{accel:1.45,brake:1.15,color:'#ff9f0a'},Track:{accel:1.8,brake:1.3,color:'#ff2d55'}};
+const STYLE_OPTIONS={
+ speed:[['analog','Analog'],['minimal','Minimal'],['digital','Digital Arc'],['led','LED Bar']],
+ tacho:[['analog','Analog'],['minimal','Minimal'],['digital','Digital Arc'],['led','LED Bar']],
+ radial:[['minimal','Minimal'],['analog','Analog'],['digital','Digital Arc'],['led','LED Bar']],
+ indicators:[['classic','Classic'],['dashes','Dash Bars']],
+ digital:[['plain','Plain'],['card','Card']],
+ bar:[['horizontal','Horizontal'],['segmented','Segmented']],
+ clock:[['digital','Digital'],['analog','Analog']],
+ compass:[['numeric','Numeric'],['dial','Dial']],
+ gforce:[['dot','Dot'],['axes','Axes']],
+ battery:[['arc','Arc'],['cell','Cell']],
+ tirepressure:[['grid','Grid'],['bars','Bars']],
+ drivemode:[['label','Label'],['pill','Pill']]
+};
 const METRICS={
  speed:{label:'Speed',unit:'MPH',max:160,get:d=>Math.round(d.speed)},
  rpm:{label:'RPM',unit:'RPM',max:8000,get:d=>Math.round(d.rpm)},
@@ -245,7 +273,7 @@ function buildGaugeHTML(cfg){
 
 function defaultsFor(type){
  let d={};
- if(['speed','tacho','radial'].includes(type)) d.style=type==='radial'?'minimal':'analog';
+ if(STYLE_OPTIONS[type]) d.style=STYLE_OPTIONS[type][0][0];
  if(['digital','bar','radial'].includes(type)) d.metric=type==='digital'?'gear':type==='bar'?'fuel':'boost';
  return d;
 }
@@ -264,28 +292,70 @@ function renderWidget(w){
   else{let m=METRICS[w.metric||'boost'];cfg={val:parseFloat(m.get(data))||0,max:m.max||100,unit:m.unit,style:w.style||'minimal'};}
   let d=document.createElement('div');d.className='gauge'+(w.type==='tacho'?' tacho':'');d.innerHTML=buildGaugeHTML(cfg);el.appendChild(d);
  } else if(w.type==='digital'){
-  let m=METRICS[w.metric||'gear'];el.innerHTML=`<div class="digital"><div class="num">${m.get(data)}</div><div class="small">${m.label}</div></div>`;
+  let m=METRICS[w.metric||'gear'];
+  el.innerHTML=`<div class="digital${w.style==='card'?' card':''}"><div class="num">${m.get(data)}</div><div class="small">${m.label}</div></div>`;
  } else if(w.type==='bar'){
   let m=METRICS[w.metric||'fuel'],val=m.get(data),pct=m.max?Math.max(0,Math.min(100,(parseFloat(val)/m.max)*100)):0;
-  el.innerHTML=`<div class="bar"><div class="label">${m.label} · ${val}${m.unit==='%'?'%':' '+m.unit}</div><div class="track"><div class="fill" style="width:${pct}%"></div></div></div>`;
+  if(w.style==='segmented'){
+   let segs=16,lit=Math.round(pct/100*segs),bits='';
+   for(let i=0;i<segs;i++)bits+=`<div class="segbit${i<lit?' on':''}"></div>`;
+   el.innerHTML=`<div class="bar"><div class="label">${m.label} · ${val}${m.unit==='%'?'%':' '+m.unit}</div><div class="segrow">${bits}</div></div>`;
+  } else {
+   el.innerHTML=`<div class="bar"><div class="label">${m.label} · ${val}${m.unit==='%'?'%':' '+m.unit}</div><div class="track"><div class="fill" style="width:${pct}%"></div></div></div>`;
+  }
  } else if(w.type==='indicators'){
-  el.innerHTML=`<div class="indicators"><span class="turn ${Math.sin(Date.now()/450)>0.75?'on':''}">◀</span><span class="warn">●</span><span class="turn ${Math.sin(Date.now()/450)<-0.75?'on':''}">▶</span></div>`;
+  let l=Math.sin(Date.now()/450)>0.75,r2=Math.sin(Date.now()/450)<-0.75;
+  if(w.style==='dashes'){
+   el.innerHTML=`<div class="indicators"><span class="turn dash${l?' on':''}"></span><span class="warn">●</span><span class="turn dash${r2?' on':''}"></span></div>`;
+  } else {
+   el.innerHTML=`<div class="indicators"><span class="turn${l?' on':''}">◀</span><span class="warn">●</span><span class="turn${r2?' on':''}">▶</span></div>`;
+  }
  } else if(w.type==='clock'){
   let now=new Date(),hh=now.getHours().toString().padStart(2,'0'),mm=now.getMinutes().toString().padStart(2,'0');
-  el.innerHTML=`<div class="digital"><div class="num" style="font-size:clamp(20px,5.5vw,42px)">${hh}:${mm}</div><div class="small">${now.toLocaleDateString(undefined,{weekday:'short',month:'short',day:'numeric'})}</div></div>`;
+  if(w.style==='analog'){
+   let hAng=((now.getHours()%12)+now.getMinutes()/60)/12*360-90,mAng=(now.getMinutes()+now.getSeconds()/60)/60*360-90;
+   let hr=hAng*Math.PI/180,mr=mAng*Math.PI/180;
+   let hx=50+22*Math.cos(hr),hy=50+22*Math.sin(hr),mx=50+31*Math.cos(mr),my=50+31*Math.sin(mr);
+   el.innerHTML=`<svg viewBox="0 0 100 100" style="width:100%;height:100%"><circle cx="50" cy="50" r="45" fill="none" stroke="#28282c" stroke-width="2"/><line x1="50" y1="50" x2="${hx.toFixed(1)}" y2="${hy.toFixed(1)}" stroke="currentColor" stroke-width="4" stroke-linecap="round"/><line x1="50" y1="50" x2="${mx.toFixed(1)}" y2="${my.toFixed(1)}" stroke="currentColor" stroke-width="2.4" stroke-linecap="round"/><circle cx="50" cy="50" r="2.6" fill="currentColor"/></svg>`;
+  } else {
+   el.innerHTML=`<div class="digital"><div class="num" style="font-size:clamp(20px,5.5vw,42px)">${hh}:${mm}</div><div class="small">${now.toLocaleDateString(undefined,{weekday:'short',month:'short',day:'numeric'})}</div></div>`;
+  }
  } else if(w.type==='compass'){
   const dirs=['N','NE','E','SE','S','SW','W','NW'];let d8=dirs[Math.round(data.heading/45)%8];
-  el.innerHTML=`<div class="digital"><div class="num" style="font-size:clamp(18px,4.5vw,32px)">${Math.round(data.heading)}°</div><div class="small">${d8}</div></div>`;
+  if(w.style==='dial'){
+   el.innerHTML=`<div class="gauge"><svg viewBox="0 0 100 100" style="width:100%;height:100%"><circle cx="50" cy="50" r="45" fill="none" stroke="#28282c" stroke-width="2"/><g transform="rotate(${(-data.heading).toFixed(1)} 50 50)"><line x1="50" y1="9" x2="50" y2="20" stroke="#ff453a" stroke-width="2.5" stroke-linecap="round"/><line x1="50" y1="80" x2="50" y2="91" stroke="currentColor" stroke-width="2" stroke-linecap="round"/><line x1="9" y1="50" x2="91" y2="50" stroke="#333" stroke-width="1"/></g><circle cx="50" cy="50" r="3" fill="currentColor"/></svg></div><div class="unit" style="margin-top:clamp(48px,10vw,82px)">${Math.round(data.heading)}° ${d8}</div>`;
+  } else {
+   el.innerHTML=`<div class="digital"><div class="num" style="font-size:clamp(18px,4.5vw,32px)">${Math.round(data.heading)}°</div><div class="small">${d8}</div></div>`;
+  }
  } else if(w.type==='gforce'){
-  let x=50+Math.max(-1,Math.min(1,data.gLat))*38,y=50-Math.max(-1,Math.min(1,data.gLon))*38;
-  el.innerHTML=`<svg viewBox="0 0 100 100"><circle cx="50" cy="50" r="44" fill="none" stroke="#28282c" stroke-width="1.5"/><circle cx="50" cy="50" r="27" fill="none" stroke="#232326" stroke-width="1"/><line x1="50" y1="6" x2="50" y2="94" stroke="#1c1c1f" stroke-width="1"/><line x1="6" y1="50" x2="94" y2="50" stroke="#1c1c1f" stroke-width="1"/><circle cx="${x}" cy="${y}" r="5" fill="currentColor"/></svg>`;
+  if(w.style==='axes'){
+   let latPct=(Math.max(-1,Math.min(1,data.gLat))*50+50),lonPct=(Math.max(-1,Math.min(1,data.gLon))*50+50);
+   el.innerHTML=`<div class="bar"><div class="label">LAT</div><div class="track"><div class="fill" style="width:${latPct}%"></div></div><div class="label">LON</div><div class="track"><div class="fill" style="width:${lonPct}%"></div></div></div>`;
+  } else {
+   let x=50+Math.max(-1,Math.min(1,data.gLat))*38,y=50-Math.max(-1,Math.min(1,data.gLon))*38;
+   el.innerHTML=`<svg viewBox="0 0 100 100"><circle cx="50" cy="50" r="44" fill="none" stroke="#28282c" stroke-width="1.5"/><circle cx="50" cy="50" r="27" fill="none" stroke="#232326" stroke-width="1"/><line x1="50" y1="6" x2="50" y2="94" stroke="#1c1c1f" stroke-width="1"/><line x1="6" y1="50" x2="94" y2="50" stroke="#1c1c1f" stroke-width="1"/><circle cx="${x}" cy="${y}" r="5" fill="currentColor"/></svg>`;
+  }
  } else if(w.type==='battery'){
-  el.innerHTML=`<div class="gauge">${buildGaugeHTML({val:data.battery,max:100,unit:'% CHG',style:w.style||'minimal'})}</div><div class="rangeTag">${Math.round(data.range)} mi range</div>`;
+  if(w.style==='cell'){
+   let pct=Math.max(0,Math.min(100,data.battery));
+   el.innerHTML=`<div class="battcell"><div class="cellbody"><div class="celltip"></div><div class="cellfill" style="height:${pct}%"></div></div><div class="small">${Math.round(pct)}% · ${Math.round(data.range)} mi</div></div>`;
+  } else {
+   el.innerHTML=`<div class="gauge">${buildGaugeHTML({val:data.battery,max:100,unit:'% CHG',style:'minimal'})}</div><div class="rangeTag">${Math.round(data.range)} mi range</div>`;
+  }
  } else if(w.type==='tirepressure'){
-  el.innerHTML=`<div class="tiregrid">${data.tires.map(p=>`<div><div class="tv">${p.toFixed(0)}</div><div class="tl">PSI</div></div>`).join('')}</div>`;
+  if(w.style==='bars'){
+   let bars=data.tires.map(p=>{let pct=Math.max(4,Math.min(100,(p-24)/(40-24)*100));return `<div class="tirebar"><div class="tirebarfill" style="height:${pct}%"></div><div class="tv">${p.toFixed(0)}</div></div>`}).join('');
+   el.innerHTML=`<div class="tirebars">${bars}</div>`;
+  } else {
+   el.innerHTML=`<div class="tiregrid">${data.tires.map(p=>`<div><div class="tv">${p.toFixed(0)}</div><div class="tl">PSI</div></div>`).join('')}</div>`;
+  }
  } else if(w.type==='drivemode'){
-  let m=DRIVE_MODES[data.driveMode];
-  el.innerHTML=`<div class="digital"><div class="num" style="font-size:clamp(15px,3.6vw,24px);color:${w.color||m.color}">${data.driveMode.toUpperCase()}</div><div class="small">Drive Mode · Tap</div></div>`;
+  let m=DRIVE_MODES[data.driveMode],c=w.color||m.color;
+  if(w.style==='pill'){
+   el.innerHTML=`<div class="dmpill" style="border-color:${c};color:${c}"><span class="dmdot" style="background:${c}"></span>${data.driveMode.toUpperCase()}</div>`;
+  } else {
+   el.innerHTML=`<div class="digital"><div class="num" style="font-size:clamp(15px,3.6vw,24px);color:${c}">${data.driveMode.toUpperCase()}</div><div class="small">Drive Mode · Tap</div></div>`;
+  }
  }
  let h=document.createElement('div');h.className='handle';h.addEventListener('pointerdown',e=>startResize(e,w));el.appendChild(h);
 }
@@ -379,13 +449,18 @@ function syncControls(){
  document.getElementById('size').value=Math.round((selected.w+selected.h)*2);
  document.getElementById('rotation').value=selected.r||0;
  document.getElementById('invert').checked=!!selected.invert;
- let showStyle=['speed','tacho','radial'].includes(selected.type);
+ let styleOpts=STYLE_OPTIONS[selected.type];
+ let showStyle=!!styleOpts;
  let showMetric=['digital','bar','radial'].includes(selected.type);
  let showInvert=selected.type==='tacho';
  document.getElementById('styleRow').style.display=showStyle?'block':'none';
  document.getElementById('metricRow').style.display=showMetric?'block':'none';
  document.getElementById('invertRow').style.display=showInvert?'block':'none';
- if(showStyle)document.getElementById('gstyle').value=selected.style||'analog';
+ if(showStyle){
+  let sel=document.getElementById('gstyle');
+  sel.innerHTML=styleOpts.map(([v,l])=>`<option value="${v}">${l}</option>`).join('');
+  sel.value=selected.style||styleOpts[0][0];
+ }
  if(showMetric)document.getElementById('metric').value=selected.metric||'gear';
  buildSwatches(document.getElementById('colorSwatches'),selected.color,c=>{selected.color=c;renderWidget(selected);saveState();syncControls();},true);
 }
@@ -412,12 +487,13 @@ document.querySelector('.tool-grid').addEventListener('click',e=>{
  let b=e.target.closest('.tool');if(!b)return;let t=b.dataset.type,s=SIZES[t]||[25,25];
  selected=addWidget(t,32,32,s[0],s[1]);syncControls();saveState();
 });
-function closeEditor(){editor.classList.remove('open');document.getElementById('editBtn').textContent='Customize';}
-document.getElementById('editBtn').onclick=()=>{
- let willOpen=!editor.classList.contains('open');
- editor.classList.toggle('open');
- document.getElementById('editBtn').textContent=willOpen?'Done':'Customize';
-};
+function setEditorOpen(open){
+ editor.classList.toggle('open',open);
+ document.body.classList.toggle('editor-open',open);
+ document.getElementById('editBtn').textContent=open?'Done':'Customize';
+}
+function closeEditor(){setEditorOpen(false);}
+document.getElementById('editBtn').onclick=()=>setEditorOpen(!editor.classList.contains('open'));
 document.getElementById('editorClose').onclick=closeEditor;
 document.getElementById('driveBtn').onclick=()=>{document.body.classList.add('fullscreen');closeEditor()};
 document.getElementById('fullBtn').onclick=()=>{document.body.classList.toggle('fullscreen');closeEditor()};
