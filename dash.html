@@ -107,6 +107,10 @@ body.fullscreen #stageWrap{inset:0}
  <div class="toast" id="toast"></div>
 </section>
 <aside id="editor">
+ <div style="display:flex;align-items:center;justify-content:space-between;margin:-4px 0 12px">
+   <div style="font-size:11px;font-weight:800;letter-spacing:1.2px;color:#ccc;text-transform:uppercase">Customize</div>
+   <button class="btn primary" id="editorClose" style="min-height:32px;padding:6px 14px">Done</button>
+ </div>
  <div class="section"><h3>Theme</h3><div class="theme-grid">
    <button class="theme active" data-theme="oem">OEM</button><button class="theme" data-theme="sport">Sport</button>
    <button class="theme" data-theme="future">HUD</button><button class="theme" data-theme="retro">Retro</button>
@@ -210,19 +214,24 @@ const layouts={
 };
 
 function buildGaugeHTML(cfg){
- let inv=cfg.invert, start=inv?210:-30, end=inv?-30:210;
+ // start/end are angles (degrees, 0=right,90=down) for the ends of the dial.
+ // The dial track is the top semicircle from 180deg (left) to 360deg (right),
+ // swept clockwise through 270deg (top) - so low values sit on the left and
+ // high values on the right, matching the visible arc drawn below.
+ let inv=cfg.invert, start=inv?360:180, end=inv?180:360;
  let max=cfg.max||100, val=cfg.val, style=cfg.style||'analog';
  let frac=Math.max(0,Math.min(1,val/max)), angle=start+(end-start)*frac;
  let warn=cfg.warnAt!=null && val>=cfg.warnAt;
+ let arcLen=Math.PI*39; // true length of the drawn 180deg, r=39 arc (not a full circle)
  let body='';
  if(style==='minimal'){
-  body=`<svg viewBox="0 0 100 100"><path d="M 11 50 A 39 39 0 1 1 89 50" fill="none" stroke="#28282c" stroke-width="2"/><path d="M 11 50 A 39 39 0 1 1 89 50" fill="none" stroke="currentColor" stroke-width="2" stroke-dasharray="${frac*246} 246" stroke-linecap="round" opacity=".9"/></svg>`;
+  body=`<svg viewBox="0 0 100 100"><path d="M 11 50 A 39 39 0 1 1 89 50" fill="none" stroke="#28282c" stroke-width="2"/><path d="M 11 50 A 39 39 0 1 1 89 50" fill="none" stroke="currentColor" stroke-width="2" stroke-dasharray="${frac*arcLen} ${arcLen}" stroke-linecap="round" opacity=".9"/></svg>`;
  } else if(style==='led'){
   let segs=26,lit=Math.round(frac*segs),seg='';
   for(let i=0;i<segs;i++){let a=(start+(end-start)*i/(segs-1))*Math.PI/180,x1=50+40*Math.cos(a),y1=50+40*Math.sin(a),x2=50+31*Math.cos(a),y2=50+31*Math.sin(a);seg+=`<line x1="${x1}" y1="${y1}" x2="${x2}" y2="${y2}" stroke="${i<lit?'currentColor':'#232326'}" stroke-width="3.6" stroke-linecap="round"/>`}
   body=`<svg viewBox="0 0 100 100"><g>${seg}</g></svg>`;
  } else if(style==='digital'){
-  body=`<svg viewBox="0 0 100 100"><path d="M 11 50 A 39 39 0 1 1 89 50" fill="none" stroke="#28282c" stroke-width="2"/><path d="M 11 50 A 39 39 0 1 1 89 50" fill="none" stroke="currentColor" stroke-width="2" stroke-dasharray="${frac*246} 246" stroke-linecap="round"/></svg>`;
+  body=`<svg viewBox="0 0 100 100"><path d="M 11 50 A 39 39 0 1 1 89 50" fill="none" stroke="#28282c" stroke-width="2"/><path d="M 11 50 A 39 39 0 1 1 89 50" fill="none" stroke="currentColor" stroke-width="2" stroke-dasharray="${frac*arcLen} ${arcLen}" stroke-linecap="round"/></svg>`;
  } else {
   let ticks='',nums='';
   for(let i=0;i<=10;i++){let a=(start+(end-start)*i/10)*Math.PI/180,x1=50+39*Math.cos(a),y1=50+39*Math.sin(a),x2=50+34*Math.cos(a),y2=50+34*Math.sin(a);ticks+=`<line x1="${x1}" y1="${y1}" x2="${x2}" y2="${y2}" stroke="currentColor" stroke-width="${i%5===0?1.7:1}"/>`}
@@ -383,7 +392,12 @@ function syncControls(){
 document.getElementById('type').onchange=e=>{selected.type=e.target.value;let d=defaultsFor(selected.type);selected.style=d.style;selected.metric=d.metric;renderWidget(selected);syncControls();saveState();}
 document.getElementById('gstyle').onchange=e=>{selected.style=e.target.value;renderWidget(selected);saveState();}
 document.getElementById('metric').onchange=e=>{selected.metric=e.target.value;renderWidget(selected);saveState();}
-document.getElementById('size').oninput=e=>{let s=+e.target.value/2;selected.w=Math.max(8,Math.min(80,s));selected.h=Math.max(8,Math.min(80,s));renderWidget(selected)}
+document.getElementById('size').oninput=e=>{
+ // Scale width/height together, preserving whatever aspect ratio the widget
+ // currently has (e.g. from a corner-drag resize) instead of forcing a square.
+ let s=+e.target.value/2,sum=selected.w+selected.h,ratio=sum?selected.w/sum:0.5;
+ selected.w=Math.max(8,Math.min(80,s*ratio));selected.h=Math.max(8,Math.min(80,s*(1-ratio)));renderWidget(selected)
+}
 document.getElementById('size').onchange=()=>saveState();
 document.getElementById('rotation').oninput=e=>{selected.r=+e.target.value;renderWidget(selected)}
 document.getElementById('rotation').onchange=()=>saveState();
@@ -398,17 +412,23 @@ document.querySelector('.tool-grid').addEventListener('click',e=>{
  let b=e.target.closest('.tool');if(!b)return;let t=b.dataset.type,s=SIZES[t]||[25,25];
  selected=addWidget(t,32,32,s[0],s[1]);syncControls();saveState();
 });
-document.getElementById('editBtn').onclick=()=>editor.classList.toggle('open');
-document.getElementById('driveBtn').onclick=()=>{document.body.classList.add('fullscreen');editor.classList.remove('open')};
-document.getElementById('fullBtn').onclick=()=>{document.body.classList.toggle('fullscreen');editor.classList.remove('open')};
+function closeEditor(){editor.classList.remove('open');document.getElementById('editBtn').textContent='Customize';}
+document.getElementById('editBtn').onclick=()=>{
+ let willOpen=!editor.classList.contains('open');
+ editor.classList.toggle('open');
+ document.getElementById('editBtn').textContent=willOpen?'Done':'Customize';
+};
+document.getElementById('editorClose').onclick=closeEditor;
+document.getElementById('driveBtn').onclick=()=>{document.body.classList.add('fullscreen');closeEditor()};
+document.getElementById('fullBtn').onclick=()=>{document.body.classList.toggle('fullscreen');closeEditor()};
 document.getElementById('exitFull').onclick=()=>document.body.classList.remove('fullscreen');
 document.addEventListener('keydown',e=>{
- if(e.key==='Escape')document.body.classList.remove('fullscreen');
+ if(e.key==='Escape'){document.body.classList.remove('fullscreen');closeEditor();}
  if((e.key==='Delete'||e.key==='Backspace')&&selected&&!['INPUT','SELECT'].includes(document.activeElement.tagName)){
   document.getElementById(selected.id).remove();selected=null;syncControls();saveState();
  }
 });
-dash.addEventListener('pointerdown',e=>{if(e.target===dash){selected=null;syncControls();document.querySelectorAll('.widget').forEach(x=>x.classList.remove('selected'));}});
+dash.addEventListener('pointerdown',e=>{if(e.target===dash){selected=null;syncControls();document.querySelectorAll('.widget').forEach(x=>x.classList.remove('selected'));closeEditor();}});
 document.getElementById('ambientPulse').onchange=e=>{settings.ambientPulse=e.target.checked;applyAmbient();saveState();}
 document.getElementById('modeRow').addEventListener('click',e=>{let b=e.target.closest('.mode');if(!b)return;data.driveMode=b.dataset.mode;refreshModeButtons();saveState();});
 document.getElementById('modeRow2').addEventListener('click',e=>{let b=e.target.closest('.mode');if(!b)return;data.driveMode=b.dataset.mode;refreshModeButtons();saveState();});
