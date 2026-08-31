@@ -11,8 +11,8 @@
     --text:#1C1C1E;
     --text-secondary:#8A8A8E;
     --separator:rgba(60,60,67,0.13);
-    --accent:#5B5FEF;
-    --accent-soft:rgba(91,95,239,0.12);
+    --accent:#0A84FF;
+    --accent-soft:rgba(10,132,255,0.12);
     --danger:#FF453A;
     --success:#30C24A;
     --pri-high:#FF453A;
@@ -31,7 +31,6 @@
       --text:#F2F2F7;
       --text-secondary:#8E8E93;
       --separator:rgba(84,84,88,0.55);
-      --accent-soft:rgba(91,95,239,0.22);
       --bar-bg:rgba(28,28,30,0.72);
       --sheet-bg:#1C1C1E;
       --shadow:0 1px 2px rgba(0,0,0,0.4);
@@ -47,7 +46,9 @@
     font-family:-apple-system,BlinkMacSystemFont,"SF Pro Text","Inter",system-ui,sans-serif;
     overscroll-behavior-y:none;
     -webkit-font-smoothing:antialiased;
+    user-select:none;
   }
+  input,textarea{ user-select:text; }
   #app{
     max-width:520px;
     margin:0 auto;
@@ -64,13 +65,14 @@
     background:var(--bg);
     z-index:5;
   }
-  .title-row{ display:flex; align-items:flex-end; justify-content:space-between; }
+  .title-row{ display:flex; align-items:center; justify-content:space-between; gap:10px; }
   h1{
-    font-size:34px;
+    font-size:32px;
     font-weight:750;
     letter-spacing:-0.02em;
     margin:0;
   }
+  .header-actions{ display:flex; gap:8px; flex:none; }
   .icon-btn{
     width:34px; height:34px;
     border-radius:50%;
@@ -80,6 +82,7 @@
     display:flex; align-items:center; justify-content:center;
     color:var(--text-secondary);
     transition:transform .15s cubic-bezier(.34,1.56,.64,1);
+    flex:none;
   }
   .icon-btn:active{ transform:scale(0.88); }
   .progress-row{
@@ -100,7 +103,7 @@
     border-radius:3px;
     background:var(--accent);
     width:0%;
-    transition:width .5s cubic-bezier(.34,1.2,.4,1);
+    transition:width .5s cubic-bezier(.34,1.2,.4,1), background .3s ease;
   }
   .progress-label{
     font-size:13px;
@@ -154,6 +157,9 @@
   }
   .search-wrap input:focus{ outline:2px solid var(--accent); outline-offset:1px; }
 
+  /* Swipe-tab region */
+  #sections{ touch-action:pan-y; }
+
   /* Sections */
   .section{ margin-top:22px; padding:0 20px; }
   .section-header{
@@ -183,6 +189,16 @@
     padding:1px 7px;
     font-size:12px;
   }
+  .section-header .spacer{ flex:1; }
+  .clear-btn{
+    border:none;
+    background:none;
+    color:var(--accent);
+    font-size:12.5px;
+    font-weight:700;
+    padding:2px 4px;
+  }
+  .clear-btn:active{ opacity:0.5; }
 
   .list{
     background:var(--card);
@@ -200,6 +216,13 @@
     border-bottom:1px solid var(--separator);
   }
   .row-wrap:last-child{ border-bottom:none; }
+  .row-wrap.dragging{
+    box-shadow:0 8px 20px rgba(0,0,0,0.18);
+    border-radius:10px;
+    z-index:10;
+    position:relative;
+  }
+  .row-wrap.dragging .row{ background:var(--card); transform:scale(1.02); }
   .row-delete{
     position:absolute;
     top:0; right:0; bottom:0;
@@ -221,7 +244,7 @@
     gap:11px;
     padding:12px 14px;
     transform:translateX(0);
-    transition:transform .28s cubic-bezier(.22,1,.36,1);
+    transition:transform .28s cubic-bezier(.22,1,.36,1), background .15s;
     touch-action:pan-y;
   }
   .row.swiping{ transition:none; }
@@ -299,6 +322,20 @@
   .chip.pri-high{ background:rgba(255,69,58,0.13); color:var(--pri-high); }
   .chip.pri-med{ background:rgba(255,159,10,0.15); color:var(--pri-med); }
   .chip.pri-low{ background:rgba(100,181,255,0.15); color:var(--pri-low); }
+  .chip.sub{ background:var(--separator); color:var(--text-secondary); }
+
+  .drag-handle{
+    flex:none;
+    width:24px; height:23px;
+    border:none;
+    background:none;
+    color:var(--text-secondary);
+    display:flex; align-items:center; justify-content:center;
+    touch-action:none;
+    cursor:grab;
+    opacity:0.55;
+  }
+  .drag-handle:active{ cursor:grabbing; opacity:1; }
 
   .empty{
     text-align:center;
@@ -343,6 +380,7 @@
     overflow:hidden;
     text-overflow:ellipsis;
   }
+  .bar-status.undo{ color:var(--accent); font-weight:600; cursor:pointer; }
   .bar-add{
     flex:none;
     width:40px; height:40px;
@@ -351,7 +389,7 @@
     color:#fff;
     border:none;
     display:flex; align-items:center; justify-content:center;
-    transition:transform .15s cubic-bezier(.34,1.7,.64,1);
+    transition:transform .15s cubic-bezier(.34,1.7,.64,1), background .3s ease;
   }
   .bar-add:active{ transform:scale(0.85) rotate(-6deg); }
   .bar-search-btn{
@@ -388,6 +426,8 @@
     max-width:520px;
     margin:0 auto;
     box-shadow:0 -8px 30px rgba(0,0,0,0.2);
+    max-height:88vh;
+    overflow-y:auto;
   }
   .sheet.open{ transform:translateY(0); }
   .sheet-handle{
@@ -447,13 +487,58 @@
     padding:13px 0;
     font-size:16px;
     font-weight:650;
-    transition:transform .15s cubic-bezier(.34,1.7,.64,1), opacity .15s;
+    transition:transform .15s cubic-bezier(.34,1.7,.64,1), opacity .15s, background .3s ease;
   }
   .btn:active{ transform:scale(0.96); }
   .btn-primary{ background:var(--accent); color:#fff; }
   .btn-primary:disabled{ opacity:0.4; }
   .btn-ghost{ background:var(--bg); color:var(--text); }
   .btn-danger-text{ background:transparent; color:var(--danger); flex:none; padding:13px 16px; }
+
+  /* Subtasks editor */
+  .subtask-row{
+    display:flex;
+    align-items:center;
+    gap:8px;
+    padding:7px 0;
+  }
+  .subtask-row .sub-check{
+    width:19px; height:19px;
+    border-radius:50%;
+    border:2px solid var(--text-secondary);
+    flex:none;
+    display:flex; align-items:center; justify-content:center;
+  }
+  .subtask-row .sub-check.done{ background:var(--success); border-color:var(--success); }
+  .subtask-row .sub-check svg{ width:10px; height:10px; stroke:#fff; stroke-width:3; fill:none; }
+  .subtask-row .sub-text{ flex:1; font-size:14.5px; }
+  .subtask-row .sub-text.done{ text-decoration:line-through; color:var(--text-secondary); }
+  .subtask-row .sub-del{ border:none; background:none; color:var(--text-secondary); font-size:18px; line-height:1; padding:2px 6px; }
+  .add-subtask-row{ display:flex; gap:8px; margin-top:6px; }
+  .add-subtask-row input{ flex:1; }
+  .add-subtask-row button{
+    flex:none;
+    width:38px;
+    border:none;
+    border-radius:10px;
+    background:var(--accent);
+    color:#fff;
+    font-size:18px;
+  }
+
+  /* Confetti */
+  .confetti-piece{
+    position:fixed;
+    top:-14px;
+    width:8px; height:8px;
+    border-radius:2px;
+    pointer-events:none;
+    z-index:60;
+    animation:confetti-fall linear forwards;
+  }
+  @keyframes confetti-fall{
+    to{ transform:translateY(110vh) rotate(540deg); opacity:0.2; }
+  }
 
   @media (prefers-reduced-motion: reduce){
     *{ transition-duration:0.001ms !important; animation-duration:0.001ms !important; }
@@ -466,9 +551,17 @@
   <header>
     <div class="title-row">
       <h1>Tasks</h1>
-      <button class="icon-btn" id="importBtn" aria-label="Import tasks">
-        <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M16 4h2a2 2 0 0 1 2 2v14a2 2 0 0 1-2 2H6a2 2 0 0 1-2-2V6a2 2 0 0 1 2-2h2"/><rect x="8" y="2" width="8" height="4" rx="1"/><line x1="8" y1="12" x2="16" y2="12"/><line x1="8" y1="16" x2="13" y2="16"/></svg>
-      </button>
+      <div class="header-actions">
+        <button class="icon-btn" id="exportBtn" aria-label="Export as markdown">
+          <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 3v12"/><polyline points="7 10 12 15 17 10"/><path d="M5 19h14"/></svg>
+        </button>
+        <button class="icon-btn" id="themeBtn" aria-label="Change theme">
+          <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="13.5" cy="6.5" r="1.6"/><circle cx="18.5" cy="10.5" r="1.6"/><circle cx="8.5" cy="7.5" r="1.6"/><circle cx="6.5" cy="12.5" r="1.6"/><path d="M12 2a10 10 0 1 0 5.5 18.3c1-.7.4-2.3-.8-2.3h-1.2a2.5 2.5 0 0 1-2-4.1 2.5 2.5 0 0 1 2-1h2.3A10 10 0 0 0 12 2Z"/></svg>
+        </button>
+        <button class="icon-btn" id="importBtn" aria-label="Import tasks">
+          <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M16 4h2a2 2 0 0 1 2 2v14a2 2 0 0 1-2 2H6a2 2 0 0 1-2-2V6a2 2 0 0 1 2-2h2"/><rect x="8" y="2" width="8" height="4" rx="1"/><line x1="8" y1="12" x2="16" y2="12"/><line x1="8" y1="16" x2="13" y2="16"/></svg>
+        </button>
+      </div>
     </div>
     <div class="progress-row">
       <div class="progress-track"><div class="progress-fill" id="progressFill"></div></div>
@@ -502,6 +595,7 @@
 </div>
 
 <div class="scrim" id="scrim"></div>
+
 <div class="sheet" id="sheet">
   <div class="sheet-handle"></div>
   <div class="sheet-title" id="sheetTitle">New Task</div>
@@ -521,6 +615,13 @@
   <div class="field-label">Notes <span style="font-weight:400;opacity:.7">(optional)</span></div>
   <textarea id="taskNotes" rows="2" placeholder="Add a note"></textarea>
 
+  <div class="field-label">Subtasks <span style="font-weight:400;opacity:.7">(optional)</span></div>
+  <div id="subtaskList"></div>
+  <div class="add-subtask-row">
+    <input type="text" id="subtaskInput" placeholder="Add a subtask">
+    <button id="subtaskAddBtn" aria-label="Add subtask">+</button>
+  </div>
+
   <div class="sheet-actions">
     <button class="btn btn-danger-text" id="deleteBtn" style="display:none">Delete</button>
     <button class="btn btn-ghost" id="cancelBtn">Cancel</button>
@@ -532,7 +633,7 @@
   <div class="sheet-handle"></div>
   <div class="sheet-title">Paste Tasks</div>
   <div class="field-label" style="margin-top:0">
-    Paste a checklist and it'll sort what's done from what's left. Recognizes <code>- [ ]</code> and <code>- [x]</code>, or plain lines.
+    Paste a checklist and it'll sort what's done from what's left, and skip anything already in your list. Recognizes <code>- [ ]</code> and <code>- [x]</code>, or plain lines.
   </div>
   <textarea id="batchText" rows="9" placeholder="- [ ] Fix the header
 - [x] Ship the landing page
@@ -548,38 +649,56 @@ Write the launch email"></textarea>
 (function(){
   "use strict";
 
-  const STORAGE_KEY = "ios-todo-tasks-v1";
+  const STORAGE_KEY = "ios-todo-tasks-v2";
   const COLLAPSE_KEY = "ios-todo-collapsed-v1";
+  const THEME_KEY = "ios-todo-theme-v1";
 
-  const seedTasks = [];
+  const PALETTES = {
+    classic: { label:"Classic", active:"#0A84FF", all:"#30B0C7", done:"#30C24A" },
+    warm:    { label:"Warm",    active:"#FF6B4A", all:"#FFB020", done:"#2FD9A6" },
+    muted:   { label:"Muted",   active:"#3E63DD", all:"#64748B", done:"#10B981" }
+  };
+  const THEME_ORDER = ["classic","warm","muted"];
 
   function uid(){ return Date.now().toString(36) + Math.random().toString(36).slice(2,7); }
+
+  function todayISO(){
+    const d = new Date();
+    const off = d.getTimezoneOffset();
+    const local = new Date(d.getTime() - off*60000);
+    return local.toISOString().slice(0,10);
+  }
 
   function loadTasks(){
     try{
       const raw = localStorage.getItem(STORAGE_KEY);
       if(raw) return JSON.parse(raw);
     }catch(e){}
-    const now = Date.now();
-    return seedTasks.map((t,i) => ({
-      id: uid(),
-      text: t[0],
-      done: t[1],
-      priority: "",
-      due: "",
-      notes: "",
-      createdAt: now - (seedTasks.length - i)
-    }));
+    return [];
   }
-
   function saveTasks(){
     try{ localStorage.setItem(STORAGE_KEY, JSON.stringify(tasks)); }catch(e){}
+  }
+  function loadTheme(){
+    try{
+      const t = localStorage.getItem(THEME_KEY);
+      if(t && PALETTES[t]) return t;
+    }catch(e){}
+    return "classic";
+  }
+  function saveTheme(){
+    try{ localStorage.setItem(THEME_KEY, theme); }catch(e){}
   }
 
   let tasks = loadTasks();
   let filter = "active";
+  let theme = loadTheme();
   let searchQuery = "";
   let editingId = null;
+  let editingSubtasks = [];
+  let pendingUndo = null;
+  let undoTimer = null;
+  let flashTimer = null;
   let collapsedDone = (function(){
     try{ return localStorage.getItem(COLLAPSE_KEY) === "1"; }catch(e){ return false; }
   })();
@@ -595,6 +714,25 @@ Write the launch email"></textarea>
 
   function haptic(ms){
     if(navigator.vibrate){ try{ navigator.vibrate(ms || 8); }catch(e){} }
+  }
+
+  function hexToRgba(hex, alpha){
+    hex = hex.replace("#","");
+    const n = parseInt(hex, 16);
+    const r = (n >> 16) & 255, g = (n >> 8) & 255, b = n & 255;
+    return `rgba(${r},${g},${b},${alpha})`;
+  }
+
+  function applyAccent(){
+    const key = filter === "done" ? "done" : filter === "all" ? "all" : "active";
+    const color = PALETTES[theme][key];
+    document.documentElement.style.setProperty("--accent", color);
+    document.documentElement.style.setProperty("--accent-soft", hexToRgba(color, 0.14));
+  }
+
+  function nextOrder(){
+    if(!tasks.length) return 0;
+    return Math.max(...tasks.map(t => t.order || 0)) + 1;
   }
 
   function fmtDate(iso){
@@ -622,10 +760,21 @@ Write the launch email"></textarea>
     return '<svg viewBox="0 0 24 24"><polyline points="5 13 10 18 19 7"/></svg>';
   }
 
-  function rowHTML(t){
+  function escapeHtml(s){
+    return s.replace(/[&<>"']/g, c => ({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;","'":"&#39;"}[c]));
+  }
+
+  function rowHTML(t, draggable){
     const metaChips = [];
     if(t.priority) metaChips.push(`<span class="chip pri-${t.priority}">${priLabel(t.priority)}</span>`);
     if(t.due) metaChips.push(`<span class="chip due">${fmtDate(t.due)}</span>`);
+    if(t.subtasks && t.subtasks.length){
+      const done = t.subtasks.filter(s => s.done).length;
+      metaChips.push(`<span class="chip sub">${done}/${t.subtasks.length} subtasks</span>`);
+    }
+    const handle = draggable ? `<button class="drag-handle" data-action="drag" aria-label="Reorder">
+      <svg width="14" height="14" viewBox="0 0 24 24" fill="currentColor"><circle cx="9" cy="6" r="1.6"/><circle cx="15" cy="6" r="1.6"/><circle cx="9" cy="12" r="1.6"/><circle cx="15" cy="12" r="1.6"/><circle cx="9" cy="18" r="1.6"/><circle cx="15" cy="18" r="1.6"/></svg>
+    </button>` : "";
     return `
       <div class="row-wrap" data-id="${t.id}">
         <button class="row-delete" data-action="delete">Delete</button>
@@ -636,19 +785,22 @@ Write the launch email"></textarea>
             ${t.notes ? `<div class="row-notes">${escapeHtml(t.notes)}</div>` : ""}
             ${metaChips.length ? `<div class="row-meta">${metaChips.join("")}</div>` : ""}
           </div>
+          ${handle}
         </div>
       </div>`;
   }
 
-  function escapeHtml(s){
-    return s.replace(/[&<>"']/g, c => ({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;","'":"&#39;"}[c]));
-  }
-
   function render(){
-    const active = tasks.filter(t => !t.done && matchesSearch(t))
-      .sort((a,b) => priRank[a.priority] - priRank[b.priority] || b.createdAt - a.createdAt);
-    const done = tasks.filter(t => t.done && matchesSearch(t))
-      .sort((a,b) => b.createdAt - a.createdAt);
+    applyAccent();
+
+    const today = todayISO();
+    const nonDone = tasks.filter(t => !t.done && matchesSearch(t));
+    const todayTasks = nonDone.filter(t => t.due === today)
+      .sort((a,b) => priRank[a.priority] - priRank[b.priority] || (a.order||0) - (b.order||0));
+    const todoTasks = nonDone.filter(t => t.due !== today)
+      .sort((a,b) => (a.order||0) - (b.order||0));
+    const doneTasks = tasks.filter(t => t.done && matchesSearch(t))
+      .sort((a,b) => (b.completedAt||b.createdAt) - (a.completedAt||a.createdAt));
 
     const totalAll = tasks.length;
     const doneAll = tasks.filter(t => t.done).length;
@@ -656,17 +808,25 @@ Write the launch email"></textarea>
     progressLabel.textContent = `${doneAll} of ${totalAll}`;
 
     let html = "";
-
     const showActive = filter === "active" || filter === "all";
     const showDone = filter === "done" || filter === "all";
+
+    if(showActive && todayTasks.length){
+      html += `<div class="section">
+        <div class="section-header">
+          <span>Today</span><span class="section-count">${todayTasks.length}</span>
+        </div>
+        <div class="list">${todayTasks.map(t => rowHTML(t, false)).join("")}</div>
+      </div>`;
+    }
 
     if(showActive){
       html += `<div class="section">
         <div class="section-header">
-          <span>To Do</span><span class="section-count">${active.length}</span>
+          <span>To Do</span><span class="section-count">${todoTasks.length}</span>
         </div>
-        <div class="list">
-          ${active.length ? active.map(rowHTML).join("") : `<div class="empty"><div class="big">✓</div>All clear. Add something above.</div>`}
+        <div class="list" id="todoList">
+          ${todoTasks.length ? todoTasks.map(t => rowHTML(t, true)).join("") : `<div class="empty"><div class="big">&#10003;</div>All clear. Add something above.</div>`}
         </div>
       </div>`;
     }
@@ -677,29 +837,50 @@ Write the launch email"></textarea>
           <span class="chev">
             <svg width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3" stroke-linecap="round"><polyline points="6 9 12 15 18 9"/></svg>
           </span>
-          <span>Completed</span><span class="section-count">${done.length}</span>
+          <span>Completed</span><span class="section-count">${doneTasks.length}</span>
+          <span class="spacer"></span>
+          ${doneTasks.length ? `<button class="clear-btn" id="clearDoneBtn">Clear</button>` : ""}
         </div>
         <div class="list ${collapsedDone ? "collapsed" : ""}" id="doneList">
-          ${done.length ? done.map(rowHTML).join("") : `<div class="empty">Nothing completed yet.</div>`}
+          ${doneTasks.length ? doneTasks.map(t => rowHTML(t, false)).join("") : `<div class="empty">Nothing completed yet.</div>`}
         </div>
       </div>`;
     }
 
-    if(!active.length && !done.length && searchQuery){
-      html = `<div class="section"><div class="empty"><div class="big">🔍</div>No tasks match "${escapeHtml(searchQuery)}"</div></div>`;
+    if(!todayTasks.length && !todoTasks.length && !doneTasks.length && searchQuery){
+      html = `<div class="section"><div class="empty"><div class="big">&#128269;</div>No tasks match "${escapeHtml(searchQuery)}"</div></div>`;
     }
 
     sectionsEl.innerHTML = html;
-    barStatus.textContent = active.length ? `${active.length} task${active.length === 1 ? "" : "s"} to do` : "All done — add a task";
+
+    if(!pendingUndo){
+      barStatus.classList.remove("undo");
+      barStatus.textContent = todoTasks.length + todayTasks.length
+        ? `${todoTasks.length + todayTasks.length} task${(todoTasks.length + todayTasks.length) === 1 ? "" : "s"} to do`
+        : "All done — add a task";
+    }
 
     const dh = document.getElementById("doneHeader");
-    if(dh) dh.addEventListener("click", () => {
+    if(dh) dh.addEventListener("click", (e) => {
+      if(e.target.closest("#clearDoneBtn")) return;
       collapsedDone = !collapsedDone;
       try{ localStorage.setItem(COLLAPSE_KEY, collapsedDone ? "1" : "0"); }catch(e){}
       render();
     });
+    const clearBtn = document.getElementById("clearDoneBtn");
+    if(clearBtn) clearBtn.addEventListener("click", (e) => {
+      e.stopPropagation();
+      const removed = tasks.filter(t => t.done);
+      if(!removed.length) return;
+      tasks = tasks.filter(t => !t.done);
+      haptic(12);
+      saveTasks();
+      render();
+      scheduleUndo(removed, `Cleared ${removed.length} completed`);
+    });
 
     bindRows();
+    bindDrag();
   }
 
   function bindRows(){
@@ -711,7 +892,7 @@ Write the launch email"></textarea>
       let startX = 0, currentX = 0, dragging = false;
 
       row.addEventListener("pointerdown", e => {
-        if(e.target.closest("[data-action='toggle']")) return;
+        if(e.target.closest("[data-action='toggle']") || e.target.closest("[data-action='drag']")) return;
         startX = e.clientX; dragging = true; currentX = 0;
         row.classList.add("swiping");
         row.setPointerCapture(e.pointerId);
@@ -738,9 +919,21 @@ Write the launch email"></textarea>
       row.querySelector("[data-action='toggle']").addEventListener("click", () => {
         const t = tasks.find(x => x.id === id);
         if(!t) return;
+        const wasDone = t.done;
         t.done = !t.done;
-        haptic(t.done ? [10,30,10] : 8);
+        t.completedAt = t.done ? Date.now() : null;
         saveTasks();
+        if(!wasDone && t.done){
+          const remaining = tasks.filter(x => !x.done).length;
+          if(remaining === 0){
+            haptic([10,30,10,30,20]);
+            fireConfetti();
+          } else {
+            haptic(8);
+          }
+        } else {
+          haptic(8);
+        }
         render();
       });
 
@@ -753,22 +946,177 @@ Write the launch email"></textarea>
         haptic(15);
         row.classList.add("removing");
         setTimeout(() => {
+          const removedTask = tasks.find(x => x.id === id);
           tasks = tasks.filter(x => x.id !== id);
           saveTasks();
           render();
+          if(removedTask) scheduleUndo([removedTask], "Task deleted");
         }, 260);
       });
     });
   }
 
+  // Drag-to-reorder within the To Do list
+  function bindDrag(){
+    const list = document.getElementById("todoList");
+    if(!list) return;
+    list.querySelectorAll("[data-action='drag']").forEach(handle => {
+      handle.addEventListener("pointerdown", e => {
+        e.stopPropagation();
+        const wrap = handle.closest(".row-wrap");
+        wrap.classList.add("dragging");
+        handle.setPointerCapture(e.pointerId);
+
+        function onMove(ev){
+          const after = getDragAfterElement(list, ev.clientY);
+          if(after == null) list.appendChild(wrap);
+          else list.insertBefore(wrap, after);
+        }
+        function onUp(){
+          wrap.classList.remove("dragging");
+          handle.removeEventListener("pointermove", onMove);
+          handle.removeEventListener("pointerup", onUp);
+          handle.removeEventListener("pointercancel", onUp);
+          const ids = [...list.querySelectorAll(".row-wrap")].map(el => el.dataset.id);
+          ids.forEach((tid, idx) => {
+            const t = tasks.find(x => x.id === tid);
+            if(t) t.order = idx;
+          });
+          haptic(8);
+          saveTasks();
+          render();
+        }
+        handle.addEventListener("pointermove", onMove);
+        handle.addEventListener("pointerup", onUp);
+        handle.addEventListener("pointercancel", onUp);
+      });
+    });
+  }
+  function getDragAfterElement(container, y){
+    const els = [...container.querySelectorAll(".row-wrap:not(.dragging)")];
+    return els.reduce((closest, child) => {
+      const box = child.getBoundingClientRect();
+      const offset = y - box.top - box.height / 2;
+      if(offset < 0 && offset > closest.offset){
+        return { offset, element: child };
+      }
+      return closest;
+    }, { offset: -Infinity, element: null }).element;
+  }
+
+  // Confetti
+  function fireConfetti(){
+    const colors = ["#FF453A","#FF9F0A","#FFD60A","#30C24A","#0A84FF","#5E5CE6"];
+    const count = 26;
+    for(let i = 0; i < count; i++){
+      const piece = document.createElement("div");
+      piece.className = "confetti-piece";
+      piece.style.left = Math.random()*100 + "vw";
+      piece.style.background = colors[i % colors.length];
+      piece.style.animationDuration = (1.6 + Math.random()*1.1) + "s";
+      piece.style.opacity = String(0.7 + Math.random()*0.3);
+      document.body.appendChild(piece);
+      setTimeout(() => piece.remove(), 3000);
+    }
+  }
+
+  // Undo
+  function scheduleUndo(removedTasks, label){
+    pendingUndo = removedTasks;
+    barStatus.classList.add("undo");
+    barStatus.textContent = `${label} — Tap to undo`;
+    clearTimeout(undoTimer);
+    undoTimer = setTimeout(() => {
+      pendingUndo = null;
+      render();
+    }, 5000);
+  }
+  barStatus.addEventListener("click", () => {
+    if(!pendingUndo) return;
+    tasks = tasks.concat(pendingUndo);
+    pendingUndo = null;
+    clearTimeout(undoTimer);
+    haptic(10);
+    saveTasks();
+    render();
+  });
+
+  function flashBar(text){
+    clearTimeout(flashTimer);
+    pendingUndo = null;
+    barStatus.classList.remove("undo");
+    barStatus.textContent = text;
+    flashTimer = setTimeout(render, 1800);
+  }
+
   // Segmented control
+  function setFilter(f){
+    filter = f;
+    [...segmented.children].forEach(b => b.classList.toggle("active", b.dataset.filter === f));
+    render();
+  }
   segmented.addEventListener("click", e => {
     const btn = e.target.closest("button");
     if(!btn) return;
-    filter = btn.dataset.filter;
-    [...segmented.children].forEach(b => b.classList.toggle("active", b === btn));
     haptic(6);
-    render();
+    setFilter(btn.dataset.filter);
+  });
+
+  // Swipe left/right on blank space to switch tabs
+  (function(){
+    let sx = 0, sy = 0, tracking = false;
+    document.addEventListener("touchstart", e => {
+      const t = e.target;
+      if(t.closest(".row-wrap") || t.closest(".sheet") || t.closest(".floating-bar") || t.closest(".segmented") || t.closest("header")) { tracking = false; return; }
+      const touch = e.touches[0];
+      sx = touch.clientX; sy = touch.clientY; tracking = true;
+    }, { passive:true });
+    document.addEventListener("touchend", e => {
+      if(!tracking) return;
+      tracking = false;
+      const touch = e.changedTouches[0];
+      const dx = touch.clientX - sx, dy = touch.clientY - sy;
+      if(Math.abs(dx) > 60 && Math.abs(dx) > Math.abs(dy) * 1.5){
+        const idx = THEME_ORDER_FILTERS.indexOf(filter);
+        let next;
+        if(dx < 0) next = THEME_ORDER_FILTERS[(idx + 1) % THEME_ORDER_FILTERS.length];
+        else next = THEME_ORDER_FILTERS[(idx - 1 + THEME_ORDER_FILTERS.length) % THEME_ORDER_FILTERS.length];
+        haptic(8);
+        setFilter(next);
+      }
+    }, { passive:true });
+  })();
+  const THEME_ORDER_FILTERS = ["active","all","done"];
+
+  // Theme cycling
+  document.getElementById("themeBtn").addEventListener("click", () => {
+    const idx = THEME_ORDER.indexOf(theme);
+    theme = THEME_ORDER[(idx + 1) % THEME_ORDER.length];
+    saveTheme();
+    haptic(8);
+    applyAccent();
+    flashBar(`Theme: ${PALETTES[theme].label}`);
+  });
+
+  // Export as markdown
+  document.getElementById("exportBtn").addEventListener("click", async () => {
+    const today = todayISO();
+    const active = tasks.filter(t => !t.done).sort((a,b) => (a.order||0) - (b.order||0));
+    const done = tasks.filter(t => t.done).sort((a,b) => (b.completedAt||b.createdAt) - (a.completedAt||a.createdAt));
+    const lines = [];
+    active.concat(done).forEach(t => {
+      lines.push(`- [${t.done ? "x" : " "}] ${t.text}`);
+      if(t.subtasks && t.subtasks.length){
+        t.subtasks.forEach(s => lines.push(`  - [${s.done ? "x" : " "}] ${s.text}`));
+      }
+    });
+    const md = lines.join("\n");
+    try{
+      await navigator.clipboard.writeText(md);
+      flashBar(`Copied ${active.length + done.length} tasks as Markdown`);
+    }catch(e){
+      flashBar("Couldn't access clipboard");
+    }
   });
 
   // Search
@@ -795,6 +1143,9 @@ Write the launch email"></textarea>
   const cancelBtn = document.getElementById("cancelBtn");
   const deleteBtn = document.getElementById("deleteBtn");
   const addBtn = document.getElementById("addBtn");
+  const subtaskList = document.getElementById("subtaskList");
+  const subtaskInput = document.getElementById("subtaskInput");
+  const subtaskAddBtn = document.getElementById("subtaskAddBtn");
 
   let selectedPri = "";
 
@@ -804,13 +1155,46 @@ Write the launch email"></textarea>
       if(b.dataset.pri === selectedPri && selectedPri) b.classList.add("sel-" + selectedPri);
     });
   }
-
   priRow.addEventListener("click", e => {
     const btn = e.target.closest(".pri-opt");
     if(!btn) return;
     selectedPri = btn.dataset.pri;
     setPriUI();
     haptic(6);
+  });
+
+  function renderSubtaskEditor(){
+    subtaskList.innerHTML = editingSubtasks.map(s => `
+      <div class="subtask-row" data-sid="${s.id}">
+        <button class="sub-check ${s.done ? "done" : ""}" data-action="sub-toggle">${s.done ? checkIcon() : ""}</button>
+        <div class="sub-text ${s.done ? "done" : ""}">${escapeHtml(s.text)}</div>
+        <button class="sub-del" data-action="sub-del">&times;</button>
+      </div>`).join("");
+    subtaskList.querySelectorAll("[data-action='sub-toggle']").forEach(btn => {
+      btn.addEventListener("click", () => {
+        const sid = btn.closest(".subtask-row").dataset.sid;
+        const s = editingSubtasks.find(x => x.id === sid);
+        if(s){ s.done = !s.done; haptic(6); renderSubtaskEditor(); }
+      });
+    });
+    subtaskList.querySelectorAll("[data-action='sub-del']").forEach(btn => {
+      btn.addEventListener("click", () => {
+        const sid = btn.closest(".subtask-row").dataset.sid;
+        editingSubtasks = editingSubtasks.filter(x => x.id !== sid);
+        renderSubtaskEditor();
+      });
+    });
+  }
+  function addSubtaskFromInput(){
+    const v = subtaskInput.value.trim();
+    if(!v) return;
+    editingSubtasks.push({ id: uid(), text: v, done:false });
+    subtaskInput.value = "";
+    renderSubtaskEditor();
+  }
+  subtaskAddBtn.addEventListener("click", addSubtaskFromInput);
+  subtaskInput.addEventListener("keydown", e => {
+    if(e.key === "Enter"){ e.preventDefault(); addSubtaskFromInput(); }
   });
 
   function openSheet(id){
@@ -822,6 +1206,7 @@ Write the launch email"></textarea>
       taskDate.value = t.due || "";
       taskNotes.value = t.notes || "";
       selectedPri = t.priority || "";
+      editingSubtasks = (t.subtasks || []).map(s => ({ ...s }));
       saveBtn.textContent = "Save";
       deleteBtn.style.display = "block";
     } else {
@@ -830,31 +1215,30 @@ Write the launch email"></textarea>
       taskDate.value = "";
       taskNotes.value = "";
       selectedPri = "";
+      editingSubtasks = [];
       saveBtn.textContent = "Add";
       deleteBtn.style.display = "none";
     }
     setPriUI();
+    renderSubtaskEditor();
     validateSave();
     scrim.classList.add("open");
     sheet.classList.add("open");
     document.body.style.overflow = "hidden";
     setTimeout(() => taskText.focus(), 300);
   }
-
   function closeSheet(){
     scrim.classList.remove("open");
     sheet.classList.remove("open");
     document.body.style.overflow = "";
     editingId = null;
   }
-
   function validateSave(){
     saveBtn.disabled = taskText.value.trim().length === 0;
   }
   taskText.addEventListener("input", validateSave);
 
   addBtn.addEventListener("click", () => { haptic(10); openSheet(null); });
-  scrim.addEventListener("click", closeSheet);
   cancelBtn.addEventListener("click", () => { haptic(6); closeSheet(); });
 
   saveBtn.addEventListener("click", () => {
@@ -867,6 +1251,7 @@ Write the launch email"></textarea>
       t.due = taskDate.value || "";
       t.notes = taskNotes.value.trim();
       t.priority = selectedPri;
+      t.subtasks = editingSubtasks;
     } else {
       tasks.push({
         id: uid(),
@@ -875,7 +1260,10 @@ Write the launch email"></textarea>
         priority: selectedPri,
         due: taskDate.value || "",
         notes: taskNotes.value.trim(),
-        createdAt: Date.now()
+        subtasks: editingSubtasks,
+        createdAt: Date.now(),
+        completedAt: null,
+        order: nextOrder()
       });
     }
     saveTasks();
@@ -886,10 +1274,12 @@ Write the launch email"></textarea>
   deleteBtn.addEventListener("click", () => {
     if(!editingId) return;
     haptic(15);
+    const removedTask = tasks.find(x => x.id === editingId);
     tasks = tasks.filter(x => x.id !== editingId);
     saveTasks();
     closeSheet();
     render();
+    if(removedTask) scheduleUndo([removedTask], "Task deleted");
   });
 
   // Batch import
@@ -901,16 +1291,12 @@ Write the launch email"></textarea>
   const importBtn = document.getElementById("importBtn");
 
   function parseBatchLine(line){
-    // - [x] task   /   - [ ] task   /   * [X] task
     let m = line.match(/^[-*]\s*\[( |x|X)\]\s*(.+)$/);
     if(m) return { text: m[2].trim(), done: m[1].toLowerCase() === "x" };
-    // plain bullet, no checkbox: "- task" or "* task"
     let m2 = line.match(/^[-*]\s+(.+)$/);
     if(m2) return { text: m2[1].trim(), done: false };
-    // plain line, no marker at all
     return { text: line.trim(), done: false };
   }
-
   function parseBatch(raw){
     return raw.split("\n")
       .map(l => l.trim())
@@ -918,13 +1304,15 @@ Write the launch email"></textarea>
       .map(parseBatchLine)
       .filter(t => t.text.length > 0);
   }
-
   function updateBatchPreview(){
     const parsed = parseBatch(batchText.value);
-    const done = parsed.filter(t => t.done).length;
-    batchImportBtn.disabled = parsed.length === 0;
+    const existing = new Set(tasks.map(t => t.text.trim().toLowerCase()));
+    const fresh = parsed.filter(t => !existing.has(t.text.trim().toLowerCase()));
+    const dupes = parsed.length - fresh.length;
+    const done = fresh.filter(t => t.done).length;
+    batchImportBtn.disabled = fresh.length === 0;
     batchPreview.textContent = parsed.length
-      ? `Found ${parsed.length} task${parsed.length === 1 ? "" : "s"} — ${parsed.length - done} to do, ${done} done`
+      ? `Found ${parsed.length}${dupes ? `, ${dupes} already in your list` : ""} — importing ${fresh.length} (${fresh.length - done} to do, ${done} done)`
       : "";
   }
   batchText.addEventListener("input", updateBatchPreview);
@@ -942,15 +1330,17 @@ Write the launch email"></textarea>
     batchSheet.classList.remove("open");
     document.body.style.overflow = "";
   }
-
   importBtn.addEventListener("click", () => { haptic(8); openBatchSheet(); });
   batchCancelBtn.addEventListener("click", () => { haptic(6); closeBatchSheet(); });
 
   batchImportBtn.addEventListener("click", () => {
     const parsed = parseBatch(batchText.value);
-    if(!parsed.length) return;
+    const existing = new Set(tasks.map(t => t.text.trim().toLowerCase()));
+    const fresh = parsed.filter(t => !existing.has(t.text.trim().toLowerCase()));
+    if(!fresh.length){ closeBatchSheet(); return; }
     const now = Date.now();
-    parsed.forEach((t, i) => {
+    let order = nextOrder();
+    fresh.forEach((t, i) => {
       tasks.push({
         id: uid(),
         text: t.text,
@@ -958,19 +1348,22 @@ Write the launch email"></textarea>
         priority: "",
         due: "",
         notes: "",
-        createdAt: now - (parsed.length - i)
+        subtasks: [],
+        createdAt: now - (fresh.length - i),
+        completedAt: t.done ? now : null,
+        order: order++
       });
     });
     haptic([10,30,10]);
     saveTasks();
     closeBatchSheet();
     render();
-    barStatus.textContent = `Imported ${parsed.length} task${parsed.length === 1 ? "" : "s"}`;
-    setTimeout(render, 1800);
+    const skipped = parsed.length - fresh.length;
+    flashBar(`Imported ${fresh.length}${skipped ? `, skipped ${skipped} duplicate${skipped === 1 ? "" : "s"}` : ""}`);
   });
 
-  // scrim should close whichever sheet is open
   scrim.addEventListener("click", () => {
+    if(sheet.classList.contains("open")) closeSheet();
     if(batchSheet.classList.contains("open")) closeBatchSheet();
   });
 
