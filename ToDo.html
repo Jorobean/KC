@@ -352,6 +352,20 @@
     user-select:none;
     -webkit-touch-callout:none;
   }
+  .row-wrap.drag-placeholder{
+    visibility:hidden;
+  }
+  .row-wrap.drag-active{
+    position:relative;
+    z-index:15;
+    touch-action:none;
+  }
+  .row-wrap.drag-active .row{
+    box-shadow:0 8px 20px rgba(0,0,0,0.18);
+    border-radius:10px;
+    background:var(--card);
+    transition:none;
+  }
   .drag-handle:active{ cursor:grabbing; opacity:1; }
   .row-wrap.dragging, .row-wrap.dragging *{
     -webkit-user-select:none !important;
@@ -483,6 +497,10 @@
     overflow-y:auto;
   }
   .sheet.open{ transform:translateY(0); }
+  .sheet.pop-origin{ transition:none; }
+  .sheet.pop-origin.pop-animating{
+    transition:transform .38s cubic-bezier(.22,1.4,.36,1), border-radius .38s cubic-bezier(.22,1.4,.36,1), opacity .22s ease;
+  }
   .sheet-handle{
     width:36px; height:5px;
     border-radius:3px;
@@ -620,7 +638,7 @@
   </header>
 
   <div class="segmented" id="segmented">
-    <button class="active" data-filter="active">To Do</button>
+    <button class="active" data-filter="active">ToDo</button>
     <button data-filter="all">All</button>
     <button data-filter="done">Done</button>
   </div>
@@ -716,11 +734,16 @@ Write the launch email"></textarea>
   const THEME_KEY = "ios-todo-theme-v1";
 
   const PALETTES = {
-    classic: { label:"Classic", active:"#0A84FF", all:"#30B0C7", done:"#30C24A" },
-    warm:    { label:"Warm",    active:"#FF6B4A", all:"#FFB020", done:"#2FD9A6" },
-    muted:   { label:"Muted",   active:"#3E63DD", all:"#64748B", done:"#10B981" }
+    classic:  { label:"Classic",  active:"#0A84FF", all:"#30B0C7", done:"#30C24A" },
+    warm:     { label:"Warm",     active:"#FF6B4A", all:"#FFB020", done:"#2FD9A6" },
+    muted:    { label:"Muted",    active:"#3E63DD", all:"#64748B", done:"#10B981" },
+    sunset:   { label:"Sunset",   active:"#FF5D8F", all:"#FF8A5B", done:"#FFC53D" },
+    forest:   { label:"Forest",   active:"#2E7D46", all:"#6B8F3B", done:"#B5C93A" },
+    berry:    { label:"Berry",    active:"#9B5DE5", all:"#C147A8", done:"#00BBF9" },
+    mono:     { label:"Mono",     active:"#4A4A4A", all:"#8A8A8A", done:"#2A2A2A" },
+    ocean:    { label:"Ocean",    active:"#0077B6", all:"#00B4D8", done:"#48CAE4" }
   };
-  const THEME_ORDER = ["classic","warm","muted"];
+  const THEME_ORDER = ["classic","warm","muted","sunset","forest","berry","mono","ocean"];
 
   function uid(){ return Date.now().toString(36) + Math.random().toString(36).slice(2,7); }
 
@@ -885,7 +908,7 @@ Write the launch email"></textarea>
     if(showActive){
       html += `<div class="section">
         <div class="section-header">
-          <span>To Do</span><span class="section-count">${todoTasks.length}</span>
+          <span>ToDo</span><span class="section-count">${todoTasks.length}</span>
         </div>
         <div class="list" id="todoList">
           ${todoTasks.length ? todoTasks.map(t => rowHTML(t, true)).join("") : `<div class="empty"><div class="big">&#10003;</div>All clear. Add something above.</div>`}
@@ -918,7 +941,7 @@ Write the launch email"></textarea>
     if(!pendingUndo){
       barStatus.classList.remove("undo");
       barStatus.textContent = todoTasks.length + todayTasks.length
-        ? `${todoTasks.length + todayTasks.length} To Do`
+        ? `${todoTasks.length + todayTasks.length} ToDo`
         : "All done";
     }
 
@@ -1018,7 +1041,10 @@ Write the launch email"></textarea>
     });
   }
 
-  // Drag-to-reorder within the To Do list
+  // Drag-to-reorder within the To Do list.
+  // Uses a floating clone positioned with fixed coordinates so it tracks the
+  // pointer reliably on touch devices, while the original row acts as a
+  // hidden placeholder that swaps position with its neighbors.
   function bindDrag(){
     const list = document.getElementById("todoList");
     if(!list) return;
@@ -1027,19 +1053,47 @@ Write the launch email"></textarea>
         e.stopPropagation();
         e.preventDefault();
         const wrap = handle.closest(".row-wrap");
-        wrap.classList.add("dragging");
+        if(!wrap) return;
+
+        const startRect = wrap.getBoundingClientRect();
+        const startY = e.clientY;
+        const startX = e.clientX;
+
+        // Floating clone that visually follows the pointer
+        const clone = wrap.cloneNode(true);
+        clone.classList.add("drag-active");
+        clone.style.position = "fixed";
+        clone.style.left = startRect.left + "px";
+        clone.style.top = startRect.top + "px";
+        clone.style.width = startRect.width + "px";
+        clone.style.margin = "0";
+        clone.style.pointerEvents = "none";
+        document.body.appendChild(clone);
+
+        wrap.classList.add("drag-placeholder");
         handle.setPointerCapture(e.pointerId);
+        haptic(8);
 
         function onMove(ev){
+          const dx = ev.clientX - startX;
+          const dy = ev.clientY - startY;
+          clone.style.transform = `translate(${dx}px, ${dy}px)`;
+
+          // Determine what row we're hovering over and reorder the placeholder
           const after = getDragAfterElement(list, ev.clientY);
-          if(after == null) list.appendChild(wrap);
-          else list.insertBefore(wrap, after);
+          if(after == null){
+            if(list.lastElementChild !== wrap) list.appendChild(wrap);
+          } else if(after !== wrap){
+            list.insertBefore(wrap, after);
+          }
         }
         function onUp(){
-          wrap.classList.remove("dragging");
           handle.removeEventListener("pointermove", onMove);
           handle.removeEventListener("pointerup", onUp);
           handle.removeEventListener("pointercancel", onUp);
+          clone.remove();
+          wrap.classList.remove("drag-placeholder");
+
           const ids = [...list.querySelectorAll(".row-wrap")].map(el => el.dataset.id);
           ids.forEach((tid, idx) => {
             const t = tasks.find(x => x.id === tid);
@@ -1056,7 +1110,7 @@ Write the launch email"></textarea>
     });
   }
   function getDragAfterElement(container, y){
-    const els = [...container.querySelectorAll(".row-wrap:not(.dragging)")];
+    const els = [...container.querySelectorAll(".row-wrap:not(.drag-placeholder)")];
     return els.reduce((closest, child) => {
       const box = child.getBoundingClientRect();
       const offset = y - box.top - box.height / 2;
@@ -1175,10 +1229,18 @@ Write the launch email"></textarea>
     });
     const md = lines.join("\n");
     try{
-      await navigator.clipboard.writeText(md);
-      flashBar(`Copied ${active.length + done.length} tasks as Markdown`);
+      const blob = new Blob([md], { type: "text/markdown" });
+      const url = URL.createObjectURL(blob);
+      const a = document.createElement("a");
+      a.href = url;
+      a.download = `tasks-${todayISO()}.md`;
+      document.body.appendChild(a);
+      a.click();
+      a.remove();
+      setTimeout(() => URL.revokeObjectURL(url), 1000);
+      flashBar(`Downloaded ${active.length + done.length} tasks`);
     }catch(e){
-      flashBar("Couldn't access clipboard");
+      flashBar("Couldn't create file");
     }
   });
 
@@ -1209,7 +1271,7 @@ Write the launch email"></textarea>
       triggered = false;
       if(window.scrollY > 4 || searchWrap.classList.contains("open")){ tracking = false; return; }
       const t = e.target;
-      if(t.closest(".sheet") || t.closest(".scrim") || t.closest(".floating-bar") || t.closest(".row-wrap")){ tracking = false; return; }
+      if(t.closest(".sheet") || t.closest(".scrim") || t.closest(".floating-bar") || t.closest(".row-wrap") || t.closest(".segmented") || t.closest(".icon-btn")){ tracking = false; return; }
       const touch = e.touches[0];
       px = touch.clientX; py = touch.clientY; tracking = true;
     }, { passive:true });
@@ -1217,7 +1279,7 @@ Write the launch email"></textarea>
       if(!tracking || triggered) return;
       const touch = e.touches[0];
       const dx = touch.clientX - px, dy = touch.clientY - py;
-      if(dy > 70 && dy > Math.abs(dx) * 1.5){
+      if(dy > 45 && dy > Math.abs(dx) * 1.2){
         triggered = true;
         tracking = false;
         openSearch();
@@ -1297,6 +1359,7 @@ Write the launch email"></textarea>
 
   function openSheet(id){
     editingId = id || null;
+    const isNew = !editingId;
     if(editingId){
       const t = tasks.find(x => x.id === editingId);
       sheetTitle.textContent = "Edit Task";
@@ -1321,13 +1384,58 @@ Write the launch email"></textarea>
     renderSubtaskEditor();
     validateSave();
     scrim.classList.add("open");
-    sheet.classList.add("open");
     document.body.style.overflow = "hidden";
+
+    if(isNew){
+      // Animate the sheet expanding out from the plus button's position
+      const btnRect = addBtn.getBoundingClientRect();
+      const sheetRectGuess = sheet.getBoundingClientRect();
+      const btnCenterX = btnRect.left + btnRect.width/2;
+      const btnCenterY = btnRect.top + btnRect.height/2;
+      const originX = btnCenterX - sheetRectGuess.left;
+      const originY = btnCenterY - sheetRectGuess.top;
+
+      sheet.classList.add("pop-origin");
+      sheet.classList.remove("pop-animating");
+      sheet.style.transformOrigin = `${originX}px ${originY}px`;
+      sheet.style.transform = "translateY(0) scale(0.05)";
+      sheet.style.borderRadius = "50%";
+      sheet.style.opacity = "0.4";
+      sheet.classList.add("open");
+
+      // Force reflow then animate to full size
+      void sheet.offsetHeight;
+      requestAnimationFrame(() => {
+        sheet.classList.add("pop-animating");
+        sheet.style.transform = "translateY(0) scale(1)";
+        sheet.style.borderRadius = "20px 20px 0 0";
+        sheet.style.opacity = "1";
+      });
+      setTimeout(() => {
+        sheet.classList.remove("pop-origin","pop-animating");
+        sheet.style.transform = "";
+        sheet.style.borderRadius = "";
+        sheet.style.opacity = "";
+        sheet.style.transformOrigin = "";
+      }, 420);
+    } else {
+      sheet.classList.remove("pop-origin","pop-animating");
+      sheet.style.transform = "";
+      sheet.style.borderRadius = "";
+      sheet.style.opacity = "";
+      sheet.style.transformOrigin = "";
+      sheet.classList.add("open");
+    }
+
     setTimeout(() => taskText.focus(), 300);
   }
   function closeSheet(){
     scrim.classList.remove("open");
-    sheet.classList.remove("open");
+    sheet.classList.remove("open","pop-origin","pop-animating");
+    sheet.style.transform = "";
+    sheet.style.borderRadius = "";
+    sheet.style.opacity = "";
+    sheet.style.transformOrigin = "";
     document.body.style.overflow = "";
     editingId = null;
   }
