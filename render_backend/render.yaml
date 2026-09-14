@@ -1,0 +1,20 @@
+services:
+  - type: web
+    name: kems-backend
+    env: python
+    plan: free
+    buildCommand: pip install -r requirements.txt
+    startCommand: gunicorn app:app --bind 0.0.0.0:$PORT
+    envVars:
+      - key: KEMS_SITE_SECRET
+        generateValue: true
+      - key: KEMS_USER_0_NAME
+        value: User 0
+      - key: KEMS_USER_0_EMAIL
+        value: user0@kems.local
+      - key: KEMS_USER_0_PASSWORD
+        value: ChangeMe123!
+      - key: KEMS_FIRST_DEVICE_ID
+        value: MIRROR-0001
+      - key: KEMS_FIRST_PAIRING_CODE
+        value: KEMS-0001
