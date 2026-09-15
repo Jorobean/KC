@@ -10,14 +10,13 @@
     --line:#2a2a2a; --accent:#0d6efd; --danger:#dc3545;
   }
   *{box-sizing:border-box}
-  html{background:var(--bg); min-height:100%;}
-  body{margin:0;min-height:100dvh;background:var(--bg);color:var(--text);
+  html,body{background:#000}
+  body{margin:0;min-height:100vh;background:transparent;color:var(--text);
     font-family:-apple-system,'SF Pro Text',system-ui,Arial,sans-serif;
-    display:flex;align-items:center;justify-content:center;
-    padding:calc(24px + env(safe-area-inset-top)) calc(24px + env(safe-area-inset-right)) calc(24px + env(safe-area-inset-bottom)) calc(24px + env(safe-area-inset-left));
+    display:flex;align-items:center;justify-content:center;padding:24px;
     position:relative;overflow-x:hidden}
-  .bg-pattern{position:fixed;inset:0;z-index:0;width:100%;height:100dvh;object-fit:cover;
-    pointer-events:none;animation:bg-pattern-drift 32s ease-in-out infinite;transform-origin:center}
+  .bg-pattern{position:fixed;inset:0;z-index:0;width:100%;height:100%;object-fit:cover;
+    animation:bg-pattern-drift 32s ease-in-out infinite;transform-origin:center}
   @keyframes bg-pattern-drift{0%{transform:translate(0%,0%) scale(1.04) rotate(0deg)}20%{transform:translate(1.1%,-0.7%) scale(1.07) rotate(.3deg)}40%{transform:translate(1.8%,.5%) scale(1.1) rotate(.15deg)}60%{transform:translate(.5%,1.2%) scale(1.07) rotate(-.25deg)}80%{transform:translate(-1.1%,.6%) scale(1.05) rotate(-.35deg)}100%{transform:translate(0%,0%) scale(1.04) rotate(0deg)}}
   @media(prefers-reduced-motion:reduce){.bg-pattern{animation:none}}
   .card{position:relative;z-index:1;width:100%;max-width:400px;background:var(--card);border:1px solid var(--line);
@@ -26,8 +25,7 @@
   p.sub{color:var(--muted);font-size:13px;margin:0 0 20px}
   .tabs{display:flex;gap:8px;margin-bottom:20px}
   .tab{flex:1;padding:10px;text-align:center;border-radius:10px;background:var(--card2);
-    border:1px solid var(--line);color:var(--muted);font-size:13px;font-weight:600;cursor:pointer;
-    font-family:inherit}
+    border:1px solid var(--line);color:var(--muted);font-size:13px;font-weight:600;cursor:pointer}
   .tab.active{color:#fff;background:var(--accent);border-color:var(--accent)}
   label{display:block;font-size:12px;color:var(--muted);margin:14px 0 6px}
   input{width:100%;min-height:44px;border:1px solid var(--line);border-radius:10px;
@@ -46,6 +44,12 @@
   .mirror-row span.id{display:block;color:var(--muted);font-size:11px}
   .signout{margin-top:24px;background:transparent;border:1px solid var(--line);
     color:var(--muted);width:100%;min-height:40px;border-radius:10px;cursor:pointer}
+  .forgot{margin-top:10px;font-size:12px;color:var(--accent);text-align:right;cursor:pointer}
+  .mirror-actions{display:flex;gap:8px}
+  .mirror-actions button{background:transparent;border:1px solid var(--line);color:var(--muted);
+    border-radius:8px;min-height:32px;padding:0 10px;font-size:12px;cursor:pointer}
+  .mirror-actions button.danger{color:#ff6b6b;border-color:#5a2020}
+  .rename-input{width:100%;min-height:36px;margin-top:4px}
 </style>
 </head>
 <body>
@@ -55,9 +59,9 @@
   <div class="card" id="auth-card">
     <h1>Your Mirror Account</h1>
     <p class="sub">Sign in or create an account to manage your mirrors.</p>
-    <div class="tabs" role="tablist" aria-label="Account mode">
-      <button type="button" class="tab active" data-mode="login" role="tab" aria-selected="true">Log In</button>
-      <button type="button" class="tab" data-mode="signup" role="tab" aria-selected="false">Sign Up</button>
+    <div class="tabs">
+      <div class="tab active" data-mode="login">Log In</div>
+      <div class="tab" data-mode="signup">Sign Up</div>
     </div>
     <form id="auth-form">
       <label for="email">Email</label>
@@ -65,6 +69,7 @@
       <label for="password">Password</label>
       <input id="password" type="password" required autocomplete="current-password" minlength="6">
       <button class="primary" id="auth-submit" type="submit">Log In</button>
+      <p class="forgot" id="forgot-link">Forgot password?</p>
       <p class="error" id="auth-error"></p>
       <p class="msg" id="auth-msg"></p>
     </form>
@@ -136,6 +141,18 @@
     }
   });
 
+  document.getElementById('forgot-link').addEventListener('click', async () => {
+    const email = document.getElementById('email').value.trim();
+    authError.textContent = '';
+    authMsg.textContent = '';
+    if (!email) { authError.textContent = 'Enter your email above first.'; return; }
+    const { error } = await supabase.auth.resetPasswordForEmail(email, {
+      redirectTo: window.location.href,
+    });
+    if (error) authError.textContent = error.message;
+    else authMsg.textContent = 'Password reset email sent — check your inbox.';
+  });
+
   document.getElementById('sign-out').addEventListener('click', async () => {
     await supabase.auth.signOut();
     dashCard.classList.add('hidden');
@@ -194,10 +211,48 @@
       return;
     }
     list.innerHTML = data.map(m => `
-      <div class="mirror-row">
-        <span><span class="name">${m.name}</span><span class="id">${m.device_id}</span></span>
+      <div class="mirror-row" data-id="${m.id}">
+        <span><span class="name">${m.name}</span><span class="id">Mirror ${m.mirror_number ?? ''} · ${m.device_id}</span></span>
+        <span class="mirror-actions">
+          <button type="button" class="rename-btn">Rename</button>
+          <button type="button" class="danger remove-btn">Remove</button>
+        </span>
       </div>
     `).join('');
+
+    list.querySelectorAll('.rename-btn').forEach(btn => {
+      btn.addEventListener('click', () => startRename(btn.closest('.mirror-row')));
+    });
+    list.querySelectorAll('.remove-btn').forEach(btn => {
+      btn.addEventListener('click', () => removeMirror(btn.closest('.mirror-row')));
+    });
+  }
+
+  function startRename(row) {
+    const id = row.dataset.id;
+    const currentName = row.querySelector('.name').textContent;
+    row.innerHTML = `
+      <input class="rename-input" type="text" value="${currentName}">
+      <span class="mirror-actions">
+        <button type="button" class="save-btn">Save</button>
+        <button type="button" class="cancel-btn">Cancel</button>
+      </span>
+    `;
+    row.querySelector('.cancel-btn').addEventListener('click', loadMirrors);
+    row.querySelector('.save-btn').addEventListener('click', async () => {
+      const newName = row.querySelector('.rename-input').value.trim();
+      if (!newName) return;
+      await supabase.from('mirrors').update({ name: newName }).eq('id', id);
+      loadMirrors();
+    });
+  }
+
+  async function removeMirror(row) {
+    const id = row.dataset.id;
+    const name = row.querySelector('.name')?.textContent || 'this mirror';
+    if (!confirm(`Remove ${name} from your account?`)) return;
+    await supabase.from('mirrors').delete().eq('id', id);
+    loadMirrors();
   }
 
   async function showDashboard() {

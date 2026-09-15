@@ -71,7 +71,28 @@
       display: flex;
       align-items: center;
       justify-content: center;
+      gap: 18px;
       pointer-events: none;
+    }
+
+    .footer > * {
+      pointer-events: auto;
+    }
+
+    .account-link {
+      text-decoration: none;
+      color: var(--text);
+      font-family: "Courier New", Courier, monospace;
+      font-size: 14px;
+      font-weight: 700;
+      letter-spacing: 0.08em;
+      text-transform: uppercase;
+      opacity: 0.9;
+    }
+
+    .account-link:hover,
+    .account-link:focus-visible {
+      opacity: 1;
     }
 
     .footer img {
@@ -102,6 +123,7 @@
   </div>
 
   <div class="footer">
+    <a href="account.html" class="account-link">Account</a>
     <img src="kems-logo2.png" alt="KEMS logo" id="footer-logo-toggle">
   </div>
 
