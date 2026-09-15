@@ -1,0 +1,210 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>My Mirror Account</title>
+<style>
+  :root{
+    --bg:#000; --card:#111; --card2:#161616; --text:#eee; --muted:#aaa;
+    --line:#2a2a2a; --accent:#0d6efd; --danger:#dc3545;
+  }
+  *{box-sizing:border-box}
+  body{margin:0;min-height:100vh;background:var(--bg);color:var(--text);
+    font-family:-apple-system,'SF Pro Text',system-ui,Arial,sans-serif;
+    display:flex;align-items:center;justify-content:center;padding:24px}
+  .card{width:100%;max-width:400px;background:var(--card);border:1px solid var(--line);
+    border-radius:16px;padding:28px}
+  h1{font-size:22px;margin:0 0 4px}
+  p.sub{color:var(--muted);font-size:13px;margin:0 0 20px}
+  .tabs{display:flex;gap:8px;margin-bottom:20px}
+  .tab{flex:1;padding:10px;text-align:center;border-radius:10px;background:var(--card2);
+    border:1px solid var(--line);color:var(--muted);font-size:13px;font-weight:600;cursor:pointer}
+  .tab.active{color:#fff;background:var(--accent);border-color:var(--accent)}
+  label{display:block;font-size:12px;color:var(--muted);margin:14px 0 6px}
+  input{width:100%;min-height:44px;border:1px solid var(--line);border-radius:10px;
+    background:var(--card2);color:var(--text);padding:0 12px;font:16px inherit}
+  input:focus{outline:none;border-color:var(--accent)}
+  button.primary{width:100%;min-height:46px;margin-top:20px;border:0;border-radius:10px;
+    background:var(--accent);color:#fff;font:600 15px inherit;cursor:pointer}
+  button.primary:disabled{opacity:.5;cursor:default}
+  .error{color:#ff6b6b;font-size:13px;margin-top:10px;min-height:16px}
+  .msg{color:#4caf50;font-size:13px;margin-top:10px;min-height:16px}
+  .hidden{display:none !important}
+  .mirror-row{display:flex;justify-content:space-between;align-items:center;
+    padding:12px 0;border-bottom:1px solid var(--line)}
+  .mirror-row:last-child{border-bottom:0}
+  .mirror-row span.name{font-weight:600}
+  .mirror-row span.id{display:block;color:var(--muted);font-size:11px}
+  .signout{margin-top:24px;background:transparent;border:1px solid var(--line);
+    color:var(--muted);width:100%;min-height:40px;border-radius:10px;cursor:pointer}
+</style>
+</head>
+<body>
+
+  <!-- AUTH VIEW -->
+  <div class="card" id="auth-card">
+    <h1>Your Mirror Account</h1>
+    <p class="sub">Sign in or create an account to manage your mirrors.</p>
+    <div class="tabs">
+      <div class="tab active" data-mode="login">Log In</div>
+      <div class="tab" data-mode="signup">Sign Up</div>
+    </div>
+    <form id="auth-form">
+      <label for="email">Email</label>
+      <input id="email" type="email" required autocomplete="email">
+      <label for="password">Password</label>
+      <input id="password" type="password" required autocomplete="current-password" minlength="6">
+      <button class="primary" id="auth-submit" type="submit">Log In</button>
+      <p class="error" id="auth-error"></p>
+      <p class="msg" id="auth-msg"></p>
+    </form>
+  </div>
+
+  <!-- DASHBOARD VIEW -->
+  <div class="card hidden" id="dashboard-card">
+    <h1>My Mirrors</h1>
+    <p class="sub" id="user-email"></p>
+
+    <div id="mirror-list"></div>
+
+    <label for="pair-code">Add a Mirror</label>
+    <input id="pair-code" placeholder="6-digit code shown on your mirror" maxlength="6">
+    <button class="primary" id="pair-submit" type="button">Link Mirror</button>
+    <p class="error" id="pair-error"></p>
+    <p class="msg" id="pair-msg"></p>
+
+    <button class="signout" id="sign-out" type="button">Sign Out</button>
+  </div>
+
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+<script>
+  // ── Fill these in from Supabase Dashboard → Settings → API ──
+  const SUPABASE_URL = 'YOUR_SUPABASE_PROJECT_URL';
+  const SUPABASE_ANON_KEY = 'YOUR_SUPABASE_ANON_KEY';
+  const supabase = window.supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
+
+  const authCard = document.getElementById('auth-card');
+  const dashCard = document.getElementById('dashboard-card');
+  const authForm = document.getElementById('auth-form');
+  const authError = document.getElementById('auth-error');
+  const authMsg = document.getElementById('auth-msg');
+  const authSubmit = document.getElementById('auth-submit');
+  const tabs = document.querySelectorAll('.tab');
+  let mode = 'login';
+
+  tabs.forEach(tab => tab.addEventListener('click', () => {
+    tabs.forEach(t => t.classList.remove('active'));
+    tab.classList.add('active');
+    mode = tab.dataset.mode;
+    authSubmit.textContent = mode === 'login' ? 'Log In' : 'Sign Up';
+    authError.textContent = '';
+    authMsg.textContent = '';
+  }));
+
+  authForm.addEventListener('submit', async (e) => {
+    e.preventDefault();
+    authError.textContent = '';
+    authMsg.textContent = '';
+    const email = document.getElementById('email').value.trim();
+    const password = document.getElementById('password').value;
+
+    authSubmit.disabled = true;
+    try {
+      if (mode === 'login') {
+        const { error } = await supabase.auth.signInWithPassword({ email, password });
+        if (error) throw error;
+        await showDashboard();
+      } else {
+        const { error } = await supabase.auth.signUp({ email, password });
+        if (error) throw error;
+        authMsg.textContent = 'Account created — check your email to confirm, then log in.';
+      }
+    } catch (err) {
+      authError.textContent = err.message || 'Something went wrong.';
+    } finally {
+      authSubmit.disabled = false;
+    }
+  });
+
+  document.getElementById('sign-out').addEventListener('click', async () => {
+    await supabase.auth.signOut();
+    dashCard.classList.add('hidden');
+    authCard.classList.remove('hidden');
+  });
+
+  document.getElementById('pair-submit').addEventListener('click', async () => {
+    const pairError = document.getElementById('pair-error');
+    const pairMsg = document.getElementById('pair-msg');
+    pairError.textContent = '';
+    pairMsg.textContent = '';
+    const code = document.getElementById('pair-code').value.trim();
+    if (!code) { pairError.textContent = 'Enter the code shown on your mirror.'; return; }
+
+    const { data: { user } } = await supabase.auth.getUser();
+
+    // Find the unclaimed pairing row with this code.
+    const { data: rows, error: findErr } = await supabase
+      .from('pairing_codes')
+      .select('device_id, claimed_at')
+      .eq('code', code)
+      .is('claimed_at', null)
+      .limit(1);
+
+    if (findErr || !rows || rows.length === 0) {
+      pairError.textContent = 'Invalid or expired code.';
+      return;
+    }
+    const deviceId = rows[0].device_id;
+
+    // Claim it: mark it claimed by this user.
+    const { error: claimErr } = await supabase
+      .from('pairing_codes')
+      .update({ user_id: user.id, claimed_at: new Date().toISOString() })
+      .eq('code', code)
+      .is('claimed_at', null);
+    if (claimErr) { pairError.textContent = claimErr.message; return; }
+
+    // Register the mirror under this account.
+    const { error: insertErr } = await supabase
+      .from('mirrors')
+      .insert({ device_id: deviceId, user_id: user.id, name: 'My Mirror' });
+    if (insertErr) { pairError.textContent = insertErr.message; return; }
+
+    pairMsg.textContent = 'Mirror linked!';
+    document.getElementById('pair-code').value = '';
+    loadMirrors();
+  });
+
+  async function loadMirrors() {
+    const list = document.getElementById('mirror-list');
+    const { data, error } = await supabase.from('mirrors').select('*').order('paired_at', { ascending: false });
+    if (error) { list.innerHTML = ''; return; }
+    if (!data || data.length === 0) {
+      list.innerHTML = '<p class="sub">No mirrors linked yet.</p>';
+      return;
+    }
+    list.innerHTML = data.map(m => `
+      <div class="mirror-row">
+        <span><span class="name">${m.name}</span><span class="id">${m.device_id}</span></span>
+      </div>
+    `).join('');
+  }
+
+  async function showDashboard() {
+    const { data: { user } } = await supabase.auth.getUser();
+    if (!user) return;
+    document.getElementById('user-email').textContent = user.email;
+    authCard.classList.add('hidden');
+    dashCard.classList.remove('hidden');
+    loadMirrors();
+  }
+
+  // On load, check if already signed in (persisted session).
+  (async () => {
+    const { data: { session } } = await supabase.auth.getSession();
+    if (session) await showDashboard();
+  })();
+</script>
+</body>
+</html>
