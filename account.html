@@ -17,7 +17,7 @@
     padding:calc(24px + env(safe-area-inset-top)) calc(24px + env(safe-area-inset-right)) calc(24px + env(safe-area-inset-bottom)) calc(24px + env(safe-area-inset-left));
     position:relative;overflow-x:hidden}
   .bg-pattern{position:fixed;inset:0;z-index:0;width:100%;height:100dvh;object-fit:cover;
-    animation:bg-pattern-drift 32s ease-in-out infinite;transform-origin:center}
+    pointer-events:none;animation:bg-pattern-drift 32s ease-in-out infinite;transform-origin:center}
   @keyframes bg-pattern-drift{0%{transform:translate(0%,0%) scale(1.04) rotate(0deg)}20%{transform:translate(1.1%,-0.7%) scale(1.07) rotate(.3deg)}40%{transform:translate(1.8%,.5%) scale(1.1) rotate(.15deg)}60%{transform:translate(.5%,1.2%) scale(1.07) rotate(-.25deg)}80%{transform:translate(-1.1%,.6%) scale(1.05) rotate(-.35deg)}100%{transform:translate(0%,0%) scale(1.04) rotate(0deg)}}
   @media(prefers-reduced-motion:reduce){.bg-pattern{animation:none}}
   .card{position:relative;z-index:1;width:100%;max-width:400px;background:var(--card);border:1px solid var(--line);
@@ -26,7 +26,8 @@
   p.sub{color:var(--muted);font-size:13px;margin:0 0 20px}
   .tabs{display:flex;gap:8px;margin-bottom:20px}
   .tab{flex:1;padding:10px;text-align:center;border-radius:10px;background:var(--card2);
-    border:1px solid var(--line);color:var(--muted);font-size:13px;font-weight:600;cursor:pointer}
+    border:1px solid var(--line);color:var(--muted);font-size:13px;font-weight:600;cursor:pointer;
+    font-family:inherit}
   .tab.active{color:#fff;background:var(--accent);border-color:var(--accent)}
   label{display:block;font-size:12px;color:var(--muted);margin:14px 0 6px}
   input{width:100%;min-height:44px;border:1px solid var(--line);border-radius:10px;
@@ -54,9 +55,9 @@
   <div class="card" id="auth-card">
     <h1>Your Mirror Account</h1>
     <p class="sub">Sign in or create an account to manage your mirrors.</p>
-    <div class="tabs">
-      <div class="tab active" data-mode="login">Log In</div>
-      <div class="tab" data-mode="signup">Sign Up</div>
+    <div class="tabs" role="tablist" aria-label="Account mode">
+      <button type="button" class="tab active" data-mode="login" role="tab" aria-selected="true">Log In</button>
+      <button type="button" class="tab" data-mode="signup" role="tab" aria-selected="false">Sign Up</button>
     </div>
     <form id="auth-form">
       <label for="email">Email</label>
