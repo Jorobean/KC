@@ -2,7 +2,7 @@
 <html lang="en">
 <head>
 <meta charset="UTF-8">
-<meta name="viewport" content="width=device-width,initial-scale=1">
+<meta name="viewport" content="width=device-width,initial-scale=1,maximum-scale=1,user-scalable=no,viewport-fit=cover">
 <title>My Mirror Account</title>
 <style>
   :root{
@@ -10,10 +10,16 @@
     --line:#2a2a2a; --accent:#0d6efd; --danger:#dc3545;
   }
   *{box-sizing:border-box}
-  body{margin:0;min-height:100vh;background:var(--bg);color:var(--text);
+  html,body{background:#000}
+  body{margin:0;min-height:100vh;background:transparent;color:var(--text);
     font-family:-apple-system,'SF Pro Text',system-ui,Arial,sans-serif;
-    display:flex;align-items:center;justify-content:center;padding:24px}
-  .card{width:100%;max-width:400px;background:var(--card);border:1px solid var(--line);
+    display:flex;align-items:center;justify-content:center;padding:24px;
+    position:relative;overflow-x:hidden}
+  .bg-pattern{position:fixed;inset:0;z-index:0;width:100%;height:100%;object-fit:cover;
+    animation:bg-pattern-drift 32s ease-in-out infinite;transform-origin:center}
+  @keyframes bg-pattern-drift{0%{transform:translate(0%,0%) scale(1.04) rotate(0deg)}20%{transform:translate(1.1%,-0.7%) scale(1.07) rotate(.3deg)}40%{transform:translate(1.8%,.5%) scale(1.1) rotate(.15deg)}60%{transform:translate(.5%,1.2%) scale(1.07) rotate(-.25deg)}80%{transform:translate(-1.1%,.6%) scale(1.05) rotate(-.35deg)}100%{transform:translate(0%,0%) scale(1.04) rotate(0deg)}}
+  @media(prefers-reduced-motion:reduce){.bg-pattern{animation:none}}
+  .card{position:relative;z-index:1;width:100%;max-width:400px;background:var(--card);border:1px solid var(--line);
     border-radius:16px;padding:28px}
   h1{font-size:22px;margin:0 0 4px}
   p.sub{color:var(--muted);font-size:13px;margin:0 0 20px}
@@ -41,6 +47,7 @@
 </style>
 </head>
 <body>
+<img class="bg-pattern" src="onboarding.png" alt="" aria-hidden="true">
 
   <!-- AUTH VIEW -->
   <div class="card" id="auth-card">
@@ -80,8 +87,8 @@
 <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
 <script>
   // ── Fill these in from Supabase Dashboard → Settings → API ──
-  const SUPABASE_URL = 'YOUR_SUPABASE_PROJECT_URL';
-  const SUPABASE_ANON_KEY = 'YOUR_SUPABASE_ANON_KEY';
+  const SUPABASE_URL = 'https://qnrdrtlsitedelrzkdvd.supabase.co';
+  const SUPABASE_ANON_KEY = 'sb_publishable_qXLe8UMrN62miUoIxZJoiQ_7tQfoapm';
   const supabase = window.supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
 
   const authCard = document.getElementById('auth-card');
