@@ -6,8 +6,9 @@
 <title>My Mirror Account</title>
 <style>
   :root{
-    --bg:#000; --card:#111; --card2:#161616; --text:#eee; --muted:#aaa;
-    --line:#2a2a2a; --accent:#0d6efd; --danger:#dc3545;
+    --bg:#000; --card:#111; --card2:#161616; --card3:#1c1c1c; --text:#eee; --muted:#999; --muted2:#666;
+    --line:#2a2a2a; --accent:#0d6efd; --accent-soft:rgba(13,110,253,.14);
+    --online:#3ddc84; --offline:#555; --danger:#dc3545; --danger-soft:rgba(220,53,69,.12);
   }
   *{box-sizing:border-box}
   html,body{background:#000}
@@ -19,37 +20,108 @@
     animation:bg-pattern-drift 32s ease-in-out infinite;transform-origin:center}
   @keyframes bg-pattern-drift{0%{transform:translate(0%,0%) scale(1.04) rotate(0deg)}20%{transform:translate(1.1%,-0.7%) scale(1.07) rotate(.3deg)}40%{transform:translate(1.8%,.5%) scale(1.1) rotate(.15deg)}60%{transform:translate(.5%,1.2%) scale(1.07) rotate(-.25deg)}80%{transform:translate(-1.1%,.6%) scale(1.05) rotate(-.35deg)}100%{transform:translate(0%,0%) scale(1.04) rotate(0deg)}}
   @media(prefers-reduced-motion:reduce){.bg-pattern{animation:none}}
-  .card{position:relative;z-index:1;width:100%;max-width:400px;background:var(--card);border:1px solid var(--line);
+  .card{position:relative;z-index:1;width:100%;max-width:420px;background:var(--card);border:1px solid var(--line);
     border-radius:16px;padding:28px}
   h1{font-size:22px;margin:0 0 4px}
+  h2{font-size:15px;margin:0 0 2px}
   p.sub{color:var(--muted);font-size:13px;margin:0 0 20px}
   .tabs{display:flex;gap:8px;margin-bottom:20px}
   .tab{flex:1;padding:10px;text-align:center;border-radius:10px;background:var(--card2);
     border:1px solid var(--line);color:var(--muted);font-size:13px;font-weight:600;cursor:pointer}
   .tab.active{color:#fff;background:var(--accent);border-color:var(--accent)}
   label{display:block;font-size:12px;color:var(--muted);margin:14px 0 6px}
-  input{width:100%;min-height:44px;border:1px solid var(--line);border-radius:10px;
+  input,select{width:100%;min-height:44px;border:1px solid var(--line);border-radius:10px;
     background:var(--card2);color:var(--text);padding:0 12px;font:16px inherit}
-  input:focus{outline:none;border-color:var(--accent)}
+  input:focus,select:focus{outline:none;border-color:var(--accent)}
+  button{font-family:inherit}
   button.primary{width:100%;min-height:46px;margin-top:20px;border:0;border-radius:10px;
     background:var(--accent);color:#fff;font:600 15px inherit;cursor:pointer}
   button.primary:disabled{opacity:.5;cursor:default}
+  button.primary.small{min-height:38px;margin-top:10px;font-size:13px}
   .error{color:#ff6b6b;font-size:13px;margin-top:10px;min-height:16px}
   .msg{color:#4caf50;font-size:13px;margin-top:10px;min-height:16px}
   .hidden{display:none !important}
-  .mirror-row{display:flex;justify-content:space-between;align-items:center;
-    padding:12px 0;border-bottom:1px solid var(--line)}
-  .mirror-row:last-child{border-bottom:0}
-  .mirror-row span.name{font-weight:600}
-  .mirror-row span.id{display:block;color:var(--muted);font-size:11px}
-  .signout{margin-top:24px;background:transparent;border:1px solid var(--line);
+
+  /* ── Header ── */
+  .dash-header{display:flex;align-items:center;gap:12px;margin-bottom:22px}
+  .avatar{width:44px;height:44px;border-radius:50%;flex:none;display:flex;align-items:center;justify-content:center;
+    background:linear-gradient(145deg,var(--accent),#5b3df0);color:#fff;font-weight:700;font-size:15px;
+    box-shadow:0 0 0 1px rgba(255,255,255,.06) inset}
+  .dash-header-text{min-width:0;flex:1}
+  .dash-header-text .name{font-size:15px;font-weight:600;color:var(--text);overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+  .dash-header-text .sub-email{font-size:12px;color:var(--muted);overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+  .icon-btn{flex:none;width:36px;height:36px;border-radius:9px;border:1px solid var(--line);background:var(--card2);
+    color:var(--muted);cursor:pointer;display:flex;align-items:center;justify-content:center}
+  .icon-btn:hover{color:var(--text);border-color:#3a3a3a}
+
+  /* ── Section label ── */
+  .section-label{font-size:11px;letter-spacing:.02em;color:var(--muted2);margin:22px 0 10px;font-weight:600}
+  .section-label:first-of-type{margin-top:0}
+
+  /* ── Empty state ── */
+  .empty-state{display:flex;flex-direction:column;align-items:center;text-align:center;
+    padding:30px 10px;border:1px dashed var(--line);border-radius:12px}
+  .empty-state svg{margin-bottom:12px;opacity:.85}
+  .empty-state .empty-title{font-size:14px;font-weight:600;color:var(--text);margin-bottom:4px}
+  .empty-state .empty-sub{font-size:12.5px;color:var(--muted);max-width:240px;line-height:1.5}
+
+  /* ── Mirror groups / rows ── */
+  .room-group{margin-bottom:4px}
+  .room-title{font-size:11.5px;font-weight:600;color:var(--muted);margin:14px 0 8px;display:flex;align-items:center;gap:6px}
+  .room-title:first-child{margin-top:0}
+  .mirror-row{display:flex;align-items:center;gap:12px;padding:12px;margin-bottom:8px;
+    background:var(--card2);border:1px solid var(--line);border-radius:12px;transition:border-color .15s}
+  .mirror-row:hover{border-color:#3a3a3a}
+  .mirror-icon{flex:none;width:38px;height:38px;border-radius:9px;background:var(--card3);
+    display:flex;align-items:center;justify-content:center;color:var(--muted)}
+  .mirror-main{min-width:0;flex:1}
+  .mirror-top{display:flex;align-items:center;gap:6px}
+  .mirror-row span.name{font-weight:600;font-size:14px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+  .status-dot{flex:none;width:7px;height:7px;border-radius:50%;background:var(--offline)}
+  .status-dot.online{background:var(--online);box-shadow:0 0 0 3px rgba(61,220,132,.15)}
+  .mirror-row span.meta{display:block;color:var(--muted);font-size:11.5px;margin-top:2px}
+  .mirror-actions{display:flex;gap:6px;flex:none}
+  .mirror-actions button{background:transparent;border:1px solid var(--line);color:var(--muted);
+    border-radius:8px;min-height:30px;padding:0 10px;font-size:12px;cursor:pointer}
+  .mirror-actions button:hover{color:var(--text);border-color:#3a3a3a}
+  .mirror-actions button.danger{color:#ff6b6b;border-color:#5a2020}
+  .mirror-actions button.danger:hover{background:var(--danger-soft)}
+  .rename-input{width:100%;min-height:36px;margin-top:4px}
+  .room-select{margin-top:8px;min-height:36px;font-size:13px}
+
+  /* ── Add mirror / link success ── */
+  .link-success{display:none;align-items:center;gap:10px;padding:12px;margin-top:10px;
+    background:rgba(61,220,132,.08);border:1px solid rgba(61,220,132,.3);border-radius:10px}
+  .link-success.show{display:flex;animation:pop-in .35s ease}
+  @keyframes pop-in{0%{transform:scale(.9);opacity:0}60%{transform:scale(1.02)}100%{transform:scale(1);opacity:1}}
+  .check-circle{flex:none;width:26px;height:26px;border-radius:50%;background:var(--online);
+    display:flex;align-items:center;justify-content:center}
+  .check-circle svg{animation:check-draw .4s ease .1s both}
+  @keyframes check-draw{from{stroke-dashoffset:16}to{stroke-dashoffset:0}}
+  .link-success .ls-text{font-size:13px;color:#eafff2}
+  @media(prefers-reduced-motion:reduce){.link-success.show{animation:none}.check-circle svg{animation:none}}
+
+  /* ── Account settings ── */
+  .settings-panel{border-top:1px solid var(--line);margin-top:22px;padding-top:18px}
+  .settings-row{border:1px solid var(--line);border-radius:12px;padding:14px;margin-bottom:10px;background:var(--card2)}
+  .settings-row summary{list-style:none;cursor:pointer;display:flex;align-items:center;justify-content:space-between;
+    font-size:13.5px;font-weight:600;color:var(--text)}
+  .settings-row summary::-webkit-details-marker{display:none}
+  .settings-row summary .chev{color:var(--muted);transition:transform .15s}
+  .settings-row[open] summary .chev{transform:rotate(90deg)}
+  .settings-row .settings-body{margin-top:12px}
+  .settings-row.danger-row{border-color:#5a2020}
+  .settings-row.danger-row summary{color:#ff8080}
+  .tiny-note{font-size:11.5px;color:var(--muted2);margin-top:8px;line-height:1.5}
+
+  .signout{margin-top:20px;background:transparent;border:1px solid var(--line);
     color:var(--muted);width:100%;min-height:40px;border-radius:10px;cursor:pointer}
   .forgot{margin-top:10px;font-size:12px;color:var(--accent);text-align:right;cursor:pointer}
-  .mirror-actions{display:flex;gap:8px}
-  .mirror-actions button{background:transparent;border:1px solid var(--line);color:var(--muted);
-    border-radius:8px;min-height:32px;padding:0 10px;font-size:12px;cursor:pointer}
-  .mirror-actions button.danger{color:#ff6b6b;border-color:#5a2020}
-  .rename-input{width:100%;min-height:36px;margin-top:4px}
+
+  .dash-footer{margin-top:20px;padding-top:16px;border-top:1px solid var(--line);
+    display:flex;justify-content:center;gap:14px;font-size:12px;color:var(--muted2)}
+  .dash-footer a{color:var(--muted);text-decoration:none}
+  .dash-footer a:hover{color:var(--text)}
 </style>
 </head>
 <body>
@@ -77,18 +149,69 @@
 
   <!-- DASHBOARD VIEW -->
   <div class="card hidden" id="dashboard-card">
-    <h1>My Mirrors</h1>
-    <p class="sub" id="user-email"></p>
 
+    <div class="dash-header">
+      <div class="avatar" id="user-avatar">··</div>
+      <div class="dash-header-text">
+        <div class="name" id="user-name">My Mirrors</div>
+        <div class="sub-email" id="user-email"></div>
+      </div>
+      <button class="icon-btn" id="settings-toggle" title="Account settings" type="button">
+        <svg width="17" height="17" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="3"></circle><path d="M19.4 15a1.65 1.65 0 0 0 .33 1.82l.06.06a2 2 0 1 1-2.83 2.83l-.06-.06a1.65 1.65 0 0 0-1.82-.33 1.65 1.65 0 0 0-1 1.51V21a2 2 0 0 1-4 0v-.09A1.65 1.65 0 0 0 9 19.4a1.65 1.65 0 0 0-1.82.33l-.06.06a2 2 0 1 1-2.83-2.83l.06-.06a1.65 1.65 0 0 0 .33-1.82 1.65 1.65 0 0 0-1.51-1H3a2 2 0 0 1 0-4h.09A1.65 1.65 0 0 0 4.6 9a1.65 1.65 0 0 0-.33-1.82l-.06-.06a2 2 0 1 1 2.83-2.83l.06.06a1.65 1.65 0 0 0 1.82.33H9a1.65 1.65 0 0 0 1-1.51V3a2 2 0 0 1 4 0v.09a1.65 1.65 0 0 0 1 1.51 1.65 1.65 0 0 0 1.82-.33l.06-.06a2 2 0 1 1 2.83 2.83l-.06.06a1.65 1.65 0 0 0-.33 1.82V9a1.65 1.65 0 0 0 1.51 1H21a2 2 0 0 1 0 4h-.09a1.65 1.65 0 0 0-1.51 1z"></path></svg>
+      </button>
+    </div>
+
+    <p class="section-label">Your mirrors</p>
     <div id="mirror-list"></div>
 
-    <label for="pair-code">Add a Mirror</label>
+    <p class="section-label">Add a mirror</p>
+    <label for="pair-code">Pairing code</label>
     <input id="pair-code" placeholder="6-digit code shown on your mirror" maxlength="6">
     <button class="primary" id="pair-submit" type="button">Link Mirror</button>
     <p class="error" id="pair-error"></p>
     <p class="msg" id="pair-msg"></p>
+    <div class="link-success" id="link-success">
+      <span class="check-circle">
+        <svg width="14" height="14" viewBox="0 0 24 24" fill="none"><path d="M5 13l4 4L19 7" stroke="#06210f" stroke-width="3" stroke-linecap="round" stroke-linejoin="round" stroke-dasharray="16" stroke-dashoffset="16"></path></svg>
+      </span>
+      <span class="ls-text" id="link-success-text">Mirror linked!</span>
+    </div>
+
+    <!-- ACCOUNT SETTINGS -->
+    <div class="settings-panel hidden" id="settings-panel">
+      <p class="section-label" style="margin-top:0">Account settings</p>
+
+      <details class="settings-row">
+        <summary>Change password
+          <svg class="chev" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="9 18 15 12 9 6"></polyline></svg>
+        </summary>
+        <div class="settings-body">
+          <label for="new-password">New password</label>
+          <input id="new-password" type="password" minlength="6" placeholder="At least 6 characters">
+          <button class="primary small" id="change-password-btn" type="button">Update Password</button>
+          <p class="error" id="password-error"></p>
+          <p class="msg" id="password-msg"></p>
+        </div>
+      </details>
+
+      <details class="settings-row danger-row">
+        <summary>Delete account
+          <svg class="chev" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="9 18 15 12 9 6"></polyline></svg>
+        </summary>
+        <div class="settings-body">
+          <p class="tiny-note" style="margin-top:0">This permanently deletes your account and unlinks every mirror. This can't be undone.</p>
+          <button class="primary small" id="delete-account-btn" type="button" style="background:var(--danger)">Delete My Account</button>
+          <p class="error" id="delete-error"></p>
+        </div>
+      </details>
+    </div>
 
     <button class="signout" id="sign-out" type="button">Sign Out</button>
+
+    <div class="dash-footer">
+      <a href="mailto:support@example.com">Contact support</a>
+      <a href="#" id="help-link">Help center</a>
+    </div>
   </div>
 
 <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
@@ -97,6 +220,8 @@
   const SUPABASE_URL = 'https://qnrdrtlsitedelrzkdvd.supabase.co';
   const SUPABASE_ANON_KEY = 'sb_publishable_qXLe8UMrN62miUoIxZJoiQ_7tQfoapm';
   const supabaseClient = window.supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
+
+  const ONLINE_WINDOW_MS = 5 * 60 * 1000; // treat "last seen" within 5 min as online
 
   const authCard = document.getElementById('auth-card');
   const dashCard = document.getElementById('dashboard-card');
@@ -159,11 +284,54 @@
     authCard.classList.remove('hidden');
   });
 
+  // ── Settings panel toggle ──
+  document.getElementById('settings-toggle').addEventListener('click', () => {
+    document.getElementById('settings-panel').classList.toggle('hidden');
+  });
+
+  // ── Change password ──
+  document.getElementById('change-password-btn').addEventListener('click', async () => {
+    const pwError = document.getElementById('password-error');
+    const pwMsg = document.getElementById('password-msg');
+    pwError.textContent = ''; pwMsg.textContent = '';
+    const newPassword = document.getElementById('new-password').value;
+    if (!newPassword || newPassword.length < 6) {
+      pwError.textContent = 'Password must be at least 6 characters.';
+      return;
+    }
+    const { error } = await supabaseClient.auth.updateUser({ password: newPassword });
+    if (error) { pwError.textContent = error.message; return; }
+    pwMsg.textContent = 'Password updated.';
+    document.getElementById('new-password').value = '';
+  });
+
+  // ── Delete account ──
+  // NOTE: the anon key can't delete an auth user directly. This calls a
+  // Postgres RPC function ("delete_current_user") that you deploy with
+  // the service role so it can remove the user's mirrors, pairing codes,
+  // and auth record. If that function doesn't exist yet, this shows a
+  // clear error instead of failing silently.
+  document.getElementById('delete-account-btn').addEventListener('click', async () => {
+    const delError = document.getElementById('delete-error');
+    delError.textContent = '';
+    if (!confirm('Delete your account and unlink all mirrors? This can\'t be undone.')) return;
+    const { error } = await supabaseClient.rpc('delete_current_user');
+    if (error) {
+      delError.textContent = 'Could not delete account (' + error.message + '). Contact support for help.';
+      return;
+    }
+    await supabaseClient.auth.signOut();
+    dashCard.classList.add('hidden');
+    authCard.classList.remove('hidden');
+  });
+
   document.getElementById('pair-submit').addEventListener('click', async () => {
     const pairError = document.getElementById('pair-error');
     const pairMsg = document.getElementById('pair-msg');
+    const linkSuccess = document.getElementById('link-success');
     pairError.textContent = '';
     pairMsg.textContent = '';
+    linkSuccess.classList.remove('show');
     const code = document.getElementById('pair-code').value.trim();
     if (!code) { pairError.textContent = 'Enter the code shown on your mirror.'; return; }
 
@@ -197,28 +365,103 @@
       .insert({ device_id: deviceId, user_id: user.id, name: 'My Mirror' });
     if (insertErr) { pairError.textContent = insertErr.message; return; }
 
-    pairMsg.textContent = 'Mirror linked!';
     document.getElementById('pair-code').value = '';
+    document.getElementById('link-success-text').textContent = 'Mirror linked!';
+    linkSuccess.classList.add('show');
+    setTimeout(() => linkSuccess.classList.remove('show'), 3200);
     loadMirrors();
   });
 
+  // ── Helpers ──
+  function initialsFrom(email) {
+    if (!email) return '··';
+    const namePart = email.split('@')[0].replace(/[^a-zA-Z0-9._-]/g, '');
+    const chunks = namePart.split(/[._-]+/).filter(Boolean);
+    if (chunks.length >= 2) return (chunks[0][0] + chunks[1][0]).toUpperCase();
+    return namePart.slice(0, 2).toUpperCase();
+  }
+
+  function timeAgo(iso) {
+    if (!iso) return 'Never synced';
+    const diffMs = Date.now() - new Date(iso).getTime();
+    if (diffMs < 0) return 'Just now';
+    const min = Math.floor(diffMs / 60000);
+    if (min < 1) return 'Just now';
+    if (min < 60) return min + ' min ago';
+    const hr = Math.floor(min / 60);
+    if (hr < 24) return hr + ' hr ago';
+    const day = Math.floor(hr / 24);
+    if (day < 7) return day + 'd ago';
+    return new Date(iso).toLocaleDateString();
+  }
+
+  function isOnline(iso) {
+    if (!iso) return false;
+    return (Date.now() - new Date(iso).getTime()) < ONLINE_WINDOW_MS;
+  }
+
+  const mirrorIconSvg = `<svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6"><rect x="6" y="3" width="12" height="18" rx="6"></rect></svg>`;
+
+  const emptyStateSvg = `
+    <svg width="72" height="72" viewBox="0 0 72 72" fill="none">
+      <rect x="22" y="6" width="28" height="48" rx="12" stroke="#3a3a3a" stroke-width="2"/>
+      <path d="M28 6c0-2 2-4 4-4h8c2 0 4 2 4 4" stroke="#3a3a3a" stroke-width="2"/>
+      <circle cx="36" cy="30" r="5" stroke="#4a4a4a" stroke-width="1.6" stroke-dasharray="3 3"/>
+      <path d="M14 60c4-6 10-9 22-9s18 3 22 9" stroke="#2a2a2a" stroke-width="2" stroke-linecap="round"/>
+    </svg>`;
+
+  // ── Render mirrors, grouped by room when more than one room is set ──
   async function loadMirrors() {
     const list = document.getElementById('mirror-list');
     const { data, error } = await supabaseClient.from('mirrors').select('*').order('paired_at', { ascending: false });
     if (error) { list.innerHTML = ''; return; }
+
     if (!data || data.length === 0) {
-      list.innerHTML = '<p class="sub">No mirrors linked yet.</p>';
+      list.innerHTML = `
+        <div class="empty-state">
+          ${emptyStateSvg}
+          <div class="empty-title">No mirrors yet</div>
+          <div class="empty-sub">Link your first mirror below with the 6-digit code shown on its screen.</div>
+        </div>`;
       return;
     }
-    list.innerHTML = data.map(m => `
-      <div class="mirror-row" data-id="${m.id}">
-        <span><span class="name">${m.name}</span><span class="id">Mirror ${m.mirror_number ?? ''} · ${m.device_id}</span></span>
+
+    const rowHtml = (m) => {
+      const online = isOnline(m.last_seen_at);
+      return `
+      <div class="mirror-row" data-id="${m.id}" data-room="${m.room ? escapeAttr(m.room) : ''}">
+        <div class="mirror-icon">${mirrorIconSvg}</div>
+        <div class="mirror-main">
+          <div class="mirror-top">
+            <span class="name">${escapeHtml(m.name)}</span>
+            <span class="status-dot ${online ? 'online' : ''}" title="${online ? 'Online' : 'Offline'}"></span>
+          </div>
+          <span class="meta">${online ? 'Online' : 'Offline'} · Last synced ${timeAgo(m.last_seen_at)}</span>
+        </div>
         <span class="mirror-actions">
-          <button type="button" class="rename-btn">Rename</button>
+          <button type="button" class="rename-btn">Edit</button>
           <button type="button" class="danger remove-btn">Remove</button>
         </span>
-      </div>
-    `).join('');
+      </div>`;
+    };
+
+    // Group by room only if at least one mirror has a room set.
+    const hasRooms = data.some(m => m.room);
+    if (!hasRooms) {
+      list.innerHTML = data.map(rowHtml).join('');
+    } else {
+      const groups = {};
+      data.forEach(m => {
+        const key = m.room || 'Unassigned';
+        (groups[key] = groups[key] || []).push(m);
+      });
+      list.innerHTML = Object.keys(groups).sort((a, b) => a === 'Unassigned' ? 1 : a.localeCompare(b)).map(room => `
+        <div class="room-group">
+          <div class="room-title">${escapeHtml(room)}</div>
+          ${groups[room].map(rowHtml).join('')}
+        </div>
+      `).join('');
+    }
 
     list.querySelectorAll('.rename-btn').forEach(btn => {
       btn.addEventListener('click', () => startRename(btn.closest('.mirror-row')));
@@ -228,21 +471,35 @@
     });
   }
 
+  function escapeHtml(str) {
+    return String(str ?? '').replace(/[&<>"']/g, c => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
+  }
+  function escapeAttr(str) { return escapeHtml(str); }
+
   function startRename(row) {
     const id = row.dataset.id;
     const currentName = row.querySelector('.name').textContent;
+    const currentRoom = row.dataset.room || '';
     row.innerHTML = `
-      <input class="rename-input" type="text" value="${currentName}">
-      <span class="mirror-actions">
-        <button type="button" class="save-btn">Save</button>
-        <button type="button" class="cancel-btn">Cancel</button>
-      </span>
+      <div style="width:100%">
+        <input class="rename-input" type="text" value="${escapeAttr(currentName)}" placeholder="Mirror name">
+        <select class="room-select">
+          <option value="">No room</option>
+          ${['Bedroom','Bathroom','Entryway','Living Room','Closet'].map(r =>
+            `<option value="${r}" ${r === currentRoom ? 'selected' : ''}>${r}</option>`).join('')}
+        </select>
+        <span class="mirror-actions" style="margin-top:8px">
+          <button type="button" class="save-btn">Save</button>
+          <button type="button" class="cancel-btn">Cancel</button>
+        </span>
+      </div>
     `;
     row.querySelector('.cancel-btn').addEventListener('click', loadMirrors);
     row.querySelector('.save-btn').addEventListener('click', async () => {
       const newName = row.querySelector('.rename-input').value.trim();
+      const newRoom = row.querySelector('.room-select').value;
       if (!newName) return;
-      await supabaseClient.from('mirrors').update({ name: newName }).eq('id', id);
+      await supabaseClient.from('mirrors').update({ name: newName, room: newRoom || null }).eq('id', id);
       loadMirrors();
     });
   }
@@ -259,6 +516,8 @@
     const { data: { user } } = await supabaseClient.auth.getUser();
     if (!user) return;
     document.getElementById('user-email').textContent = user.email;
+    document.getElementById('user-name').textContent = user.email.split('@')[0];
+    document.getElementById('user-avatar').textContent = initialsFrom(user.email);
     authCard.classList.add('hidden');
     dashCard.classList.remove('hidden');
     loadMirrors();
