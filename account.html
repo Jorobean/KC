@@ -3,7 +3,7 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width,initial-scale=1,maximum-scale=1,user-scalable=no,viewport-fit=cover">
-<title>My Mirror Account</title>
+<title>Mirror Account</title>
 <style>
   :root{
     --bg:#000; --card:#111; --card2:#161616; --card3:#1c1c1c; --text:#eee; --muted:#999; --muted2:#666;
@@ -102,7 +102,10 @@
   @media(prefers-reduced-motion:reduce){.link-success.show{animation:none}.check-circle svg{animation:none}}
 
   /* ── Account settings ── */
-  .settings-panel{border-top:1px solid var(--line);margin-top:22px;padding-top:18px}
+  .pair-row{display:flex;gap:8px;align-items:stretch}
+  .pair-row input{flex:1;min-width:0}
+  .pair-row button.primary{width:auto;flex:none;margin-top:0;padding:0 18px;white-space:nowrap}
+  .settings-panel{border-top:1px solid var(--line);border-bottom:1px solid var(--line);margin:16px 0 18px;padding:16px 0}
   .settings-row{border:1px solid var(--line);border-radius:12px;padding:14px;margin-bottom:10px;background:var(--card2)}
   .settings-row summary{list-style:none;cursor:pointer;display:flex;align-items:center;justify-content:space-between;
     font-size:13.5px;font-weight:600;color:var(--text)}
@@ -156,30 +159,27 @@
         <div class="name" id="user-name">My Mirrors</div>
         <div class="sub-email" id="user-email"></div>
       </div>
-      <button class="icon-btn" id="settings-toggle" title="Account settings" type="button">
+      <button class="icon-btn" id="settings-toggle" title="Account settings" type="button" aria-expanded="false">
         <svg width="17" height="17" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="3"></circle><path d="M19.4 15a1.65 1.65 0 0 0 .33 1.82l.06.06a2 2 0 1 1-2.83 2.83l-.06-.06a1.65 1.65 0 0 0-1.82-.33 1.65 1.65 0 0 0-1 1.51V21a2 2 0 0 1-4 0v-.09A1.65 1.65 0 0 0 9 19.4a1.65 1.65 0 0 0-1.82.33l-.06.06a2 2 0 1 1-2.83-2.83l.06-.06a1.65 1.65 0 0 0 .33-1.82 1.65 1.65 0 0 0-1.51-1H3a2 2 0 0 1 0-4h.09A1.65 1.65 0 0 0 4.6 9a1.65 1.65 0 0 0-.33-1.82l-.06-.06a2 2 0 1 1 2.83-2.83l.06.06a1.65 1.65 0 0 0 1.82.33H9a1.65 1.65 0 0 0 1-1.51V3a2 2 0 0 1 4 0v.09a1.65 1.65 0 0 0 1 1.51 1.65 1.65 0 0 0 1.82-.33l.06-.06a2 2 0 1 1 2.83 2.83l-.06.06a1.65 1.65 0 0 0-.33 1.82V9a1.65 1.65 0 0 0 1.51 1H21a2 2 0 0 1 0 4h-.09a1.65 1.65 0 0 0-1.51 1z"></path></svg>
       </button>
     </div>
 
-    <p class="section-label">Your mirrors</p>
-    <div id="mirror-list"></div>
-
-    <p class="section-label">Add a mirror</p>
-    <label for="pair-code">Pairing code</label>
-    <input id="pair-code" placeholder="6-digit code shown on your mirror" maxlength="6">
-    <button class="primary" id="pair-submit" type="button">Link Mirror</button>
-    <p class="error" id="pair-error"></p>
-    <p class="msg" id="pair-msg"></p>
-    <div class="link-success" id="link-success">
-      <span class="check-circle">
-        <svg width="14" height="14" viewBox="0 0 24 24" fill="none"><path d="M5 13l4 4L19 7" stroke="#06210f" stroke-width="3" stroke-linecap="round" stroke-linejoin="round" stroke-dasharray="16" stroke-dashoffset="16"></path></svg>
-      </span>
-      <span class="ls-text" id="link-success-text">Mirror linked!</span>
-    </div>
-
-    <!-- ACCOUNT SETTINGS -->
+    <!-- ACCOUNT SETTINGS (opens directly under the header, next to the gear that triggers it) -->
     <div class="settings-panel hidden" id="settings-panel">
       <p class="section-label" style="margin-top:0">Account settings</p>
+
+      <details class="settings-row">
+        <summary>Change name
+          <svg class="chev" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="9 18 15 12 9 6"></polyline></svg>
+        </summary>
+        <div class="settings-body">
+          <label for="new-name">Display name</label>
+          <input id="new-name" type="text" placeholder="Your name">
+          <button class="primary small" id="change-name-btn" type="button">Save Name</button>
+          <p class="error" id="name-error"></p>
+          <p class="msg" id="name-msg"></p>
+        </div>
+      </details>
 
       <details class="settings-row">
         <summary>Change password
@@ -206,11 +206,28 @@
       </details>
     </div>
 
+    <p class="section-label">Your mirrors</p>
+    <div id="mirror-list"></div>
+
+    <p class="section-label">Add a mirror</p>
+    <label for="pair-code">Pairing code</label>
+    <div class="pair-row">
+      <input id="pair-code" placeholder="KEMS ------" maxlength="6">
+      <button class="primary" id="pair-submit" type="button">Link Mirror</button>
+    </div>
+    <p class="error" id="pair-error"></p>
+    <p class="msg" id="pair-msg"></p>
+    <div class="link-success" id="link-success">
+      <span class="check-circle">
+        <svg width="14" height="14" viewBox="0 0 24 24" fill="none"><path d="M5 13l4 4L19 7" stroke="#06210f" stroke-width="3" stroke-linecap="round" stroke-linejoin="round" stroke-dasharray="16" stroke-dashoffset="16"></path></svg>
+      </span>
+      <span class="ls-text" id="link-success-text">Mirror linked!</span>
+    </div>
+
     <button class="signout" id="sign-out" type="button">Sign Out</button>
 
     <div class="dash-footer">
-      <a href="mailto:support@example.com">Contact support</a>
-      <a href="#" id="help-link">Help center</a>
+      <a href="mailto:help@getkems.com">Contact support</a>
     </div>
   </div>
 
@@ -287,6 +304,20 @@
   // ── Settings panel toggle ──
   document.getElementById('settings-toggle').addEventListener('click', () => {
     document.getElementById('settings-panel').classList.toggle('hidden');
+  });
+
+  // ── Change name ──
+  document.getElementById('change-name-btn').addEventListener('click', async () => {
+    const nameError = document.getElementById('name-error');
+    const nameMsg = document.getElementById('name-msg');
+    nameError.textContent = ''; nameMsg.textContent = '';
+    const newName = document.getElementById('new-name').value.trim();
+    if (!newName) { nameError.textContent = 'Enter a name.'; return; }
+    const { error } = await supabaseClient.auth.updateUser({ data: { full_name: newName } });
+    if (error) { nameError.textContent = error.message; return; }
+    nameMsg.textContent = 'Name updated.';
+    document.getElementById('user-name').textContent = newName;
+    document.getElementById('user-avatar').textContent = initialsFrom(newName);
   });
 
   // ── Change password ──
@@ -373,12 +404,12 @@
   });
 
   // ── Helpers ──
-  function initialsFrom(email) {
-    if (!email) return '··';
-    const namePart = email.split('@')[0].replace(/[^a-zA-Z0-9._-]/g, '');
-    const chunks = namePart.split(/[._-]+/).filter(Boolean);
+  function initialsFrom(value) {
+    if (!value) return '··';
+    const namePart = value.includes('@') ? value.split('@')[0] : value;
+    const chunks = namePart.trim().split(/[\s._-]+/).filter(Boolean);
     if (chunks.length >= 2) return (chunks[0][0] + chunks[1][0]).toUpperCase();
-    return namePart.slice(0, 2).toUpperCase();
+    return namePart.replace(/[^a-zA-Z0-9]/g, '').slice(0, 2).toUpperCase();
   }
 
   function timeAgo(iso) {
@@ -421,7 +452,7 @@
         <div class="empty-state">
           ${emptyStateSvg}
           <div class="empty-title">No mirrors yet</div>
-          <div class="empty-sub">Link your first mirror below with the 6-digit code shown on its screen.</div>
+          <div class="empty-sub">Link your first mirror below with the code shown on its screen.</div>
         </div>`;
       return;
     }
@@ -515,9 +546,11 @@
   async function showDashboard() {
     const { data: { user } } = await supabaseClient.auth.getUser();
     if (!user) return;
+    const displayName = user.user_metadata?.full_name || user.email.split('@')[0];
     document.getElementById('user-email').textContent = user.email;
-    document.getElementById('user-name').textContent = user.email.split('@')[0];
-    document.getElementById('user-avatar').textContent = initialsFrom(user.email);
+    document.getElementById('user-name').textContent = displayName;
+    document.getElementById('user-avatar').textContent = initialsFrom(displayName);
+    document.getElementById('new-name').value = user.user_metadata?.full_name || '';
     authCard.classList.add('hidden');
     dashCard.classList.remove('hidden');
     loadMirrors();
