@@ -96,7 +96,7 @@
   // ── Fill these in from Supabase Dashboard → Settings → API ──
   const SUPABASE_URL = 'https://qnrdrtlsitedelrzkdvd.supabase.co';
   const SUPABASE_ANON_KEY = 'sb_publishable_qXLe8UMrN62miUoIxZJoiQ_7tQfoapm';
-  const supabase = window.supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
+  const supabaseClient = window.supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
 
   const authCard = document.getElementById('auth-card');
   const dashCard = document.getElementById('dashboard-card');
@@ -126,11 +126,11 @@
     authSubmit.disabled = true;
     try {
       if (mode === 'login') {
-        const { error } = await supabase.auth.signInWithPassword({ email, password });
+        const { error } = await supabaseClient.auth.signInWithPassword({ email, password });
         if (error) throw error;
         await showDashboard();
       } else {
-        const { error } = await supabase.auth.signUp({ email, password });
+        const { error } = await supabaseClient.auth.signUp({ email, password });
         if (error) throw error;
         authMsg.textContent = 'Account created — check your email to confirm, then log in.';
       }
@@ -146,7 +146,7 @@
     authError.textContent = '';
     authMsg.textContent = '';
     if (!email) { authError.textContent = 'Enter your email above first.'; return; }
-    const { error } = await supabase.auth.resetPasswordForEmail(email, {
+    const { error } = await supabaseClient.auth.resetPasswordForEmail(email, {
       redirectTo: window.location.href,
     });
     if (error) authError.textContent = error.message;
@@ -154,7 +154,7 @@
   });
 
   document.getElementById('sign-out').addEventListener('click', async () => {
-    await supabase.auth.signOut();
+    await supabaseClient.auth.signOut();
     dashCard.classList.add('hidden');
     authCard.classList.remove('hidden');
   });
@@ -167,10 +167,10 @@
     const code = document.getElementById('pair-code').value.trim();
     if (!code) { pairError.textContent = 'Enter the code shown on your mirror.'; return; }
 
-    const { data: { user } } = await supabase.auth.getUser();
+    const { data: { user } } = await supabaseClient.auth.getUser();
 
     // Find the unclaimed pairing row with this code.
-    const { data: rows, error: findErr } = await supabase
+    const { data: rows, error: findErr } = await supabaseClient
       .from('pairing_codes')
       .select('device_id, claimed_at')
       .eq('code', code)
@@ -184,7 +184,7 @@
     const deviceId = rows[0].device_id;
 
     // Claim it: mark it claimed by this user.
-    const { error: claimErr } = await supabase
+    const { error: claimErr } = await supabaseClient
       .from('pairing_codes')
       .update({ user_id: user.id, claimed_at: new Date().toISOString() })
       .eq('code', code)
@@ -192,7 +192,7 @@
     if (claimErr) { pairError.textContent = claimErr.message; return; }
 
     // Register the mirror under this account.
-    const { error: insertErr } = await supabase
+    const { error: insertErr } = await supabaseClient
       .from('mirrors')
       .insert({ device_id: deviceId, user_id: user.id, name: 'My Mirror' });
     if (insertErr) { pairError.textContent = insertErr.message; return; }
@@ -204,7 +204,7 @@
 
   async function loadMirrors() {
     const list = document.getElementById('mirror-list');
-    const { data, error } = await supabase.from('mirrors').select('*').order('paired_at', { ascending: false });
+    const { data, error } = await supabaseClient.from('mirrors').select('*').order('paired_at', { ascending: false });
     if (error) { list.innerHTML = ''; return; }
     if (!data || data.length === 0) {
       list.innerHTML = '<p class="sub">No mirrors linked yet.</p>';
@@ -242,7 +242,7 @@
     row.querySelector('.save-btn').addEventListener('click', async () => {
       const newName = row.querySelector('.rename-input').value.trim();
       if (!newName) return;
-      await supabase.from('mirrors').update({ name: newName }).eq('id', id);
+      await supabaseClient.from('mirrors').update({ name: newName }).eq('id', id);
       loadMirrors();
     });
   }
@@ -251,12 +251,12 @@
     const id = row.dataset.id;
     const name = row.querySelector('.name')?.textContent || 'this mirror';
     if (!confirm(`Remove ${name} from your account?`)) return;
-    await supabase.from('mirrors').delete().eq('id', id);
+    await supabaseClient.from('mirrors').delete().eq('id', id);
     loadMirrors();
   }
 
   async function showDashboard() {
-    const { data: { user } } = await supabase.auth.getUser();
+    const { data: { user } } = await supabaseClient.auth.getUser();
     if (!user) return;
     document.getElementById('user-email').textContent = user.email;
     authCard.classList.add('hidden');
@@ -266,7 +266,7 @@
 
   // On load, check if already signed in (persisted session).
   (async () => {
-    const { data: { session } } = await supabase.auth.getSession();
+    const { data: { session } } = await supabaseClient.auth.getSession();
     if (session) await showDashboard();
   })();
 </script>
