@@ -712,6 +712,16 @@
   }
 
   let tasks = loadTasks();
+  tasks.forEach((t, i) => {
+    t.priority = normalizePriority(t.priority);
+    if(!Number.isFinite(t.order)) t.order = i;
+    if(typeof t.text === "string") t.text = cleanTaskText(t.text);
+    if(Array.isArray(t.subtasks)){
+      t.subtasks.forEach(s => {
+        if(typeof s.text === "string") s.text = cleanTaskText(s.text);
+      });
+    }
+  });
   let filter = "active";
   let theme = loadTheme();
   let searchQuery = "";
@@ -753,7 +763,26 @@
 
   function nextOrder(){
     if(!tasks.length) return 0;
-    return Math.max(...tasks.map(t => t.order || 0)) + 1;
+    return Math.max(...tasks.map(t => Number.isFinite(t.order) ? t.order : 0)) + 1;
+  }
+
+  function normalizePriority(p){
+    return p === "high" || p === "med" || p === "low" ? p : "";
+  }
+
+  // Priority is always the primary sort. Existing order is only used to keep
+  // tasks stable within the same priority level.
+  function prioritySort(a, b){
+    const pa = normalizePriority(a.priority);
+    const pb = normalizePriority(b.priority);
+    const rankDiff = priRank[pa] - priRank[pb];
+    if(rankDiff) return rankDiff;
+    return (Number.isFinite(a.order) ? a.order : 0) -
+           (Number.isFinite(b.order) ? b.order : 0);
+  }
+
+  function sortActiveTasks(list){
+    return list.sort(prioritySort);
   }
 
   function fmtDate(iso){
@@ -783,6 +812,17 @@
 
   function escapeHtml(s){
     return s.replace(/[&<>"']/g, c => ({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;","'":"&#39;"}[c]));
+  }
+
+  // Remove markdown/list markers from task text so pasted checklists render
+  // without an extra bullet/dot.
+  function cleanTaskText(value){
+    return String(value || "")
+      .trim()
+      .replace(/^[-*•·‣◦▪▫]\s+/, "")
+      .replace(/^\d+[.)]\s+/, "")
+      .replace(/^\[[ xX]\]\s+/, "")
+      .trim();
   }
 
   function rowHTML(t, draggable){
@@ -816,10 +856,8 @@
 
     const today = todayISO();
     const nonDone = tasks.filter(t => !t.done && matchesSearch(t));
-    const todayTasks = nonDone.filter(t => t.due === today)
-      .sort((a,b) => priRank[a.priority] - priRank[b.priority] || (a.order||0) - (b.order||0));
-    const todoTasks = nonDone.filter(t => t.due !== today)
-      .sort((a,b) => (a.order||0) - (b.order||0));
+    const todayTasks = sortActiveTasks(nonDone.filter(t => t.due === today));
+    const todoTasks = sortActiveTasks(nonDone.filter(t => t.due !== today));
     const doneTasks = tasks.filter(t => t.done && matchesSearch(t))
       .sort((a,b) => (b.completedAt||b.createdAt) - (a.completedAt||a.createdAt));
 
@@ -1155,30 +1193,30 @@
     flashBar(`Theme: ${PALETTES[theme].label}`);
   });
 
-  // Export as markdown
+  // Export complete task data.
+  // JSON preserves priority (and all other task metadata) instead of losing it
+  // in a Markdown export.
   document.getElementById("exportBtn").addEventListener("click", async () => {
-    const today = todayISO();
-    const active = tasks.filter(t => !t.done).sort((a,b) => (a.order||0) - (b.order||0));
-    const done = tasks.filter(t => t.done).sort((a,b) => (b.completedAt||b.createdAt) - (a.completedAt||a.createdAt));
-    const lines = [];
-    active.concat(done).forEach(t => {
-      lines.push(`- [${t.done ? "x" : " "}] ${t.text}`);
-      if(t.subtasks && t.subtasks.length){
-        t.subtasks.forEach(s => lines.push(`  - [${s.done ? "x" : " "}] ${s.text}`));
-      }
-    });
-    const md = lines.join("\n");
+    const payload = {
+      format: "todo-data",
+      version: 2,
+      exportedAt: new Date().toISOString(),
+      tasks: tasks
+    };
+
     try{
-      const blob = new Blob([md], { type: "text/markdown" });
+      const blob = new Blob([JSON.stringify(payload, null, 2)], {
+        type: "application/json"
+      });
       const url = URL.createObjectURL(blob);
       const a = document.createElement("a");
       a.href = url;
-      a.download = `tasks-${todayISO()}.md`;
+      a.download = `tasks-${todayISO()}.json`;
       document.body.appendChild(a);
       a.click();
       a.remove();
       setTimeout(() => URL.revokeObjectURL(url), 1000);
-      flashBar(`Downloaded ${active.length + done.length} tasks`);
+      flashBar(`Downloaded ${tasks.length} tasks with priority data`);
     }catch(e){
       flashBar("Couldn't create file");
     }
@@ -1381,11 +1419,11 @@
   // Auto-parsing add: a single line behaves like "New Task", multiple lines
   // (or a pasted checklist) auto-switch to a batch import, no separate menu needed.
   function parseBatchLine(line){
-    let m = line.match(/^[-*]\s*\[( |x|X)\]\s*(.+)$/);
-    if(m) return { text: m[2].trim(), done: m[1].toLowerCase() === "x" };
-    let m2 = line.match(/^[-*]\s+(.+)$/);
-    if(m2) return { text: m2[1].trim(), done: false };
-    return { text: line.trim(), done: false };
+    let m = line.match(/^[-*•·‣◦▪▫]\s*\[( |x|X)\]\s*(.+)$/);
+    if(m) return { text: cleanTaskText(m[2]), done: m[1].toLowerCase() === "x" };
+    let m2 = line.match(/^[-*•·‣◦▪▫]\s+(.+)$/);
+    if(m2) return { text: cleanTaskText(m2[1]), done: false };
+    return { text: cleanTaskText(line), done: false };
   }
   function parseBatch(raw){
     return raw.split("\n")
@@ -1471,7 +1509,7 @@
 
   saveBtn.addEventListener("click", () => {
     const raw = taskText.value;
-    const text = raw.trim();
+    const text = cleanTaskText(raw);
     if(!text) return;
     if(!editingId && isBatchInput(raw)){
       importBatch(raw);
@@ -1483,14 +1521,14 @@
       t.text = text;
       t.due = taskDate.value || "";
       t.notes = taskNotes.value.trim();
-      t.priority = selectedPri;
+      t.priority = normalizePriority(selectedPri);
       t.subtasks = editingSubtasks;
     } else {
       tasks.push({
         id: uid(),
         text,
         done: false,
-        priority: selectedPri,
+        priority: normalizePriority(selectedPri),
         due: taskDate.value || "",
         notes: taskNotes.value.trim(),
         subtasks: editingSubtasks,
