@@ -1569,6 +1569,144 @@
   render();
   syncBottomPadding();
 })();
+
+  // Drag-and-drop reordering
+  // Priority remains the primary sort. Dragging changes `order` only among
+  // tasks with the same priority, so a Low task cannot be dragged above High.
+  let draggedTaskId = null;
+  let dragOverTaskId = null;
+
+  function getTask(id){
+    return tasks.find(t => String(t.id) === String(id));
+  }
+
+  function reorderWithinPriority(draggedId, targetId){
+    const dragged = getTask(draggedId);
+    const target = getTask(targetId);
+    if(!dragged || !target || dragged.id === target.id) return;
+
+    const dp = normalizePriority(dragged.priority);
+    const tp = normalizePriority(target.priority);
+    if(dp !== tp) return;
+
+    const group = tasks
+      .filter(t => !t.done && normalizePriority(t.priority) === dp)
+      .sort(prioritySort);
+
+    const from = group.findIndex(t => String(t.id) === String(draggedId));
+    const to = group.findIndex(t => String(t.id) === String(targetId));
+    if(from < 0 || to < 0 || from === to) return;
+
+    const [moved] = group.splice(from, 1);
+    group.splice(to, 0, moved);
+
+    // Give the reordered group fresh sequential order values. This makes
+    // subsequent renders and downloads retain the visible order.
+    group.forEach((t, i) => {
+      t.order = i;
+    });
+
+    saveTasks();
+    render();
+  }
+
+  function clearDragState(){
+    document.querySelectorAll(".task-row.drag-over,.task-row.dragging")
+      .forEach(el => el.classList.remove("drag-over","dragging"));
+    draggedTaskId = null;
+    dragOverTaskId = null;
+  }
+
+  document.addEventListener("dragstart", e => {
+    const row = e.target.closest(".task-row[data-task-id]");
+    if(!row) return;
+    draggedTaskId = row.dataset.taskId;
+    row.classList.add("dragging");
+    if(e.dataTransfer){
+      e.dataTransfer.effectAllowed = "move";
+      e.dataTransfer.setData("text/plain", draggedTaskId);
+    }
+  });
+
+  document.addEventListener("dragover", e => {
+    const row = e.target.closest(".task-row[data-task-id]");
+    if(!row || !draggedTaskId) return;
+
+    const dragged = getTask(draggedTaskId);
+    const target = getTask(row.dataset.taskId);
+    if(!dragged || !target ||
+       normalizePriority(dragged.priority) !== normalizePriority(target.priority)){
+      return;
+    }
+
+    e.preventDefault();
+    dragOverTaskId = row.dataset.taskId;
+    document.querySelectorAll(".task-row.drag-over")
+      .forEach(el => el.classList.remove("drag-over"));
+    if(row.dataset.taskId !== draggedTaskId) row.classList.add("drag-over");
+  });
+
+  document.addEventListener("drop", e => {
+    const row = e.target.closest(".task-row[data-task-id]");
+    if(!row || !draggedTaskId) return;
+    e.preventDefault();
+
+    const targetId = row.dataset.taskId;
+    reorderWithinPriority(draggedTaskId, targetId);
+    clearDragState();
+  });
+
+  document.addEventListener("dragend", clearDragState);
+
+  // Touch support: native HTML5 drag-and-drop is unreliable on iPhone/iPad.
+  // Long-press a task, then drag it over another task of the same priority.
+  let touchTimer = null;
+  let touchDragRow = null;
+  let touchDragId = null;
+
+  document.addEventListener("touchstart", e => {
+    const row = e.target.closest(".task-row[data-task-id]");
+    if(!row) return;
+    touchDragRow = row;
+    touchDragId = row.dataset.taskId;
+
+    touchTimer = setTimeout(() => {
+      draggedTaskId = touchDragId;
+      touchDragRow.classList.add("dragging");
+    }, 450);
+  }, {passive:true});
+
+  document.addEventListener("touchmove", e => {
+    if(!draggedTaskId) return;
+    const touch = e.touches[0];
+    const el = document.elementFromPoint(touch.clientX, touch.clientY);
+    const row = el && el.closest(".task-row[data-task-id]");
+    if(!row) return;
+
+    const dragged = getTask(draggedTaskId);
+    const target = getTask(row.dataset.taskId);
+    if(!dragged || !target ||
+       normalizePriority(dragged.priority) !== normalizePriority(target.priority)){
+      return;
+    }
+
+    e.preventDefault();
+    document.querySelectorAll(".task-row.drag-over")
+      .forEach(x => x.classList.remove("drag-over"));
+    if(row.dataset.taskId !== draggedTaskId) row.classList.add("drag-over");
+    dragOverTaskId = row.dataset.taskId;
+  }, {passive:false});
+
+  document.addEventListener("touchend", () => {
+    clearTimeout(touchTimer);
+    if(draggedTaskId && dragOverTaskId){
+      reorderWithinPriority(draggedTaskId, dragOverTaskId);
+    }
+    clearDragState();
+    touchDragRow = null;
+    touchDragId = null;
+  }, {passive:true});
+
 </script>
 </body>
 </html>
