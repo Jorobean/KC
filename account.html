@@ -99,22 +99,7 @@
   .rename-input{width:100%;min-height:36px;margin-top:4px}
   .room-select{margin-top:8px;min-height:36px;font-size:13px}
 
-  /* ── Add mirror / link success ── */
-  .link-success{display:none;align-items:center;gap:10px;padding:12px;margin-top:10px;
-    background:rgba(61,220,132,.08);border:1px solid rgba(61,220,132,.3);border-radius:10px}
-  .link-success.show{display:flex;animation:pop-in .35s ease}
-  @keyframes pop-in{0%{transform:scale(.9);opacity:0}60%{transform:scale(1.02)}100%{transform:scale(1);opacity:1}}
-  .check-circle{flex:none;width:26px;height:26px;border-radius:50%;background:var(--online);
-    display:flex;align-items:center;justify-content:center}
-  .check-circle svg{animation:check-draw .4s ease .1s both}
-  @keyframes check-draw{from{stroke-dashoffset:16}to{stroke-dashoffset:0}}
-  .link-success .ls-text{font-size:13px;color:var(--success-strong-text)}
-  @media(prefers-reduced-motion:reduce){.link-success.show{animation:none}.check-circle svg{animation:none}}
-
   /* ── Account settings ── */
-  .pair-row{display:flex;gap:8px;align-items:stretch}
-  .pair-row input{flex:1;min-width:0}
-  .pair-row button.primary{width:auto;flex:none;margin-top:0;padding:0 18px;white-space:nowrap}
   .settings-panel{border-top:1px solid var(--line);border-bottom:1px solid var(--line);margin:16px 0 18px;padding:16px 0}
   .settings-row{border:1px solid var(--line);border-radius:12px;padding:14px;margin-bottom:10px;background:var(--card2)}
   .settings-row summary{list-style:none;cursor:pointer;display:flex;align-items:center;justify-content:space-between;
@@ -219,20 +204,7 @@
     <p class="section-label">Your mirrors</p>
     <div id="mirror-list"></div>
 
-    <p class="section-label">Add a mirror</p>
-    <label for="pair-code">Pairing code</label>
-    <div class="pair-row">
-      <input id="pair-code" placeholder="KEMS ------" maxlength="6">
-      <button class="primary" id="pair-submit" type="button">Link Mirror</button>
-    </div>
-    <p class="error" id="pair-error"></p>
-    <p class="msg" id="pair-msg"></p>
-    <div class="link-success" id="link-success">
-      <span class="check-circle">
-        <svg width="14" height="14" viewBox="0 0 24 24" fill="none"><path d="M5 13l4 4L19 7" stroke="#06210f" stroke-width="3" stroke-linecap="round" stroke-linejoin="round" stroke-dasharray="16" stroke-dashoffset="16"></path></svg>
-      </span>
-      <span class="ls-text" id="link-success-text">Mirror linked!</span>
-    </div>
+    <p class="tiny-note">To add a mirror, sign in to your account during that mirror's on-device setup — it'll appear here once linked.</p>
 
     <button class="signout" id="sign-out" type="button">Sign Out</button>
 
@@ -409,53 +381,6 @@
     authCard.classList.remove('hidden');
   });
 
-  document.getElementById('pair-submit').addEventListener('click', async () => {
-    const pairError = document.getElementById('pair-error');
-    const pairMsg = document.getElementById('pair-msg');
-    const linkSuccess = document.getElementById('link-success');
-    pairError.textContent = '';
-    pairMsg.textContent = '';
-    linkSuccess.classList.remove('show');
-    const code = document.getElementById('pair-code').value.trim();
-    if (!code) { pairError.textContent = 'Enter the code shown on your mirror.'; return; }
-
-    const { data: { user } } = await supabaseClient.auth.getUser();
-
-    // Find the unclaimed pairing row with this code.
-    const { data: rows, error: findErr } = await supabaseClient
-      .from('pairing_codes')
-      .select('device_id, claimed_at')
-      .eq('code', code)
-      .is('claimed_at', null)
-      .limit(1);
-
-    if (findErr || !rows || rows.length === 0) {
-      pairError.textContent = 'Invalid or expired code.';
-      return;
-    }
-    const deviceId = rows[0].device_id;
-
-    // Claim it: mark it claimed by this user.
-    const { error: claimErr } = await supabaseClient
-      .from('pairing_codes')
-      .update({ user_id: user.id, claimed_at: new Date().toISOString() })
-      .eq('code', code)
-      .is('claimed_at', null);
-    if (claimErr) { pairError.textContent = claimErr.message; return; }
-
-    // Register the mirror under this account.
-    const { error: insertErr } = await supabaseClient
-      .from('mirrors')
-      .insert({ device_id: deviceId, user_id: user.id, name: 'My Mirror' });
-    if (insertErr) { pairError.textContent = insertErr.message; return; }
-
-    document.getElementById('pair-code').value = '';
-    document.getElementById('link-success-text').textContent = 'Mirror linked!';
-    linkSuccess.classList.add('show');
-    setTimeout(() => linkSuccess.classList.remove('show'), 3200);
-    loadMirrors();
-  });
-
   // ── Helpers ──
   function initialsFrom(value) {
     if (!value) return '··';
@@ -505,7 +430,7 @@
         <div class="empty-state">
           ${emptyStateSvg}
           <div class="empty-title">No mirrors yet</div>
-          <div class="empty-sub">Link your first mirror below with the code shown on its screen.</div>
+          <div class="empty-sub">Sign in to your account during that mirror's on-device setup to link it here.</div>
         </div>`;
       return;
     }
