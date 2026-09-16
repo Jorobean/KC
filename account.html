@@ -7,17 +7,27 @@
 <style>
   :root{
     --bg:#000; --card:#111; --card2:#161616; --card3:#1c1c1c; --text:#eee; --muted:#999; --muted2:#666;
-    --line:#2a2a2a; --accent:#0d6efd; --accent-soft:rgba(13,110,253,.14);
+    --line:#2a2a2a; --line-hover:#3a3a3a; --accent:#0d6efd; --accent-soft:rgba(13,110,253,.14);
     --online:#3ddc84; --offline:#555; --danger:#dc3545; --danger-soft:rgba(220,53,69,.12);
+    --danger-border:#5a2020; --danger-text:#ff8080; --error-text:#ff6b6b; --success-text:#4caf50;
+    --success-strong-text:#eafff2;
+  }
+  body.light{
+    --bg:#efefef; --card:#fff; --card2:#f7f7f7; --card3:#f0f0f0; --text:#171716; --muted:#75756e; --muted2:#8a8a84;
+    --line:#dcdcd6; --line-hover:#b7b7b0; --accent:#4b4e52; --accent-soft:rgba(75,78,82,.12);
+    --online:#20894f; --offline:#9a9a9a; --danger:#c93645; --danger-soft:rgba(201,54,69,.1);
+    --danger-border:#e3b3b3; --danger-text:#c93645; --error-text:#c93645; --success-text:#20894f;
+    --success-strong-text:#0d5c34;
   }
   *{box-sizing:border-box}
-  html,body{background:#000}
-  body{margin:0;min-height:100vh;background:transparent;color:var(--text);
+  html,body{background:var(--bg)}
+  body{margin:0;min-height:100vh;background:var(--bg);color:var(--text);
     font-family:-apple-system,'SF Pro Text',system-ui,Arial,sans-serif;
     display:flex;align-items:center;justify-content:center;padding:24px;
     position:relative;overflow-x:hidden}
   .bg-pattern{position:fixed;inset:0;z-index:0;width:100%;height:100%;object-fit:cover;
     animation:bg-pattern-drift 32s ease-in-out infinite;transform-origin:center}
+  body.light .bg-pattern{opacity:.18;filter:grayscale(1) invert(1)}
   @keyframes bg-pattern-drift{0%{transform:translate(0%,0%) scale(1.04) rotate(0deg)}20%{transform:translate(1.1%,-0.7%) scale(1.07) rotate(.3deg)}40%{transform:translate(1.8%,.5%) scale(1.1) rotate(.15deg)}60%{transform:translate(.5%,1.2%) scale(1.07) rotate(-.25deg)}80%{transform:translate(-1.1%,.6%) scale(1.05) rotate(-.35deg)}100%{transform:translate(0%,0%) scale(1.04) rotate(0deg)}}
   @media(prefers-reduced-motion:reduce){.bg-pattern{animation:none}}
   .card{position:relative;z-index:1;width:100%;max-width:420px;background:var(--card);border:1px solid var(--line);
@@ -38,8 +48,8 @@
     background:var(--accent);color:#fff;font:600 15px inherit;cursor:pointer}
   button.primary:disabled{opacity:.5;cursor:default}
   button.primary.small{min-height:38px;margin-top:10px;font-size:13px}
-  .error{color:#ff6b6b;font-size:13px;margin:10px 0 0;min-height:0}
-  .msg{color:#4caf50;font-size:13px;margin:10px 0 0;min-height:0}
+  .error{color:var(--error-text);font-size:13px;margin:10px 0 0;min-height:0}
+  .msg{color:var(--success-text);font-size:13px;margin:10px 0 0;min-height:0}
   .hidden{display:none !important}
 
   /* ── Header ── */
@@ -52,7 +62,7 @@
   .dash-header-text .sub-email{font-size:12px;color:var(--muted);overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
   .icon-btn{flex:none;width:36px;height:36px;border-radius:9px;border:1px solid var(--line);background:var(--card2);
     color:var(--muted);cursor:pointer;display:flex;align-items:center;justify-content:center}
-  .icon-btn:hover{color:var(--text);border-color:#3a3a3a}
+  .icon-btn:hover{color:var(--text);border-color:var(--line-hover)}
 
   /* ── Section label ── */
   .section-label{font-size:11px;letter-spacing:.02em;color:var(--muted2);margin:22px 0 10px;font-weight:600}
@@ -71,7 +81,7 @@
   .room-title:first-child{margin-top:0}
   .mirror-row{display:flex;align-items:center;gap:12px;padding:12px;margin-bottom:8px;
     background:var(--card2);border:1px solid var(--line);border-radius:12px;transition:border-color .15s}
-  .mirror-row:hover{border-color:#3a3a3a}
+  .mirror-row:hover{border-color:var(--line-hover)}
   .mirror-icon{flex:none;width:38px;height:38px;border-radius:9px;background:var(--card3);
     display:flex;align-items:center;justify-content:center;color:var(--muted)}
   .mirror-main{min-width:0;flex:1}
@@ -83,8 +93,8 @@
   .mirror-actions{display:flex;gap:6px;flex:none}
   .mirror-actions button{background:transparent;border:1px solid var(--line);color:var(--muted);
     border-radius:8px;min-height:30px;padding:0 10px;font-size:12px;cursor:pointer}
-  .mirror-actions button:hover{color:var(--text);border-color:#3a3a3a}
-  .mirror-actions button.danger{color:#ff6b6b;border-color:#5a2020}
+  .mirror-actions button:hover{color:var(--text);border-color:var(--line-hover)}
+  .mirror-actions button.danger{color:var(--error-text);border-color:var(--danger-border)}
   .mirror-actions button.danger:hover{background:var(--danger-soft)}
   .rename-input{width:100%;min-height:36px;margin-top:4px}
   .room-select{margin-top:8px;min-height:36px;font-size:13px}
@@ -98,7 +108,7 @@
     display:flex;align-items:center;justify-content:center}
   .check-circle svg{animation:check-draw .4s ease .1s both}
   @keyframes check-draw{from{stroke-dashoffset:16}to{stroke-dashoffset:0}}
-  .link-success .ls-text{font-size:13px;color:#eafff2}
+  .link-success .ls-text{font-size:13px;color:var(--success-strong-text)}
   @media(prefers-reduced-motion:reduce){.link-success.show{animation:none}.check-circle svg{animation:none}}
 
   /* ── Account settings ── */
@@ -113,8 +123,8 @@
   .settings-row summary .chev{color:var(--muted);transition:transform .15s}
   .settings-row[open] summary .chev{transform:rotate(90deg)}
   .settings-row .settings-body{margin-top:12px}
-  .settings-row.danger-row{border-color:#5a2020}
-  .settings-row.danger-row summary{color:#ff8080}
+  .settings-row.danger-row{border-color:var(--danger-border)}
+  .settings-row.danger-row summary{color:var(--danger-text)}
   .tiny-note{font-size:11.5px;color:var(--muted2);margin-top:8px;line-height:1.5}
 
   .signout{margin-top:12px;background:transparent;border:1px solid var(--line);
@@ -233,6 +243,49 @@
 
 <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
 <script>
+  let forcedTheme = null; // set via postMessage when the parent frame is cross-origin
+
+  function readSiteTheme() {
+    if (forcedTheme === 'light' || forcedTheme === 'dark') return forcedTheme;
+    try {
+      const parentBody = window.parent !== window ? window.parent.document.body : null;
+      if (parentBody?.classList.contains('light')) return 'light';
+      if (parentBody?.classList.contains('dark')) return 'dark';
+    } catch (error) {} // cross-origin parent: fall through to other signals
+    try {
+      const savedTheme = localStorage.getItem('site-theme');
+      if (savedTheme === 'light' || savedTheme === 'dark') return savedTheme;
+    } catch (error) {}
+    return window.matchMedia('(prefers-color-scheme: dark)').matches ? 'dark' : 'light';
+  }
+
+  function applySiteTheme() {
+    document.body.classList.toggle('light', readSiteTheme() === 'light');
+  }
+
+  applySiteTheme();
+  window.addEventListener('storage', applySiteTheme);
+  window.addEventListener('pageshow', applySiteTheme); // re-check on back/forward-cache restore
+
+  // Same-origin iframe: watch the parent document's class directly.
+  try {
+    if (window.parent !== window) {
+      new MutationObserver(applySiteTheme).observe(window.parent.document.body, { attributes:true, attributeFilter:['class'] });
+    }
+  } catch (error) {} // cross-origin: MutationObserver access throws, handled via postMessage below
+
+  // Cross-origin iframe fallback: parent can broadcast { type:'site-theme', theme:'light'|'dark' }
+  window.addEventListener('message', (event) => {
+    const data = event.data;
+    if (data && data.type === 'site-theme' && (data.theme === 'light' || data.theme === 'dark')) {
+      forcedTheme = data.theme;
+      applySiteTheme();
+    }
+  });
+  try {
+    if (window.parent !== window) window.parent.postMessage({ type: 'site-theme-request' }, '*');
+  } catch (error) {}
+
   // ── Fill these in from Supabase Dashboard → Settings → API ──
   const SUPABASE_URL = 'https://qnrdrtlsitedelrzkdvd.supabase.co';
   const SUPABASE_ANON_KEY = 'sb_publishable_qXLe8UMrN62miUoIxZJoiQ_7tQfoapm';
