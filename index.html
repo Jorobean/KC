@@ -2,7 +2,7 @@
 <html lang="en">
 <head>
   <meta charset="UTF-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
   <meta name="description" content="KEMS (Kinetic Energy Management System) helps you capture everyday experiences, revisit meaningful moments, and turn them into something worth keeping or sharing.">
   <title>KEMS</title>
 
@@ -39,7 +39,7 @@
       box-sizing: border-box;
       display: flex;
       flex-direction: column;
-      padding-top: 72px;
+      padding-top: calc(72px + env(safe-area-inset-top, 0px));
     }
 
     .container {
@@ -82,7 +82,7 @@
 
     .header-account {
       position: fixed;
-      top: 18px;
+      top: calc(18px + env(safe-area-inset-top, 0px));
       right: 18px;
       z-index: 10;
     }
@@ -96,7 +96,8 @@
       font-weight: 700;
       letter-spacing: 0.08em;
       text-transform: uppercase;
-      opacity: 0.9;
+      opacity: 1;
+      -webkit-text-fill-color: var(--text);
     }
 
     .account-link:hover,
