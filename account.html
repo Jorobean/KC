@@ -23,7 +23,7 @@
   html,body{background:var(--bg)}
   body{margin:0;min-height:100vh;background:var(--bg);color:var(--text);
     font-family:-apple-system,'SF Pro Text',system-ui,Arial,sans-serif;
-    display:flex;align-items:center;justify-content:center;padding:24px;
+    display:flex;align-items:center;justify-content:center;padding:calc(64px + env(safe-area-inset-top,0px)) 24px calc(24px + env(safe-area-inset-bottom,0px));
     position:relative;overflow-x:hidden}
   .bg-pattern{position:fixed;inset:0;z-index:0;width:100%;height:100%;object-fit:cover;opacity:.5;
     animation:bg-pattern-drift 32s ease-in-out infinite;transform-origin:center}
@@ -57,12 +57,13 @@
   .avatar{width:44px;height:44px;border-radius:50%;flex:none;display:flex;align-items:center;justify-content:center;
     background:linear-gradient(145deg,var(--accent),#5b3df0);color:#fff;font-weight:700;font-size:15px;
     box-shadow:0 0 0 1px rgba(255,255,255,.06) inset}
+  .avatar{position:relative;overflow:hidden}
+  .avatar img{position:absolute;inset:0;width:100%;height:100%;object-fit:cover}
+  .home-link{position:absolute;top:calc(18px + env(safe-area-inset-top,0px));left:24px;z-index:2;color:var(--text);text-decoration:none;font-size:13px;min-height:28px;display:inline-flex;align-items:center;gap:6px}
+  .home-link:focus-visible{outline:2px solid var(--text);outline-offset:4px}
   .dash-header-text{min-width:0;flex:1}
   .dash-header-text .name{font-size:15px;font-weight:600;color:var(--text);overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
   .dash-header-text .sub-email{font-size:12px;color:var(--muted);overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
-  .icon-btn{flex:none;width:36px;height:36px;border-radius:9px;border:1px solid var(--line);background:var(--card2);
-    color:var(--muted);cursor:pointer;display:flex;align-items:center;justify-content:center}
-  .icon-btn:hover{color:var(--text);border-color:var(--line-hover)}
 
   /* ── Section label ── */
   .section-label{font-size:11px;letter-spacing:.02em;color:var(--muted2);margin:22px 0 10px;font-weight:600}
@@ -123,6 +124,7 @@
 </style>
 </head>
 <body>
+<a class="home-link" href="/" aria-label="Back to getkems.com">← getkems.com</a>
 <img class="bg-pattern" src="onboarding.png" alt="" aria-hidden="true">
 
   <!-- AUTH VIEW -->
@@ -154,13 +156,10 @@
         <div class="name" id="user-name">My Mirrors</div>
         <div class="sub-email" id="user-email"></div>
       </div>
-      <button class="icon-btn" id="settings-toggle" title="Account settings" type="button" aria-expanded="false">
-        <svg width="17" height="17" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="3"></circle><path d="M19.4 15a1.65 1.65 0 0 0 .33 1.82l.06.06a2 2 0 1 1-2.83 2.83l-.06-.06a1.65 1.65 0 0 0-1.82-.33 1.65 1.65 0 0 0-1 1.51V21a2 2 0 0 1-4 0v-.09A1.65 1.65 0 0 0 9 19.4a1.65 1.65 0 0 0-1.82.33l-.06.06a2 2 0 1 1-2.83-2.83l.06-.06a1.65 1.65 0 0 0 .33-1.82 1.65 1.65 0 0 0-1.51-1H3a2 2 0 0 1 0-4h.09A1.65 1.65 0 0 0 4.6 9a1.65 1.65 0 0 0-.33-1.82l-.06-.06a2 2 0 1 1 2.83-2.83l.06.06a1.65 1.65 0 0 0 1.82.33H9a1.65 1.65 0 0 0 1-1.51V3a2 2 0 0 1 4 0v.09a1.65 1.65 0 0 0 1 1.51 1.65 1.65 0 0 0 1.82-.33l.06-.06a2 2 0 1 1 2.83 2.83l-.06.06a1.65 1.65 0 0 0-.33 1.82V9a1.65 1.65 0 0 0 1.51 1H21a2 2 0 0 1 0 4h-.09a1.65 1.65 0 0 0-1.51 1z"></path></svg>
-      </button>
     </div>
 
-    <!-- ACCOUNT SETTINGS (opens directly under the header, next to the gear that triggers it) -->
-    <div class="settings-panel hidden" id="settings-panel">
+    <!-- Account settings are always visible below the header. -->
+    <div class="settings-panel" id="settings-panel">
       <p class="section-label" style="margin-top:0">Account settings</p>
 
       <details class="settings-row">
@@ -273,6 +272,9 @@
   const authSubmit = document.getElementById('auth-submit');
   const tabs = document.querySelectorAll('.tab');
   let mode = 'login';
+  let currentAccountUser = null;
+  let currentProfileAvatarUrl = '';
+  let dashboardRequest = 0;
 
   tabs.forEach(tab => tab.addEventListener('click', () => {
     tabs.forEach(t => t.classList.remove('active'));
@@ -321,14 +323,12 @@
   });
 
   document.getElementById('sign-out').addEventListener('click', async () => {
+    dashboardRequest++;
+    currentAccountUser = null;
+    currentProfileAvatarUrl = '';
     await supabaseClient.auth.signOut();
     dashCard.classList.add('hidden');
     authCard.classList.remove('hidden');
-  });
-
-  // ── Settings panel toggle ──
-  document.getElementById('settings-toggle').addEventListener('click', () => {
-    document.getElementById('settings-panel').classList.toggle('hidden');
   });
 
   // ── Change name ──
@@ -342,7 +342,7 @@
     if (error) { nameError.textContent = error.message; return; }
     nameMsg.textContent = 'Name updated.';
     document.getElementById('user-name').textContent = newName;
-    document.getElementById('user-avatar').textContent = initialsFrom(newName);
+    renderAccountAvatar(currentAccountUser, newName);
   });
 
   // ── Change password ──
@@ -521,17 +521,48 @@
     loadMirrors();
   }
 
+  function renderAccountAvatar(user, displayName) {
+    const avatar = document.getElementById('user-avatar');
+    const identity = user?.identities?.find(item => item.identity_data?.avatar_url || item.identity_data?.picture)?.identity_data;
+    const avatarUrl = currentProfileAvatarUrl || user?.user_metadata?.avatar_url || user?.user_metadata?.picture || identity?.avatar_url || identity?.picture || '';
+    avatar.dataset.imageUrl = avatarUrl;
+    const fallback = document.createElement('span');
+    fallback.textContent = initialsFrom(displayName);
+    avatar.replaceChildren(fallback);
+    if (!avatarUrl) return;
+    const image = document.createElement('img');
+    image.alt = '';
+    image.referrerPolicy = 'no-referrer';
+    image.addEventListener('load', () => {
+      if (currentAccountUser?.id === user.id && avatar.dataset.imageUrl === avatarUrl) avatar.replaceChildren(image);
+    }, { once: true });
+    image.src = avatarUrl;
+  }
+
   async function showDashboard() {
+    const request = ++dashboardRequest;
     const { data: { user } } = await supabaseClient.auth.getUser();
-    if (!user) return;
-    const displayName = user.user_metadata?.full_name || user.email.split('@')[0];
-    document.getElementById('user-email').textContent = user.email;
+    if (!user || request !== dashboardRequest) return;
+    currentAccountUser = user;
+    currentProfileAvatarUrl = '';
+    const displayName = user.user_metadata?.full_name || user.email?.split('@')[0] || 'My Account';
+    document.getElementById('user-email').textContent = user.email || '';
     document.getElementById('user-name').textContent = displayName;
-    document.getElementById('user-avatar').textContent = initialsFrom(displayName);
+    renderAccountAvatar(user, displayName);
     document.getElementById('new-name').value = user.user_metadata?.full_name || '';
     authCard.classList.add('hidden');
     dashCard.classList.remove('hidden');
     loadMirrors();
+    try {
+      const { data, error } = await supabaseClient.from('discover_profiles')
+        .select('avatar_url').eq('user_id', user.id).maybeSingle();
+      if (!error && data?.avatar_url && request === dashboardRequest && currentAccountUser?.id === user.id) {
+        currentProfileAvatarUrl = data.avatar_url;
+        renderAccountAvatar(user, document.getElementById('user-name').textContent);
+      }
+    } catch (_) {
+      // Metadata and identity images remain available if the profile cannot load.
+    }
   }
 
   // On load, check if already signed in (persisted session).
