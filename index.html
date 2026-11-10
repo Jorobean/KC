@@ -54,7 +54,6 @@
 
     main { flex: 1; display: flex; flex-direction: column; width: 100%; }
     .signup { box-sizing: border-box; width: calc(100% - 40px); max-width: 460px; margin: auto auto 0; padding: 40px 0 16px; line-height: 1.5; }
-    .signup h2 { margin: 0 0 12px; font: inherit; }
     .signup label[for="waitlist-email"] { position: absolute; width: 1px; height: 1px; padding: 0; margin: -1px; overflow: hidden; clip-path: inset(50%); white-space: nowrap; }
     .signup-fields { display: flex; gap: 8px; }
     .signup input, .signup button { box-sizing: border-box; min-height: 40px; padding: 9px 12px; border-radius: 6px; font: inherit; font-size: 13px; }
@@ -64,6 +63,8 @@
     .signup button:disabled { opacity: .6; cursor: wait; }
     .signup-trap { position: absolute; left: -9999px; }
     .signup-note { margin-top: 10px; font-size: 11px; opacity: .7; }
+    .mobile-break { display: none; }
+    @media (max-width: 480px) { .mobile-break { display: initial; } }
     #signup-status:not(:empty) { margin-top: 10px; font-size: 13px; }
 
     /* MOBILE — HARD EDGE CONTROL */
@@ -142,8 +143,7 @@
       <p><strong>KEMS</strong> (Kinetic Energy Management System) helps you capture everyday experiences, revisit meaningful moments, and turn them into something worth keeping or sharing. We’re building a more personal way to record, reflect, and create.</p>
     </section>
 
-    <section class="signup" aria-labelledby="signup-title">
-      <h2 id="signup-title">Be part of what’s next.</h2>
+    <section class="signup" aria-label="Early access signup">
       <form id="waitlist-form" method="post" action="https://qnrdrtlsitedelrzkdvd.supabase.co/functions/v1/kems-waitlist">
         <label for="waitlist-email">Email address</label>
         <div class="signup-fields">
@@ -151,7 +151,7 @@
           <button type="submit">Join the waitlist</button>
         </div>
         <div class="signup-trap" aria-hidden="true"><label for="signup-website">Website</label><input id="signup-website" name="website" tabindex="-1" autocomplete="off"></div>
-        <p class="signup-note">Sign up for KEMS early-access news. You can unsubscribe anytime.</p>
+        <p class="signup-note">Sign up for KEMS early-access news.<br class="mobile-break"> You can unsubscribe anytime.</p>
         <p id="signup-status" role="status" aria-live="polite"></p>
       </form>
     </section>
