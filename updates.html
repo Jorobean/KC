@@ -1,0 +1,103 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
+  <title>KEMS Updates | Early-access News</title>
+  <meta name="description" content="News from KEMS (Kinetic Energy Management System). Read about the early-access waitlist and the focus behind record, reflect and create.">
+  <link rel="canonical" href="https://getkems.com/updates.html">
+  <meta name="robots" content="index,follow,max-image-preview:large">
+  <meta property="og:type" content="article">
+  <meta property="og:site_name" content="KEMS">
+  <meta property="og:title" content="KEMS opens its early-access waitlist">
+  <meta property="og:description" content="A clearer introduction to KEMS and an invitation to receive early-access news.">
+  <meta property="og:url" content="https://getkems.com/updates.html">
+  <meta property="og:image" content="https://getkems.com/kems-logo2.png">
+  <meta property="og:image:alt" content="KEMS logo">
+  <meta name="twitter:card" content="summary">
+  <link rel="icon" href="mirror-icon2-192.png" type="image/png">
+  <script type="application/ld+json">
+{
+  "@context": "https://schema.org",
+  "@type": "NewsArticle",
+  "headline": "KEMS opens its early-access waitlist",
+  "datePublished": "2026-11-09",
+  "dateModified": "2026-11-09",
+  "mainEntityOfPage": "https://getkems.com/updates.html",
+  "author": {
+    "@type": "Organization",
+    "name": "KEMS",
+    "url": "https://getkems.com/"
+  },
+  "publisher": {
+    "@type": "Organization",
+    "name": "KEMS",
+    "url": "https://getkems.com/",
+    "logo": {
+      "@type": "ImageObject",
+      "url": "https://getkems.com/kems-logo2.png"
+    }
+  },
+  "image": "https://getkems.com/kems-logo2.png"
+}
+  </script>
+  <style>
+    :root { --bg:#f4f4f4; --card:#fff; --text:#222; }
+    body.dark { --bg:#010101; --card:#0b0b0b; --text:#e6eef6; }
+    * { box-sizing:border-box; }
+    body { margin:0; min-height:100svh; padding:calc(24px + env(safe-area-inset-top,0px)) 20px calc(24px + env(safe-area-inset-bottom,0px)); color:var(--text); background:var(--bg); font:16px/1.65 "Courier New",Courier,monospace; }
+    header, main, footer { max-width:760px; margin:auto; }
+    header { margin-bottom:24px; }
+    a { color:inherit; text-underline-offset:3px; }
+    a:focus-visible { outline:2px solid currentColor; outline-offset:4px; }
+    article { padding:28px; background:var(--card); border-radius:10px; }
+    h1 { font-size:clamp(22px,4vw,30px); line-height:1.35; margin:0 0 12px; }
+    h2 { font-size:18px; margin:28px 0 8px; }
+    p { margin:0 0 16px; }
+    p:last-child { margin-bottom:0; }
+    time { display:block; font-size:12px; margin-bottom:24px; }
+    footer { padding-top:32px; text-align:center; }
+    footer img { height:48px; width:auto; cursor:pointer; }
+    @media(max-width:480px) { body { padding-left:12px; padding-right:12px; } article { padding:20px; } }
+  </style>
+</head>
+<body>
+  <header><a href="/">← KEMS home</a></header>
+  <main>
+    <article aria-labelledby="update-title">
+      <h1 id="update-title">KEMS opens its early-access waitlist</h1>
+      <time datetime="2026-11-09">November 9, 2026</time>
+      <p>We’ve updated getkems.com with a clearer introduction to KEMS and opened an email waitlist for early-access news.</p>
+      <h2>What is KEMS?</h2>
+      <p><strong>KEMS (Kinetic Energy Management System)</strong> helps you capture everyday experiences, revisit meaningful moments, and turn them into something worth keeping or sharing. We’re building a more personal way to record, reflect, and create.</p>
+      <p>That focus brings together the moments you want to remember and the ideas you want to develop. An everyday experience can be worth returning to, whether you want to keep it for yourself or create something to share.</p>
+      <h2>What does joining the waitlist mean?</h2>
+      <p>The waitlist is for KEMS early-access news. Add your email address through the form on our homepage to receive updates. You can unsubscribe anytime.</p>
+      <p><a href="/#waitlist-form">Join the KEMS early-access waitlist</a>.</p>
+    </article>
+  </main>
+  <footer><img src="kems-logo2.png" alt="KEMS logo" id="footer-logo-toggle"></footer>
+  <script>
+    (function(){
+      const body = document.body;
+      const logo = document.getElementById('footer-logo-toggle');
+
+      function setTheme(t){
+        body.classList.remove('light','dark');
+        body.classList.add(t);
+        try { localStorage.setItem('site-theme', t); } catch(e){}
+        logo.src = t === 'dark' ? 'kems-logo1.png' : 'kems-logo2.png';
+      }
+
+      let saved;
+      try { saved = localStorage.getItem('site-theme'); } catch (_) {}
+      if (saved) setTheme(saved);
+      else setTheme(window.matchMedia('(prefers-color-scheme: dark)').matches ? 'dark' : 'light');
+
+      logo.addEventListener('click', () => {
+        setTheme(body.classList.contains('dark') ? 'light' : 'dark');
+      });
+    })();
+    </script>
+</body>
+</html>

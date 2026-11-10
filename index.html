@@ -4,7 +4,45 @@
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
   <meta name="description" content="KEMS (Kinetic Energy Management System) helps you capture everyday experiences, revisit meaningful moments, and turn them into something worth keeping or sharing.">
-  <title>KEMS</title>
+  <title>KEMS | Record, Reflect and Create</title>
+  <link rel="canonical" href="https://getkems.com/">
+  <meta name="robots" content="index,follow,max-image-preview:large">
+  <meta property="og:type" content="website">
+  <meta property="og:site_name" content="KEMS">
+  <meta property="og:title" content="KEMS | Record, Reflect and Create">
+  <meta property="og:description" content="KEMS (Kinetic Energy Management System) helps you capture everyday experiences, revisit meaningful moments, and turn them into something worth keeping or sharing.">
+  <meta property="og:url" content="https://getkems.com/">
+  <meta property="og:image" content="https://getkems.com/kems-logo2.png">
+  <meta property="og:image:alt" content="KEMS logo">
+  <meta name="twitter:card" content="summary">
+  <script type="application/ld+json">
+{
+  "@context": "https://schema.org",
+  "@graph": [
+    {
+      "@type": "Organization",
+      "@id": "https://getkems.com/#organization",
+      "name": "KEMS",
+      "alternateName": "Kinetic Energy Management System",
+      "url": "https://getkems.com/",
+      "logo": "https://getkems.com/kems-logo2.png"
+    },
+    {
+      "@type": "WebSite",
+      "@id": "https://getkems.com/#website",
+      "name": "KEMS",
+      "alternateName": [
+        "GetKEMS",
+        "Kinetic Energy Management System"
+      ],
+      "url": "https://getkems.com/",
+      "publisher": {
+        "@id": "https://getkems.com/#organization"
+      }
+    }
+  ]
+}
+  </script>
 
   <!-- iOS Home Screen Icon -->
   <link rel="apple-touch-icon" href="mirror-icon2-152.png">
@@ -112,8 +150,13 @@
       display: flex;
       align-items: center;
       justify-content: center;
+      flex-direction: column;
+      gap: 6px;
       pointer-events: none;
     }
+
+    .footer a { pointer-events: auto; color: var(--text); font-size: 11px; text-decoration: none; }
+    .footer a:hover { text-decoration: underline; }
 
     .footer img {
       height: 48px;
@@ -161,6 +204,7 @@
 
   <div class="footer">
     <img src="kems-logo2.png" alt="KEMS logo" id="footer-logo-toggle">
+    <a href="updates.html">Updates</a>
   </div>
 
   <script>
