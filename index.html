@@ -155,6 +155,7 @@
       pointer-events: none;
     }
 
+    .footer nav { display:flex; align-items:center; gap:20px; }
     .footer a { pointer-events: auto; color: var(--text); font-size: 11px; text-decoration: none; }
     .footer a:hover { text-decoration: underline; }
 
@@ -184,11 +185,11 @@
   </div>
 
   <main>
-    <section class="container introduction" aria-label="About KEMS">
+    <section class="container introduction" id="about" aria-label="About KEMS">
       <p><strong>KEMS</strong> (Kinetic Energy Management System) helps you capture everyday experiences, revisit meaningful moments, and turn them into something worth keeping or sharing. We’re building a more personal way to record, reflect, and create.</p>
     </section>
 
-    <section class="signup" aria-label="Early access signup">
+    <section class="signup" id="early-access" aria-label="Early access signup">
       <form id="waitlist-form" method="post" action="https://qnrdrtlsitedelrzkdvd.supabase.co/functions/v1/kems-waitlist">
         <label for="waitlist-email">Email address</label>
         <div class="signup-fields">
@@ -204,7 +205,7 @@
 
   <div class="footer">
     <img src="kems-logo2.png" alt="KEMS logo" id="footer-logo-toggle">
-    <a href="updates.html">Updates</a>
+    <nav aria-label="Footer"><a href="#about">About</a><a href="updates.html">Updates</a><a href="mailto:help@getkems.com">Contact</a></nav>
   </div>
 
   <script>
