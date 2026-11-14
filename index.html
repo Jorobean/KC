@@ -101,6 +101,7 @@
     .signup button:disabled { opacity: .6; cursor: wait; }
     .signup-trap { position: absolute; left: -9999px; }
     .signup-note { margin-top: 10px; font-size: 11px; opacity: .7; }
+    @media (max-width: 480px) { .signup-note { text-align: center; } }
     .mobile-break { display: none; }
     @media (max-width: 480px) { .mobile-break { display: initial; } }
     @media (max-width: 480px), (pointer: coarse) { .signup input { font-size: 16px; } }
@@ -157,7 +158,9 @@
       pointer-events: none;
     }
 
-    .footer nav { display:flex; align-items:center; gap:20px; }
+    .footer nav { display:flex; align-items:center; gap:12px; }
+    .footer .footer-separator { color: var(--text); font-size: 11px; }
+    .footer .copyright { color: var(--text); font-size: 10px; text-align: center; opacity: .7; }
     .footer a { pointer-events: auto; color: var(--text); font-size: 11px; text-decoration: none; }
     .footer a:is(:hover, :active, :focus, :visited) { text-decoration: none; }
 
@@ -207,8 +210,18 @@
 
   <div class="footer">
     <img src="kems-logo2.png" alt="KEMS logo" id="footer-logo-toggle">
-    <nav aria-label="Footer"><a href="updates.html">Updates</a><a href="mailto:help@getkems.com">Contact</a></nav>
+    <nav aria-label="Footer"><a href="updates.html">Updates</a><span class="footer-separator" aria-hidden="true">|</span><a href="mailto:help@getkems.com">Contact</a></nav>
+    <p class="copyright">Copyright © <span id="copyright-year">2026</span> KEMS Corp. All rights reserved.</p>
   </div>
+
+  <script>
+    (function updateCopyrightYear() {
+      const year = document.getElementById('copyright-year');
+      const refresh = () => { year.textContent = new Date().getFullYear(); };
+      refresh();
+      window.setInterval(refresh, 60 * 60 * 1000);
+    })();
+  </script>
 
   <script>
     document.getElementById('waitlist-form').addEventListener('submit', async function(event) {
