@@ -1,13 +1,14 @@
 (() => {
   const status = document.getElementById('card-status');
   const photo = document.getElementById('card-photo');
+  const brand = document.getElementById('card-brand');
   let theme;
   try { theme = localStorage.getItem('site-theme'); } catch (_) {}
   const dark = theme ? theme === 'dark' : matchMedia('(prefers-color-scheme: dark)').matches;
   document.body.classList.toggle('dark', dark);
-  photo.src = dark ? '/kems-logo1.png' : '/kems-logo2.png';
+  if (brand) brand.src = dark ? '/kems-logo1.png' : '/kems-logo2.png';
   let card = { company: 'KEMS', email: 'hello@getkems.com', website: 'https://getkems.com' };
-  const ready = fetch('card.json').then(response => {
+  const ready = fetch('card.json', { cache: 'no-store' }).then(response => {
     if (!response.ok) throw new Error('Card unavailable');
     return response.json();
   }).then(value => {
@@ -33,7 +34,7 @@
     if (card.email) addLink(card.email, `mailto:${card.email}`, ['mailto:']);
     if (card.phone) addLink(card.phone, `tel:${card.phone}`, ['tel:']);
     for (const link of card.links || []) addLink(link.label, link.url, ['https:']);
-  }).catch(() => { status.textContent = 'Showing the KEMS company contact.'; });
+  }).catch(() => {});
 
   document.getElementById('save-contact').addEventListener('click', async () => {
     await ready;
