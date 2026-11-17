@@ -12,9 +12,11 @@
     return response.json();
   }).then(value => {
     card = value;
-    document.getElementById('card-name').textContent = card.name || card.company || 'KEMS';
+    const name = document.getElementById('card-name');
+    name.textContent = card.name || '';
+    name.hidden = !card.name;
     document.getElementById('card-role').textContent = card.role || '';
-    document.getElementById('card-company').textContent = card.name ? card.company || '' : '';
+    document.querySelector('.identity').hidden = !card.role;
     if (card.photo) {
       const url = new URL(card.photo, location.href);
       if (url.protocol === 'https:') { photo.src = url.href; photo.classList.add('portrait'); }
@@ -30,7 +32,6 @@
     }
     if (card.email) addLink(card.email, `mailto:${card.email}`, ['mailto:']);
     if (card.phone) addLink(card.phone, `tel:${card.phone}`, ['tel:']);
-    if (card.website) addLink(new URL(card.website).hostname, card.website, ['https:']);
     for (const link of card.links || []) addLink(link.label, link.url, ['https:']);
   }).catch(() => { status.textContent = 'Showing the KEMS company contact.'; });
 
@@ -61,15 +62,6 @@
     status.textContent = 'Open the downloaded contact card to save it to your contacts.';
   });
 
-  document.getElementById('share-card').addEventListener('click', async () => {
-    const url = 'https://getkems.com/card.html';
-    try {
-      if (navigator.share) await navigator.share({ title: 'Connect with KEMS', url });
-      else { await navigator.clipboard.writeText(url); status.textContent = 'Card link copied.'; }
-    } catch (error) {
-      if (error.name !== 'AbortError') status.textContent = `Share this link: ${url}`;
-    }
-  });
   document.getElementById('show-contact-form').addEventListener('click', event => {
     const form = document.getElementById('contact-form'); form.hidden = !form.hidden;
     event.currentTarget.setAttribute('aria-expanded', String(!form.hidden));
