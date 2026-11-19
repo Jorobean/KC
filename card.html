@@ -21,12 +21,20 @@
     nav a { font-size:14px; text-decoration:none; }
     main { margin-top:36px; background:var(--card); border-radius:12px; padding:28px; box-shadow:0 6px 24px #0b0c0e0f; }
     #card-brand { display:block; width:110px; height:90px; object-fit:contain; margin:4px auto 20px; }
-    #card-photo { display:block; width:104px; height:104px; object-fit:contain; padding:14px; background:#000; border:1px solid var(--border); border-radius:50%; margin:0 auto 24px; }
+    #toggle-profile { display:block; width:144px; height:144px; padding:0; margin:0 auto 24px; border:0; border-radius:50%; background:transparent; cursor:pointer; }
+    #card-photo { display:block; width:144px; height:144px; object-fit:contain; padding:14px; background:#000; border:1px solid var(--border); border-radius:50%; margin:0; }
     #card-photo.portrait { object-fit:cover; padding:0; }
     h1 { text-align:center; font-size:28px; line-height:1.2; margin:0; overflow-wrap:anywhere; }
-    .identity { text-align:center; color:var(--muted); margin:8px 0 24px; }
-    .identity[hidden] { display:none; }
-    #card-links { display:grid; gap:12px; margin:24px 0; }
+    #personal-info { display:grid; grid-template-rows:0fr; opacity:0; transition:grid-template-rows 220ms ease,opacity 180ms ease; }
+    #personal-info.expanded { grid-template-rows:1fr; opacity:1; }
+    .profile-content { min-height:0; overflow:hidden; text-align:center; }
+    .profile-details { padding-bottom:24px; }
+    #card-role { color:var(--muted); margin:8px 0 0; }
+    #card-intro { margin:16px 0 0; font-size:14px; white-space:pre-line; overflow-wrap:anywhere; }
+    @media(prefers-reduced-motion:reduce) { #personal-info { transition:none; } }
+    #card-links { display:grid; gap:12px; margin:20px 0 0; }
+    #card-links:empty { display:none; }
+    #request-contact { margin-top:16px; }
     #card-links a { text-decoration:none; overflow-wrap:anywhere; }
     #card-links a:hover { text-decoration:underline; }
     .actions { display:grid; grid-template-columns:repeat(2,minmax(0,1fr)); gap:8px; }
@@ -52,16 +60,26 @@
     #card-qr { display:block; width:204px; max-width:100%; height:auto; border-radius:8px; }
     @media(max-width:360px) { body { padding-left:12px; padding-right:12px; } main { padding:22px; } }
   </style>
-  <script src="card.js?v=20261117-profile-circle" defer></script>
+  <script src="card.js?v=20261118-expand-profile" defer></script>
 </head>
 <body>
   <nav><a href="/" aria-label="Back">‹ Back</a></nav>
   <main>
     <img id="card-brand" src="/kems-logo2.png" alt="KEMS Corp">
-    <img id="card-photo" src="/mirror-icon-512.png" alt="KEMS profile logo">
-    <h1 id="card-name" hidden></h1>
-    <div class="identity" hidden><div id="card-role"></div></div>
-    <div id="card-links"><a href="mailto:hello@getkems.com">hello@getkems.com</a></div>
+    <button id="toggle-profile" type="button" aria-label="Show personal information" aria-expanded="false" aria-controls="personal-info">
+      <img id="card-photo" class="portrait" src="https://www.iadden.com/iadden.jpg" alt="iAdden">
+    </button>
+    <section id="personal-info" aria-label="Personal information" aria-hidden="true" inert>
+      <div class="profile-content">
+        <div class="profile-details">
+          <h1 id="card-name" hidden></h1>
+          <p id="card-role" hidden></p>
+          <p id="card-intro" hidden></p>
+          <div id="card-links"></div>
+          <button id="request-contact" class="secondary" type="button" aria-controls="contact-form">Request contact details</button>
+        </div>
+      </div>
+    </section>
     <div class="actions">
       <button id="save-contact" type="button">Save Contact</button>
       <button id="show-contact-form" class="secondary" type="button" aria-expanded="false" aria-controls="contact-form">Share your details</button>

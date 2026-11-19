@@ -1,10 +1,12 @@
 {
-  "name": "",
-  "role": "",
+  "name": "iAdden",
+  "role": "Founder of KEMS",
   "company": "KEMS",
   "email": "hello@getkems.com",
   "phone": "",
   "website": "https://getkems.com",
-  "photo": "",
-  "links": []
+  "photo": "https://www.iadden.com/iadden.jpg",
+  "links": [],
+  "intro": "I’m building KEMS, a more personal way to capture everyday experiences, revisit meaningful moments, and create something worth keeping or sharing.",
+  "instagram": "getkems"
 }

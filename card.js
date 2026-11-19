@@ -16,8 +16,12 @@
     const name = document.getElementById('card-name');
     name.textContent = card.name || '';
     name.hidden = !card.name;
-    document.getElementById('card-role').textContent = card.role || '';
-    document.querySelector('.identity').hidden = !card.role;
+    const role = document.getElementById('card-role');
+    role.textContent = card.role || '';
+    role.hidden = !card.role;
+    const intro = document.getElementById('card-intro');
+    intro.textContent = card.intro || '';
+    intro.hidden = !card.intro;
     if (card.photo) {
       const url = new URL(card.photo, location.href);
       if (url.protocol === 'https:') { photo.src = url.href; photo.classList.add('portrait'); }
@@ -31,10 +35,22 @@
       const link = document.createElement('a'); link.textContent = label; link.href = url.href;
       links.append(link);
     }
-    if (card.email) addLink(card.email, `mailto:${card.email}`, ['mailto:']);
-    if (card.phone) addLink(card.phone, `tel:${card.phone}`, ['tel:']);
+    if (card.instagram) {
+      const handle = card.instagram.replace(/^@/, '');
+      if (/^[A-Za-z0-9._]+$/.test(handle)) addLink(`@${handle}`, `https://www.instagram.com/${handle}/`, ['https:']);
+    }
     for (const link of card.links || []) addLink(link.label, link.url, ['https:']);
   }).catch(() => {});
+
+  document.getElementById('toggle-profile').addEventListener('click', event => {
+    const section = document.getElementById('personal-info');
+    const expanded = event.currentTarget.getAttribute('aria-expanded') !== 'true';
+    event.currentTarget.setAttribute('aria-expanded', String(expanded));
+    event.currentTarget.setAttribute('aria-label', expanded ? 'Hide personal information' : 'Show personal information');
+    section.classList.toggle('expanded', expanded);
+    section.setAttribute('aria-hidden', String(!expanded));
+    section.inert = !expanded;
+  });
 
   document.getElementById('save-contact').addEventListener('click', async () => {
     await ready;
@@ -44,7 +60,6 @@
     if (card.company) lines.push(`ORG:${escape(card.company)}`);
     if (card.role) lines.push(`TITLE:${escape(card.role)}`);
     if (card.email) lines.push(`EMAIL;TYPE=INTERNET:${escape(card.email)}`);
-    if (card.phone) lines.push(`TEL:${escape(card.phone)}`);
     if (card.website) lines.push(`URL:${escape(card.website)}`);
     lines.push('END:VCARD');
     const content = lines.map(line => {
@@ -67,6 +82,17 @@
     const form = document.getElementById('contact-form'); form.hidden = !form.hidden;
     event.currentTarget.setAttribute('aria-expanded', String(!form.hidden));
     if (!form.hidden) form.scrollIntoView({ behavior: matchMedia('(prefers-reduced-motion: reduce)').matches ? 'instant' : 'smooth', block: 'start' });
+  });
+  document.getElementById('request-contact').addEventListener('click', () => {
+    const form = document.getElementById('contact-form');
+    form.hidden = false;
+    document.getElementById('show-contact-form').setAttribute('aria-expanded', 'true');
+    const note = form.elements.note;
+    const request = 'I’d like to request your contact details.';
+    if (!note.value.includes(request)) note.value = [note.value, request].filter(Boolean).join('\n');
+    form.dispatchEvent(new Event('input', { bubbles: true }));
+    form.scrollIntoView({ behavior: matchMedia('(prefers-reduced-motion: reduce)').matches ? 'instant' : 'smooth', block: 'start' });
+    form.elements.name.focus({ preventScroll: true });
   });
   let submissionId;
   document.getElementById('contact-form').addEventListener('input', () => { submissionId = undefined; });
