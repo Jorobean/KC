@@ -34,8 +34,8 @@
     @media(prefers-reduced-motion:reduce) { #personal-info { transition:none; } }
     #card-links { display:grid; gap:12px; margin:20px 0 0; }
     #card-links:empty { display:none; }
-    #request-contact { margin-top:16px; }
-    #card-links a { text-decoration:none; overflow-wrap:anywhere; }
+    #card-links a { display:inline-flex; align-items:center; justify-content:center; gap:8px; text-decoration:none; overflow-wrap:anywhere; }
+    #card-links svg { width:20px; height:20px; flex:none; }
     #card-links a:hover { text-decoration:underline; }
     .actions { display:grid; grid-template-columns:repeat(2,minmax(0,1fr)); gap:8px; }
     .actions button { min-width:0; padding:12px 4px; font-size:clamp(10px,3.2vw,12px); white-space:nowrap; }
@@ -60,14 +60,14 @@
     #card-qr { display:block; width:204px; max-width:100%; height:auto; border-radius:8px; }
     @media(max-width:360px) { body { padding-left:12px; padding-right:12px; } main { padding:22px; } }
   </style>
-  <script src="card.js?v=20261118-expand-profile" defer></script>
+  <script src="card.js?v=20261118-personal-card" defer></script>
 </head>
 <body>
   <nav><a href="/" aria-label="Back">‹ Back</a></nav>
   <main>
     <img id="card-brand" src="/kems-logo2.png" alt="KEMS Corp">
     <button id="toggle-profile" type="button" aria-label="Show personal information" aria-expanded="false" aria-controls="personal-info">
-      <img id="card-photo" class="portrait" src="https://www.iadden.com/iadden.jpg" alt="iAdden">
+      <img id="card-photo" src="/mirror-icon-512.png" alt="Mirror">
     </button>
     <section id="personal-info" aria-label="Personal information" aria-hidden="true" inert>
       <div class="profile-content">
@@ -76,7 +76,6 @@
           <p id="card-role" hidden></p>
           <p id="card-intro" hidden></p>
           <div id="card-links"></div>
-          <button id="request-contact" class="secondary" type="button" aria-controls="contact-form">Request contact details</button>
         </div>
       </div>
     </section>
@@ -95,7 +94,6 @@
       <div class="trap" aria-hidden="true"><label for="contact-website">Website</label><input id="contact-website" name="website" tabindex="-1" autocomplete="off"></div>
       <label class="consent"><input name="join_waitlist" type="checkbox"><span>Join the KEMS waitlist for updates and early access. You can unsubscribe anytime.</span></label>
       <button type="submit">Share details</button>
-      <p class="form-note">Your details will be shared with KEMS and stored in its contact list.</p>
       <p id="contact-status" class="status" role="status" aria-live="polite"></p>
     </form>
     <div class="sharing">
